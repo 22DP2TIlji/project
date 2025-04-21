@@ -36,6 +36,12 @@ export default function Header() {
               <Link href="/" className="text-gray-700 hover:text-gray-900 hover:underline py-2">
                 Home
               </Link>
+              <Link href="/popular-sights" className="text-gray-700 hover:text-gray-900 hover:underline py-2">
+                Popular Sights
+              </Link>
+              <Link href="/itinerary" className="text-gray-700 hover:text-gray-900 hover:underline py-2">
+                Itinerary Planner
+              </Link>
               <Link href="/projects" className="text-gray-700 hover:text-gray-900 hover:underline py-2">
                 Projects
               </Link>
@@ -94,6 +100,20 @@ export default function Header() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Home
+              </Link>
+              <Link
+                href="/popular-sights"
+                className="text-gray-700 hover:text-gray-900 py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Popular Sights
+              </Link>
+              <Link
+                href="/itinerary"
+                className="text-gray-700 hover:text-gray-900 py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Itinerary Planner
               </Link>
               <Link
                 href="/projects"
@@ -189,4 +209,3 @@ export default function Header() {
     </header>
   )
 }
-
