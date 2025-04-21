@@ -29,12 +29,17 @@ export default function LoginModal({ isOpen, onClose, onSignupClick }: LoginModa
       return
     }
 
-    const success = login(email, password)
+    try {
+      const success = login(email, password)
 
-    if (success) {
-      onClose()
-    } else {
-      setError("Invalid email or password")
+      if (success) {
+        onClose()
+      } else {
+        setError("Invalid email or password")
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      setError("An error occurred during login. Please try again.")
     }
   }
 
@@ -102,4 +107,3 @@ export default function LoginModal({ isOpen, onClose, onSignupClick }: LoginModa
     </div>
   )
 }
-

@@ -39,9 +39,13 @@ export default function ItineraryPage() {
     setIsClient(true)
 
     // Load saved itineraries from localStorage
-    const saved = localStorage.getItem("savedItineraries")
-    if (saved) {
-      setSavedItineraries(JSON.parse(saved))
+    try {
+      const saved = localStorage.getItem("savedItineraries")
+      if (saved) {
+        setSavedItineraries(JSON.parse(saved))
+      }
+    } catch (error) {
+      console.error("Error loading saved itineraries:", error)
     }
   }, [])
 
@@ -53,43 +57,48 @@ export default function ItineraryPage() {
 
   // Calculate a simple route (in a real app, you'd use a routing API)
   const calculateRoute = () => {
-    let start = getCoordinates(startPoint)
-    let end = getCoordinates(endPoint)
+    try {
+      let start = getCoordinates(startPoint)
+      let end = getCoordinates(endPoint)
 
-    // If using custom points, parse them
-    if (startPoint === "custom" && customStartPoint) {
-      const [lat, lng] = customStartPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
-      if (!isNaN(lat) && !isNaN(lng)) {
-        start = [lat, lng]
+      // If using custom points, parse them
+      if (startPoint === "custom" && customStartPoint) {
+        const [lat, lng] = customStartPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
+        if (!isNaN(lat) && !isNaN(lng)) {
+          start = [lat, lng]
+        }
       }
-    }
 
-    if (endPoint === "custom" && customEndPoint) {
-      const [lat, lng] = customEndPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
-      if (!isNaN(lat) && !isNaN(lng)) {
-        end = [lat, lng]
+      if (endPoint === "custom" && customEndPoint) {
+        const [lat, lng] = customEndPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
+        if (!isNaN(lat) && !isNaN(lng)) {
+          end = [lat, lng]
+        }
       }
-    }
 
-    if (!start || !end) {
-      alert("Please select valid start and end points")
-      return
-    }
+      if (!start || !end) {
+        alert("Please select valid start and end points")
+        return
+      }
 
-    // Calculate a straight line route (simplified)
-    const newRoute = {
-      startPoint:
-        startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
-      endPoint: endPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === endPoint)?.name,
-      startCoords: start,
-      endCoords: end,
-      // Simple distance calculation (in km)
-      distance: calculateDistance(start[0], start[1], end[0], end[1]),
-      // Estimate time (assuming 60 km/h average speed)
-      time: calculateDistance(start[0], start[1], end[0], end[1]) / 60,
-    }
+      // Calculate a straight line route (simplified)
+      const newRoute = {
+        startPoint:
+          startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
+        endPoint: endPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === endPoint)?.name,
+        startCoords: start,
+        endCoords: end,
+        // Simple distance calculation (in km)
+        distance: calculateDistance(start[0], start[1], end[0], end[1]),
+        // Estimate time (assuming 60 km/h average speed)
+        time: calculateDistance(start[0], start[1], end[0], end[1]) / 60,
+      }
 
-    setRoute(newRoute)
+      setRoute(newRoute)
+    } catch (error) {
+      console.error("Error calculating route:", error)
+      alert("An error occurred while calculating the route. Please try again.")
+    }
   }
 
   // Calculate distance between two points using Haversine formula
@@ -111,25 +120,35 @@ export default function ItineraryPage() {
 
   // Save the current itinerary
   const saveItinerary = () => {
-    if (!route) return
+    try {
+      if (!route) return
 
-    const newItinerary = {
-      id: Date.now().toString(),
-      ...route,
-      date: new Date().toISOString(),
+      const newItinerary = {
+        id: Date.now().toString(),
+        ...route,
+        date: new Date().toISOString(),
+      }
+
+      const updatedItineraries = [...savedItineraries, newItinerary]
+      setSavedItineraries(updatedItineraries)
+      localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
+      alert("Itinerary saved successfully!")
+    } catch (error) {
+      console.error("Error saving itinerary:", error)
+      alert("An error occurred while saving the itinerary. Please try again.")
     }
-
-    const updatedItineraries = [...savedItineraries, newItinerary]
-    setSavedItineraries(updatedItineraries)
-    localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
-    alert("Itinerary saved successfully!")
   }
 
   // Delete a saved itinerary
   const deleteItinerary = (id: string) => {
-    const updatedItineraries = savedItineraries.filter((itinerary) => itinerary.id !== id)
-    setSavedItineraries(updatedItineraries)
-    localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
+    try {
+      const updatedItineraries = savedItineraries.filter((itinerary) => itinerary.id !== id)
+      setSavedItineraries(updatedItineraries)
+      localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
+    } catch (error) {
+      console.error("Error deleting itinerary:", error)
+      alert("An error occurred while deleting the itinerary. Please try again.")
+    }
   }
 
   return (
