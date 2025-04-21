@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { Search, Clock, Navigation } from "lucide-react"
 
-// Dynamically import the Map component with no SSR to avoid hydration issues
+// Dynamically import the Map component with no SSR
 const ItineraryMap = dynamic(() => import("@/components/itinerary-map"), {
   ssr: false,
   loading: () => (
@@ -32,9 +32,13 @@ export default function ItineraryPage() {
   const [customEndPoint, setCustomEndPoint] = useState("")
   const [route, setRoute] = useState<any>(null)
   const [savedItineraries, setSavedItineraries] = useState<any[]>([])
+  const [isClient, setIsClient] = useState(false)
 
-  // Load saved itineraries from localStorage
+  // Set isClient to true when component mounts
   useEffect(() => {
+    setIsClient(true)
+
+    // Load saved itineraries from localStorage
     const saved = localStorage.getItem("savedItineraries")
     if (saved) {
       setSavedItineraries(JSON.parse(saved))
@@ -258,7 +262,7 @@ export default function ItineraryPage() {
                 )}
               </div>
 
-              {savedItineraries.length > 0 && (
+              {isClient && savedItineraries.length > 0 && (
                 <div className="mt-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">
                   <h2 className="text-2xl font-light mb-4">Saved Itineraries</h2>
                   <div className="space-y-3">
@@ -285,7 +289,7 @@ export default function ItineraryPage() {
             </div>
 
             <div className="md:col-span-2">
-              <ItineraryMap route={route} destinations={popularDestinations} />
+              {isClient && <ItineraryMap route={route} destinations={popularDestinations} />}
             </div>
           </div>
         </div>
