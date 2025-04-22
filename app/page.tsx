@@ -20,6 +20,8 @@ export default function Home() {
   }, [user])
 
   const loadLikedDestinations = () => {
+    if (!isClient) return
+
     try {
       if (user) {
         // Get user's likes from localStorage

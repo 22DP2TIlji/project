@@ -1,4 +1,21 @@
 ﻿/** @type {import('next').NextConfig} */
-const nextConfig = {};
-
-module.exports = nextConfig;
+const nextConfig = {
+    reactStrictMode: true,
+    swcMinify: true,
+    images: {
+      domains: ["localhost"],
+      unoptimized: true,
+    },
+    experimental: {
+      appDir: true,
+    },
+    eslint: {
+      ignoreDuringBuilds: true,
+    },
+    typescript: {
+      ignoreBuildErrors: true,
+    },
+  }
+  
+  module.exports = nextConfig
+  

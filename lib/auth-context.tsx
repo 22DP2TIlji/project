@@ -24,17 +24,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setIsClient(true)
     // Check if user is logged in on mount
-    try {
-      const storedUser = localStorage.getItem("currentUser")
-      if (storedUser) {
-        setUser(JSON.parse(storedUser))
+    if (typeof window !== "undefined") {
+      try {
+        const storedUser = localStorage.getItem("currentUser")
+        if (storedUser) {
+          setUser(JSON.parse(storedUser))
+        }
+      } catch (error) {
+        console.error("Error loading user from localStorage:", error)
       }
-    } catch (error) {
-      console.error("Error loading user from localStorage:", error)
     }
   }, [])
 
   const login = (email: string, password: string): boolean => {
+    if (!isClient) return false
+
     try {
       // Get users from localStorage
       const users = JSON.parse(localStorage.getItem("users") || "[]")
@@ -68,6 +72,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signup = (name: string, email: string, password: string): boolean => {
+    if (!isClient) return false
+
     try {
       // Get existing users
       const users = JSON.parse(localStorage.getItem("users") || "[]")
@@ -112,10 +118,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem("currentUser")
+    if (isClient) {
+      localStorage.removeItem("currentUser")
+    }
   }
 
   const migrateLocalLikes = (userId: string) => {
+    if (!isClient) return
+
     try {
       // Get local likes
       const localLikes = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
@@ -143,11 +153,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Error migrating likes:", error)
     }
-  }
-
-  // Only render children when on client-side to avoid hydration issues
-  if (!isClient) {
-    return null
   }
 
   return <AuthContext.Provider value={{ user, login, signup, logout }}>{children}</AuthContext.Provider>
