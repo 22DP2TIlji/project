@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:clean": "taskkill /F /IM node.exe && npm run dev"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
