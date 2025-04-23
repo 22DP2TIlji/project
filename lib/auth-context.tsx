@@ -8,8 +8,13 @@ import React, {
   ReactNode,
 } from 'react';
 
+interface User {
+  id: string;
+  name: string;
+}
+
 interface AuthContextType {
-  user: { name: string } | null;
+  user: User | null;
   login: () => void;
   logout: () => void;
 }
@@ -17,11 +22,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<{ name: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const login = () => {
     // TODO: replace with real auth logic
-    setUser({ name: 'Guest' });
+    setUser({ id: 'guest-' + Math.random().toString(36).substring(2, 9), name: 'Guest' });
   };
   const logout = () => {
     setUser(null);

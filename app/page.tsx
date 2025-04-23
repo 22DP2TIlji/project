@@ -13,18 +13,31 @@ export default function Home() {
   const { user } = useAuth()
   const [likedDestinations, setLikedDestinations] = useState<Record<string, LikedDestination>>({})
   const [isClient, setIsClient] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     setIsClient(true)
     loadLikedDestinations()
-  }, [user])
+    
+    const handleStorageChange = () => {
+      loadLikedDestinations()
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    
+    window.addEventListener('likesUpdated', handleStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('likesUpdated', handleStorageChange)
+    }
+  }, [user, refreshKey])
 
   const loadLikedDestinations = () => {
     if (!isClient) return
 
     try {
       if (user) {
-        // Get user's likes from localStorage
         const users = JSON.parse(localStorage.getItem("users") || "[]")
         const currentUser = users.find((u: any) => u.id === user.id)
 
@@ -33,7 +46,6 @@ export default function Home() {
           return
         }
       } else {
-        // Get anonymous likes from localStorage
         const savedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
         setLikedDestinations(savedDestinations)
       }
@@ -41,6 +53,10 @@ export default function Home() {
       console.error("Error loading liked destinations:", error)
       setLikedDestinations({})
     }
+  }
+
+  const refreshLikedDestinations = () => {
+    setRefreshKey(prev => prev + 1)
   }
 
   return (

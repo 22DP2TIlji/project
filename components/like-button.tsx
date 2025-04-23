@@ -80,6 +80,9 @@ export default function LikeButton({ destinationId, destinationName }: LikeButto
     }
 
     setIsLiked(!isLiked)
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new Event('likesUpdated'))
   }
 
   return (
