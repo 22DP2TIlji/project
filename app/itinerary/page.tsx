@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
-import { Search, Clock, Navigation } from "lucide-react"
+import { Search, Clock, Navigation, Car, Footprints } from "lucide-react"
 
 // Dynamically import the Map component with no SSR
 const ItineraryMap = dynamic(() => import("@/components/itinerary-map"), {
@@ -25,14 +25,24 @@ const popularDestinations = [
   { id: "ventspils", name: "Ventspils", coordinates: [57.3894, 21.5606] },
 ]
 
+// Transportation modes with average speeds in km/h
+const transportModes = [
+  { id: "car", name: "Car", icon: Car, speed: 60 },
+  { id: "walking", name: "Walking", icon: Footprints, speed: 5 },
+]
+
 export default function ItineraryPage() {
   const [startPoint, setStartPoint] = useState("")
   const [endPoint, setEndPoint] = useState("")
   const [customStartPoint, setCustomStartPoint] = useState("")
   const [customEndPoint, setCustomEndPoint] = useState("")
+  const [startAddress, setStartAddress] = useState("")
+  const [endAddress, setEndAddress] = useState("")
+  const [transportMode, setTransportMode] = useState("car")
   const [route, setRoute] = useState<any>(null)
   const [savedItineraries, setSavedItineraries] = useState<any[]>([])
   const [isClient, setIsClient] = useState(false)
+  const [isGeocoding, setIsGeocoding] = useState(false)
 
   // Set isClient to true when component mounts
   useEffect(() => {
@@ -55,8 +65,73 @@ export default function ItineraryPage() {
     return destination ? destination.coordinates : null
   }
 
-  // Calculate a simple route (in a real app, you'd use a routing API)
-  const calculateRoute = () => {
+  // Geocode address to coordinates
+  const geocodeAddress = async (address: string) => {
+    if (!address) return null
+    
+    setIsGeocoding(true)
+    try {
+      // In a real app, you would use a geocoding service like OpenStreetMap Nominatim
+      // For this example, we'll use a more sophisticated approach to simulate geocoding
+      
+      // First, check if the address contains a city name from our popular destinations
+      const cityMatch = popularDestinations.find(dest => 
+        address.toLowerCase().includes(dest.name.toLowerCase())
+      )
+      
+      if (cityMatch) {
+        // If the address contains a known city, use its coordinates with a small random offset
+        // to simulate a specific address within that city
+        const lat = cityMatch.coordinates[0] + (Math.random() * 0.02 - 0.01)
+        const lng = cityMatch.coordinates[1] + (Math.random() * 0.02 - 0.01)
+        console.log(`Geocoded address "${address}" to coordinates near ${cityMatch.name}: [${lat}, ${lng}]`)
+        return [lat, lng]
+      }
+      
+      // If no city match, try to extract a street name and number
+      const streetMatch = address.match(/(\d+)\s+([A-Za-z\s]+)/)
+      if (streetMatch) {
+        // If we found a street number and name, use a more deterministic approach
+        const streetNumber = parseInt(streetMatch[1])
+        const streetName = streetMatch[2].trim().toLowerCase()
+        
+        // Use the street number to generate a deterministic offset
+        // This ensures the same address always gets the same coordinates
+        const latOffset = (streetNumber % 100) / 1000
+        const lngOffset = ((streetNumber * 7) % 100) / 1000
+        
+        // Use Riga as the base city if no specific city is mentioned
+        const baseCity = popularDestinations.find(dest => dest.id === "riga") || popularDestinations[0]
+        const lat = baseCity.coordinates[0] + latOffset
+        const lng = baseCity.coordinates[1] + lngOffset
+        
+        console.log(`Geocoded address "${address}" to coordinates: [${lat}, ${lng}]`)
+        return [lat, lng]
+      }
+      
+      // If we couldn't extract any useful information, use a more structured approach
+      // Generate coordinates based on the address string itself
+      const addressHash = address.split('').reduce((hash, char) => {
+        return char.charCodeAt(0) + ((hash << 5) - hash)
+      }, 0)
+      
+      // Use the hash to generate deterministic coordinates within Latvia
+      // Latvia is roughly between 55.7-58.1°N and 20.5-28.2°E
+      const lat = 56.5 + (Math.abs(addressHash) % 15) / 10
+      const lng = 24.0 + (Math.abs(addressHash * 7) % 42) / 10
+      
+      console.log(`Geocoded address "${address}" to coordinates: [${lat}, ${lng}]`)
+      return [lat, lng]
+    } catch (error) {
+      console.error("Error geocoding address:", error)
+      return null
+    } finally {
+      setIsGeocoding(false)
+    }
+  }
+
+  // Calculate a route (in a real app, you'd use a routing API)
+  const calculateRoute = async () => {
     try {
       let start = getCoordinates(startPoint)
       let end = getCoordinates(endPoint)
@@ -76,22 +151,48 @@ export default function ItineraryPage() {
         }
       }
 
+      // If using address input, geocode the addresses
+      if (startPoint === "address" && startAddress) {
+        start = await geocodeAddress(startAddress)
+      }
+
+      if (endPoint === "address" && endAddress) {
+        end = await geocodeAddress(endAddress)
+      }
+
       if (!start || !end) {
         alert("Please select valid start and end points")
         return
       }
 
+      // Get the selected transport mode
+      const selectedMode = transportModes.find(mode => mode.id === transportMode)
+      const speed = selectedMode ? selectedMode.speed : 60 // Default to car speed
+
       // Calculate a straight line route (simplified)
+      const distance = calculateDistance(start[0], start[1], end[0], end[1])
+      const timeInHours = distance / speed
+      const timeInMinutes = Math.round(timeInHours * 60)
+
       const newRoute = {
         startPoint:
-          startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
-        endPoint: endPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === endPoint)?.name,
+          startPoint === "custom" 
+            ? "Custom location" 
+            : startPoint === "address" 
+              ? startAddress 
+              : popularDestinations.find((d) => d.id === startPoint)?.name,
+        endPoint: 
+          endPoint === "custom" 
+            ? "Custom location" 
+            : endPoint === "address" 
+              ? endAddress 
+              : popularDestinations.find((d) => d.id === endPoint)?.name,
         startCoords: start,
         endCoords: end,
-        // Simple distance calculation (in km)
-        distance: calculateDistance(start[0], start[1], end[0], end[1]),
-        // Estimate time (assuming 60 km/h average speed)
-        time: calculateDistance(start[0], start[1], end[0], end[1]) / 60,
+        distance: distance,
+        time: timeInHours,
+        timeInMinutes: timeInMinutes,
+        transportMode: transportMode,
       }
 
       setRoute(newRoute)
@@ -151,6 +252,20 @@ export default function ItineraryPage() {
     }
   }
 
+  // Format time for display
+  const formatTime = (hours: number) => {
+    const wholeHours = Math.floor(hours)
+    const minutes = Math.round((hours - wholeHours) * 60)
+    
+    if (wholeHours === 0) {
+      return `${minutes} minutes`
+    } else if (minutes === 0) {
+      return `${wholeHours} ${wholeHours === 1 ? 'hour' : 'hours'}`
+    } else {
+      return `${wholeHours} ${wholeHours === 1 ? 'hour' : 'hours'} ${minutes} minutes`
+    }
+  }
+
   return (
     <>
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
@@ -184,7 +299,8 @@ export default function ItineraryPage() {
                         {dest.name}
                       </option>
                     ))}
-                    <option value="custom">Custom location</option>
+                    <option value="custom">Custom coordinates</option>
+                    <option value="address">Enter address</option>
                   </select>
                 </div>
 
@@ -198,7 +314,23 @@ export default function ItineraryPage() {
                       id="customStartPoint"
                       value={customStartPoint}
                       onChange={(e) => setCustomStartPoint(e.target.value)}
-                      placeholder="e.g. 56.9496, 24.1052"
+                      placeholder="56.9496, 24.1052"
+                      className="w-full p-3 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                )}
+
+                {startPoint === "address" && (
+                  <div className="mb-4">
+                    <label htmlFor="startAddress" className="block mb-2 text-sm font-medium">
+                      Starting Address
+                    </label>
+                    <input
+                      type="text"
+                      id="startAddress"
+                      value={startAddress}
+                      onChange={(e) => setStartAddress(e.target.value)}
+                      placeholder="Enter starting address"
                       className="w-full p-3 border border-gray-300 rounded-md"
                     />
                   </div>
@@ -206,7 +338,7 @@ export default function ItineraryPage() {
 
                 <div className="mb-4">
                   <label htmlFor="endPoint" className="block mb-2 text-sm font-medium">
-                    Destination
+                    End Point
                   </label>
                   <select
                     id="endPoint"
@@ -214,103 +346,191 @@ export default function ItineraryPage() {
                     onChange={(e) => setEndPoint(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-md"
                   >
-                    <option value="">Select destination</option>
+                    <option value="">Select end point</option>
                     {popularDestinations.map((dest) => (
                       <option key={`end-${dest.id}`} value={dest.id}>
                         {dest.name}
                       </option>
                     ))}
-                    <option value="custom">Custom location</option>
+                    <option value="custom">Custom coordinates</option>
+                    <option value="address">Enter address</option>
                   </select>
                 </div>
 
                 {endPoint === "custom" && (
                   <div className="mb-4">
                     <label htmlFor="customEndPoint" className="block mb-2 text-sm font-medium">
-                      Custom Destination (lat, lng)
+                      Custom End Point (lat, lng)
                     </label>
                     <input
                       type="text"
                       id="customEndPoint"
                       value={customEndPoint}
                       onChange={(e) => setCustomEndPoint(e.target.value)}
-                      placeholder="e.g. 57.3119, 25.2749"
+                      placeholder="56.9715, 23.7408"
                       className="w-full p-3 border border-gray-300 rounded-md"
                     />
                   </div>
                 )}
 
-                <button
-                  onClick={calculateRoute}
-                  className="w-full py-3 px-4 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors flex items-center justify-center"
-                  disabled={!startPoint || !endPoint}
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  Calculate Route
-                </button>
-
-                {route && (
-                  <div className="mt-6 p-4 bg-gray-50 rounded-md">
-                    <h3 className="font-medium mb-2">Route Details</h3>
-                    <p className="text-sm mb-1">
-                      <strong>From:</strong> {route.startPoint}
-                    </p>
-                    <p className="text-sm mb-1">
-                      <strong>To:</strong> {route.endPoint}
-                    </p>
-                    <div className="flex items-center text-sm mb-1">
-                      <Navigation className="w-4 h-4 mr-1" />
-                      <span>
-                        <strong>Distance:</strong> {route.distance} km
-                      </span>
-                    </div>
-                    <div className="flex items-center text-sm mb-3">
-                      <Clock className="w-4 h-4 mr-1" />
-                      <span>
-                        <strong>Est. Time:</strong> {Math.floor(route.time)} hours {Math.round((route.time % 1) * 60)}{" "}
-                        minutes
-                      </span>
-                    </div>
-                    <button
-                      onClick={saveItinerary}
-                      className="w-full py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                    >
-                      Save Itinerary
-                    </button>
+                {endPoint === "address" && (
+                  <div className="mb-4">
+                    <label htmlFor="endAddress" className="block mb-2 text-sm font-medium">
+                      End Address
+                    </label>
+                    <input
+                      type="text"
+                      id="endAddress"
+                      value={endAddress}
+                      onChange={(e) => setEndAddress(e.target.value)}
+                      placeholder="Enter end address"
+                      className="w-full p-3 border border-gray-300 rounded-md"
+                    />
                   </div>
                 )}
-              </div>
 
-              {isClient && savedItineraries.length > 0 && (
-                <div className="mt-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                  <h2 className="text-2xl font-light mb-4">Saved Itineraries</h2>
-                  <div className="space-y-3">
-                    {savedItineraries.map((itinerary) => (
-                      <div key={itinerary.id} className="p-3 border border-gray-200 rounded-md">
-                        <div className="flex justify-between">
-                          <h4 className="font-medium">
-                            {itinerary.startPoint} to {itinerary.endPoint}
-                          </h4>
-                          <button onClick={() => deleteItinerary(itinerary.id)} className="text-red-500 text-sm">
-                            Delete
-                          </button>
-                        </div>
-                        <p className="text-sm text-gray-600">{new Date(itinerary.date).toLocaleDateString()}</p>
-                        <p className="text-sm">
-                          {itinerary.distance} km • {Math.floor(itinerary.time)} hours{" "}
-                          {Math.round((itinerary.time % 1) * 60)} minutes
-                        </p>
-                      </div>
-                    ))}
+                <div className="mb-6">
+                  <label className="block mb-2 text-sm font-medium">
+                    Transportation Mode
+                  </label>
+                  <div className="flex space-x-4">
+                    {transportModes.map((mode) => {
+                      const Icon = mode.icon
+                      return (
+                        <label 
+                          key={mode.id} 
+                          className={`flex items-center space-x-2 p-3 border rounded-md cursor-pointer ${
+                            transportMode === mode.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="transportMode"
+                            value={mode.id}
+                            checked={transportMode === mode.id}
+                            onChange={(e) => setTransportMode(e.target.value)}
+                            className="sr-only"
+                          />
+                          <Icon className={`w-5 h-5 ${transportMode === mode.id ? 'text-blue-500' : 'text-gray-500'}`} />
+                          <span className={transportMode === mode.id ? 'text-blue-500' : 'text-gray-700'}>
+                            {mode.name}
+                          </span>
+                        </label>
+                      )
+                    })}
                   </div>
                 </div>
-              )}
+
+                <button
+                  onClick={calculateRoute}
+                  className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  disabled={isGeocoding}
+                >
+                  {isGeocoding ? "Processing..." : "Calculate Route"}
+                </button>
+              </div>
             </div>
 
             <div className="md:col-span-2">
-              {isClient && <ItineraryMap route={route} destinations={popularDestinations} />}
+              {route ? (
+                <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-8">
+                  <h2 className="text-2xl font-light mb-4">Route Details</h2>
+                  <div className="grid md:grid-cols-2 gap-4 mb-6">
+                    <div className="p-4 bg-gray-50 rounded-md">
+                      <h3 className="text-lg font-medium mb-2">From</h3>
+                      <p>{route.startPoint}</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-md">
+                      <h3 className="text-lg font-medium mb-2">To</h3>
+                      <p>{route.endPoint}</p>
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-3 gap-4 mb-6">
+                    <div className="p-4 bg-gray-50 rounded-md text-center">
+                      <Navigation className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                      <h3 className="text-lg font-medium">Distance</h3>
+                      <p>{route.distance} km</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-md text-center">
+                      <Clock className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                      <h3 className="text-lg font-medium">Time</h3>
+                      <p>{formatTime(route.time)}</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-md text-center">
+                      {transportMode === "car" ? (
+                        <Car className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                      ) : (
+                        <Footprints className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                      )}
+                      <h3 className="text-lg font-medium">Mode</h3>
+                      <p className="capitalize">{route.transportMode}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={saveItinerary}
+                    className="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    Save Itinerary
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-8 text-center">
+                  <p className="text-gray-500">Calculate a route to see details here</p>
+                </div>
+              )}
+
+              <ItineraryMap route={route} destinations={popularDestinations} />
             </div>
           </div>
+
+          {savedItineraries.length > 0 && (
+            <div className="mt-16">
+              <h2 className="text-3xl font-light mb-6">Saved Itineraries</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {savedItineraries.map((itinerary) => (
+                  <div key={itinerary.id} className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-xl font-medium">
+                        {itinerary.startPoint} → {itinerary.endPoint}
+                      </h3>
+                      <button
+                        onClick={() => deleteItinerary(itinerary.id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Distance</p>
+                        <p className="font-medium">{itinerary.distance} km</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Time</p>
+                        <p className="font-medium">{formatTime(itinerary.time)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Mode</p>
+                        <p className="font-medium capitalize">{itinerary.transportMode}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Date</p>
+                        <p className="font-medium">
+                          {new Date(itinerary.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setRoute(itinerary)}
+                      className="w-full py-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-colors"
+                    >
+                      View on Map
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
     </>
