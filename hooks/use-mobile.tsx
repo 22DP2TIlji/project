@@ -1,4 +1,6 @@
-import * as React from "react"
+
+'use client'
+import React, { useReducer } from 'react'
 
 const MOBILE_BREAKPOINT = 768
 

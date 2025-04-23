@@ -1,3 +1,6 @@
+'use client'
+import React, { useReducer } from 'react'
+
 import { MapPin, Calendar, Compass, Users, Briefcase, Phone } from "lucide-react"
 
 export default function Services() {

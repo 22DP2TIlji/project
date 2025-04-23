@@ -1,3 +1,6 @@
+'use client'
+import React, { useReducer } from 'react'
+
 import Link from "next/link"
 
 export default function Footer() {

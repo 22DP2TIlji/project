@@ -1,3 +1,6 @@
+'use client'
+import React, { useReducer } from 'react'
+
 import { Mail, MapPin, Phone } from "lucide-react"
 
 export default function Contact() {

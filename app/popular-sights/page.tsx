@@ -1,4 +1,6 @@
-"use client"
+'use client'
+import React, { useReducer } from 'react'
+
 
 import LikeButton from "@/components/like-button"
 

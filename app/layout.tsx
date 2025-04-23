@@ -1,17 +1,21 @@
-﻿import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
-import { AuthProvider } from "@/lib/auth-context"
+﻿// app/layout.tsx
+import './globals.css'
+import { Inter } from 'next/font/google'
+import type { Metadata } from 'next'
+import dynamic from 'next/dynamic'
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ['latin'] })
 
+// ✅ Metadata is allowed now (since this stays a Server Component)
 export const metadata: Metadata = {
-  title: "Travellatvia - Your Dream Adventure",
-  description: "Discover the beauty of Latvia with our travel guides and services",
+  title: 'Travellatvia – Your Dream Adventure',
+  description: 'Discover the beauty of Latvia with our travel guides and services',
 }
+
+// ✅ Dynamically load ClientNavbar so layout stays a Server Component
+const ClientNavbar = dynamic(() => import('./components/ClientNavbar'), {
+  ssr: false,
+})
 
 export default function RootLayout({
   children,
@@ -19,13 +23,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>
-          <Header />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
-        </AuthProvider>
+    <html lang="en" className={inter.className}>
+      <body>
+        <ClientNavbar />
+        {children}
       </body>
     </html>
   )

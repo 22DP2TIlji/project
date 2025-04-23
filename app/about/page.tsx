@@ -1,3 +1,6 @@
+'use client'
+import React, { useReducer } from 'react'
+
 export default function About() {
   return (
     <>
