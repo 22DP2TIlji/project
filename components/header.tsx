@@ -72,6 +72,38 @@ export default function Header() {
                 Itinerary
               </Link>
               <Link 
+                href="/weather" 
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                  pathname === '/weather' ? 'font-medium' : ''
+                }`}
+              >
+                Weather
+              </Link>
+              <Link 
+                href="/events" 
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                  pathname === '/events' ? 'font-medium' : ''
+                }`}
+              >
+                Events
+              </Link>
+              <Link 
+                href="/transportation" 
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                  pathname === '/transportation' ? 'font-medium' : ''
+                }`}
+              >
+                Transportation
+              </Link>
+              <Link 
+                href="/cuisine" 
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                  pathname === '/cuisine' ? 'font-medium' : ''
+                }`}
+              >
+                Cuisine
+              </Link>
+              <Link 
                 href="/projects" 
                 className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
                   pathname === '/projects' ? 'font-medium' : ''
@@ -149,6 +181,38 @@ export default function Header() {
                 }`}
               >
                 Itinerary
+              </Link>
+              <Link 
+                href="/weather" 
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                  pathname === '/weather' ? 'font-medium' : ''
+                }`}
+              >
+                Weather
+              </Link>
+              <Link 
+                href="/events" 
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                  pathname === '/events' ? 'font-medium' : ''
+                }`}
+              >
+                Events
+              </Link>
+              <Link 
+                href="/transportation" 
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                  pathname === '/transportation' ? 'font-medium' : ''
+                }`}
+              >
+                Transportation
+              </Link>
+              <Link 
+                href="/cuisine" 
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                  pathname === '/cuisine' ? 'font-medium' : ''
+                }`}
+              >
+                Cuisine
               </Link>
               <Link 
                 href="/projects" 

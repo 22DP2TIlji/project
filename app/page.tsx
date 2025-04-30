@@ -14,6 +14,7 @@ export default function Home() {
   const [likedDestinations, setLikedDestinations] = useState<Record<string, LikedDestination>>({})
   const [isClient, setIsClient] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [darkMode, setDarkMode] = useState(false)
 
   useEffect(() => {
     setIsClient(true)
@@ -21,6 +22,11 @@ export default function Home() {
     
     const handleStorageChange = () => {
       loadLikedDestinations()
+    }
+    
+    // Check for dark mode preference
+    if (typeof window !== 'undefined') {
+      setDarkMode(document.documentElement.classList.contains('dark'))
     }
     
     window.addEventListener('storage', handleStorageChange)
@@ -31,6 +37,11 @@ export default function Home() {
       window.removeEventListener('likesUpdated', handleStorageChange)
     }
   }, [user, refreshKey])
+
+  const toggleDarkMode = () => {
+    document.documentElement.classList.toggle('dark')
+    setDarkMode(!darkMode)
+  }
 
   const loadLikedDestinations = () => {
     if (!isClient) return
@@ -60,25 +71,26 @@ export default function Home() {
 
   return (
     <>
-      <section className="relative h-[70vh] bg-gray-100 dark:bg-gray-950 flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 to-gray-900/40 dark:from-gray-950 dark:to-gray-900/80"></div>
-          <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-10 dark:opacity-5"></div>
-        </div>
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-5xl md:text-6xl font-light mb-4 text-white dark:text-gray-100 drop-shadow-lg">Travellatvia</h1>
-          <p className="text-xl md:text-2xl font-light mb-8 text-gray-100 dark:text-gray-300 drop-shadow-lg">Choose your next adventure</p>
+      {/* Hero Section */}
+      <section className="relative h-[40vh] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+        <div className="absolute inset-0 overflow-hidden bg-gray-200 dark:bg-gray-700">{/* Placeholder for background image */}</div>
+        <div className="relative z-10 text-center">
+          <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white">Choose your next adventure in Latvia</h1>
+          <p className="mt-4 text-xl text-gray-700 dark:text-gray-200">Discover the best destinations and plan your trip</p>
         </div>
       </section>
 
-      <section className="py-16 dark:bg-gray-900/50 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-950/50 to-transparent dark:from-gray-900/50 dark:to-transparent"></div>
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="border border-gray-200 dark:border-gray-700/50 p-8 md:p-12 rounded-md text-center dark:bg-gray-800/30 backdrop-blur-sm shadow-lg">
-            <h2 className="text-3xl font-light mb-4 dark:text-gray-100">We will help you to organize your adventure in Latvia</h2>
+      {/* About Section */}
+      <section className="py-16 bg-white dark:bg-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl font-light mb-4 text-gray-900 dark:text-white">We will help you to organize your adventure in Latvia</h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+              Discover the best destinations, plan your itinerary, and create unforgettable memories in Latvia.
+            </p>
             <Link
               href="/destinations"
-              className="inline-block mt-6 px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-300 dark:text-gray-200 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm"
+              className="inline-block px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
             >
               Explore Destinations
             </Link>
@@ -86,32 +98,57 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 bg-gray-50 dark:bg-gray-900/80 backdrop-blur-sm">
+      {/* Your Favorite Destinations */}
+      <section className="py-16 bg-gray-50 dark:bg-gray-800">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light mb-4 text-center text-gray-900 dark:text-gray-100">Featured Destinations</h2>
-
-          {isClient && Object.keys(likedDestinations).length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
+          <h2 className="text-3xl font-light mb-4 text-center text-gray-900 dark:text-white">Your Favorite Destinations</h2>
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Discover your saved places to visit</p>
+          {Object.keys(likedDestinations).length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {Object.values(likedDestinations).map((destination) => (
-                <div key={destination.id} className="group border border-gray-200 dark:border-gray-700/50 rounded-md p-6 hover:shadow-md transition-all duration-300 bg-white dark:bg-gray-800/30 backdrop-blur-sm">
-                  <div className="relative h-64 mb-4 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-700/50">
-                    {/* Placeholder for image */}
+                <div key={destination.id} className="relative group">
+                  <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+                    {/* Placeholder for destination image */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent group-hover:from-black/70 transition-all duration-300"></div>
                   </div>
-                  <h3 className="text-xl font-medium text-gray-900 dark:text-gray-100">{destination.name}</h3>
-                  <Link href={`/destination/${destination.id}`} className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:underline transition-colors duration-300">
-                    View details
-                  </Link>
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-lg font-medium text-white mb-2">{destination.name}</h3>
+                    <button
+                      onClick={() => {
+                        if (user) {
+                          const users = JSON.parse(localStorage.getItem("users") || "[]")
+                          const updatedUsers = users.map((u: any) => {
+                            if (u.id === user.id) {
+                              const { [destination.id]: removed, ...rest } = u.likes || {}
+                              return { ...u, likes: rest }
+                            }
+                            return u
+                          })
+                          localStorage.setItem("users", JSON.stringify(updatedUsers))
+                        } else {
+                          const savedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
+                          const { [destination.id]: removed, ...rest } = savedDestinations
+                          localStorage.setItem("likedDestinations", JSON.stringify(rest))
+                        }
+                        window.dispatchEvent(new Event("likesUpdated"))
+                        refreshLikedDestinations()
+                      }}
+                      className="text-sm text-white hover:text-red-400 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-400">
+            <div className="text-center">
+              <p className="text-gray-600 dark:text-gray-300">
                 You haven't liked any destinations yet. Visit our{" "}
-                <Link href="/destinations" className="text-gray-800 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white underline transition-colors duration-300">
+                <Link href="/destinations" className="text-gray-900 dark:text-white hover:underline">
                   Destinations
                 </Link>{" "}
-                page to discover and like destinations.
+                page to discover amazing places in Latvia!
               </p>
             </div>
           )}
