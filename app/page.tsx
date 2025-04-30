@@ -24,7 +24,6 @@ export default function Home() {
     }
     
     window.addEventListener('storage', handleStorageChange)
-    
     window.addEventListener('likesUpdated', handleStorageChange)
     
     return () => {
@@ -61,41 +60,45 @@ export default function Home() {
 
   return (
     <>
-      <section className="relative h-[70vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200">{/* Placeholder for background image */}</div>
-        <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light mb-4">Travellatvia</h1>
-          <p className="text-xl md:text-2xl font-light mb-8">Choose your next adventure</p>
+      <section className="relative h-[70vh] bg-gray-100 dark:bg-gray-950 flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 to-gray-900/40 dark:from-gray-950 dark:to-gray-900/80"></div>
+          <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-10 dark:opacity-5"></div>
+        </div>
+        <div className="relative z-10 text-center px-4">
+          <h1 className="text-5xl md:text-6xl font-light mb-4 text-white dark:text-gray-100 drop-shadow-lg">Travellatvia</h1>
+          <p className="text-xl md:text-2xl font-light mb-8 text-gray-100 dark:text-gray-300 drop-shadow-lg">Choose your next adventure</p>
         </div>
       </section>
 
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="border border-gray-200 p-8 md:p-12 rounded-md text-center">
-            <h2 className="text-3xl font-light mb-4">We will help you to organize your adventure in Latvia</h2>
+      <section className="py-16 dark:bg-gray-900/50 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-950/50 to-transparent dark:from-gray-900/50 dark:to-transparent"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="border border-gray-200 dark:border-gray-700/50 p-8 md:p-12 rounded-md text-center dark:bg-gray-800/30 backdrop-blur-sm shadow-lg">
+            <h2 className="text-3xl font-light mb-4 dark:text-gray-100">We will help you to organize your adventure in Latvia</h2>
             <Link
-              href="/popular-sights"
-              className="inline-block mt-6 px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              href="/destinations"
+              className="inline-block mt-6 px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-300 dark:text-gray-200 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm"
             >
-              Explore Popular Sights
+              Explore Destinations
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gray-50 dark:bg-gray-900/80 backdrop-blur-sm">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light mb-4 text-center">Featured Destinations</h2>
+          <h2 className="text-3xl font-light mb-4 text-center text-gray-900 dark:text-gray-100">Featured Destinations</h2>
 
           {isClient && Object.keys(likedDestinations).length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
               {Object.values(likedDestinations).map((destination) => (
-                <div key={destination.id} className="group">
-                  <div className="relative h-64 mb-4 overflow-hidden rounded-md bg-gray-200">
+                <div key={destination.id} className="group border border-gray-200 dark:border-gray-700/50 rounded-md p-6 hover:shadow-md transition-all duration-300 bg-white dark:bg-gray-800/30 backdrop-blur-sm">
+                  <div className="relative h-64 mb-4 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-700/50">
                     {/* Placeholder for image */}
                   </div>
-                  <h3 className="text-xl font-medium">{destination.name}</h3>
-                  <Link href={`/destination/${destination.id}`} className="text-sm text-gray-600 hover:underline">
+                  <h3 className="text-xl font-medium text-gray-900 dark:text-gray-100">{destination.name}</h3>
+                  <Link href={`/destination/${destination.id}`} className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:underline transition-colors duration-300">
                     View details
                   </Link>
                 </div>
@@ -103,10 +106,10 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-500">
+              <p className="text-gray-500 dark:text-gray-400">
                 You haven't liked any destinations yet. Visit our{" "}
-                <Link href="/popular-sights" className="text-gray-800 underline">
-                  Popular Sights
+                <Link href="/destinations" className="text-gray-800 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white underline transition-colors duration-300">
+                  Destinations
                 </Link>{" "}
                 page to discover and like destinations.
               </p>

@@ -147,13 +147,13 @@ export default function DestinationPage() {
   if (!destination) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-light mb-4">Destination not found</h1>
-        <p className="mb-8">The destination you're looking for doesn't exist or has been removed.</p>
+        <h1 className="text-3xl font-light mb-4 text-gray-900 dark:text-white">Destination not found</h1>
+        <p className="mb-8 text-gray-600 dark:text-gray-300">The destination you're looking for doesn't exist or has been removed.</p>
         <Link
-          href="/popular-sights"
-          className="inline-block px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+          href="/destinations"
+          className="inline-block px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
         >
-          Back to Popular Sights
+          Back to Destinations
         </Link>
       </div>
     )
@@ -161,49 +161,49 @@ export default function DestinationPage() {
 
   return (
     <>
-      <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200">{/* Placeholder for background image */}</div>
+      <section className="relative h-[40vh] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+        <div className="absolute inset-0 overflow-hidden bg-gray-200 dark:bg-gray-700">{/* Placeholder for background image */}</div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">{destination.name}</h1>
+          <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white">{destination.name}</h1>
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-16 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-8">
-              <Link href="/popular-sights" className="text-gray-600 hover:text-gray-800 flex items-center">
-                <span>← Back to Popular Sights</span>
+              <Link href="/destinations" className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white flex items-center">
+                <span>← Back to Destinations</span>
               </Link>
               <LikeButton destinationId={destination.id} destinationName={destination.name} />
             </div>
 
-            <div className="relative h-96 mb-8 overflow-hidden rounded-md bg-gray-200">
+            <div className="relative h-96 mb-8 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-700">
               {/* Placeholder for large image */}
             </div>
 
-            <div className="prose max-w-none">
-              <p className="text-xl text-gray-700 mb-6">{destination.description}</p>
+            <div className="prose dark:prose-invert max-w-none">
+              <p className="text-xl text-gray-700 dark:text-gray-300 mb-6">{destination.description}</p>
 
               {destination.fullDescription.split("\n\n").map((paragraph: string, index: number) => (
-                <p key={index} className="mb-4">
+                <p key={index} className="mb-4 text-gray-600 dark:text-gray-300">
                   {paragraph.trim()}
                 </p>
               ))}
             </div>
 
-            <div className="mt-12 pt-8 border-t border-gray-200">
-              <h2 className="text-2xl font-light mb-6">Explore More Destinations</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="mt-16">
+              <h2 className="text-2xl font-light mb-6 text-gray-900 dark:text-white">Explore More Destinations</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {Object.values(destinations)
                   .filter((d: any) => d.id !== destination.id)
                   .slice(0, 4)
                   .map((d: any) => (
                     <Link key={d.id} href={`/destination/${d.id}`} className="group">
-                      <div className="relative h-32 mb-2 overflow-hidden rounded-md bg-gray-200">
+                      <div className="relative h-32 mb-2 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-700">
                         {/* Placeholder for image */}
                       </div>
-                      <h3 className="text-sm font-medium group-hover:underline">{d.name}</h3>
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-white group-hover:underline">{d.name}</h3>
                     </Link>
                   ))}
               </div>

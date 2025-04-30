@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "kill": "taskkill /F /IM node.exe",
+    "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3000",
     "lint": "next lint",
-    "dev:clean": "taskkill /F /IM node.exe && npm run dev"
+    "dev:clean": "npm run kill && npm run dev"
   },
   "dependencies": {
     "clsx": "^2.1.1",

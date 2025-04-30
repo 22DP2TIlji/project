@@ -28,16 +28,16 @@ export default function Header() {
   }
 
   return (
-    <header className="w-full py-4 border-b bg-white sticky top-0 z-40 shadow-sm transition-colors duration-200">
+    <header className="w-full py-4 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm sticky top-0 z-40 shadow-sm transition-colors duration-300">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
-          <Link href="/" className="text-2xl font-medium text-gray-800 dark:text-gray-200">
+          <Link href="/" className="text-2xl font-medium text-gray-800 dark:text-gray-100">
             Travellatvia
           </Link>
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden p-2 text-gray-600"
+            className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           >
@@ -81,156 +81,127 @@ export default function Header() {
               </Link>
             </nav>
 
-            <div className="flex items-center space-x-4 pl-8 border-l border-gray-200">
+            <div className="flex items-center space-x-4 pl-8 border-l border-gray-200 dark:border-gray-800">
               {/* Dark mode toggle */}
               <button 
                 onClick={toggleDarkMode}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
               >
-                {darkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-gray-600" />}
+                {darkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-gray-600 dark:text-gray-300" />}
               </button>
 
-              {/* User menu */}
+              {/* Auth buttons */}
               {user ? (
-                <div className="relative">
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
                   <button 
-                    onClick={toggleUserMenu}
-                    className="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    onClick={handleLogout}
+                    className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                   >
-                    <User className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
-                    <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    Logout
                   </button>
-
-                  {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10">
-                      <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
-                        {user.email}
-                      </div>
-                      <Link 
-                        href="/profile" 
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        Profile
-                      </Link>
-                      <Link 
-                        href="/saved" 
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        Saved Items
-                      </Link>
-                      <button 
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
-                      >
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Logout
-                      </button>
-                    </div>
-                  )}
                 </div>
               ) : (
-                <Link 
-                  href="/login" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
-                >
-                  Login
-                </Link>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => setIsSignupModalOpen(true)}
+                    className="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                  >
+                    Sign Up
+                  </button>
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Mobile navigation */}
+        {/* Mobile menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4">
+          <div className="md:hidden mt-4 py-4 border-t border-gray-200 dark:border-gray-800">
             <nav className="flex flex-col space-y-4">
-              <Link
-                href="/"
-                className="text-gray-700 hover:text-gray-900 py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <Link 
+                href="/" 
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                  pathname === '/' ? 'font-medium' : ''
+                }`}
               >
                 Home
               </Link>
-              <Link
-                href="/destinations"
-                className="text-gray-700 hover:text-gray-900 py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <Link 
+                href="/destinations" 
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                  pathname === '/destinations' ? 'font-medium' : ''
+                }`}
               >
                 Destinations
               </Link>
-              <Link
-                href="/itinerary"
-                className="text-gray-700 hover:text-gray-900 py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <Link 
+                href="/itinerary" 
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                  pathname === '/itinerary' ? 'font-medium' : ''
+                }`}
               >
                 Itinerary
               </Link>
-              <Link
-                href="/projects"
-                className="text-gray-700 hover:text-gray-900 py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <Link 
+                href="/projects" 
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                  pathname === '/projects' ? 'font-medium' : ''
+                }`}
               >
                 Projects
               </Link>
             </nav>
-
-            <div className="flex flex-col space-y-3 mt-6 pt-6 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
               {user ? (
-                <>
-                  <div className="flex items-center space-x-2 text-gray-700">
-                    <User size={18} />
-                    <span className="text-sm font-medium">{user.name}</span>
-                  </div>
-                  <button
-                    onClick={() => {
-                      logout()
-                      setIsMobileMenuOpen(false)
-                    }}
-                    className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                <div className="flex flex-col space-y-4">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
+                  <button 
+                    onClick={handleLogout}
+                    className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                   >
-                    Log out
+                    Logout
                   </button>
-                </>
+                </div>
               ) : (
-                <>
+                <div className="flex flex-col space-y-4">
                   <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false)
-                      setIsLoginModalOpen(true)
-                    }}
-                    className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                   >
-                    Log in
+                    Login
                   </button>
                   <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false)
-                      setIsSignupModalOpen(true)
-                    }}
-                    className="px-4 py-2 text-sm bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
+                    onClick={() => setIsSignupModalOpen(true)}
+                    className="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
                   >
-                    Sign up
+                    Sign Up
                   </button>
-                </>
+                </div>
               )}
             </div>
           </div>
         )}
       </div>
 
-      <LoginModal
-        isOpen={isLoginModalOpen}
+      {/* Modals */}
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
         onClose={() => setIsLoginModalOpen(false)}
         onSignupClick={() => {
           setIsLoginModalOpen(false)
           setIsSignupModalOpen(true)
         }}
       />
-
-      <SignupModal
-        isOpen={isSignupModalOpen}
+      <SignupModal 
+        isOpen={isSignupModalOpen} 
         onClose={() => setIsSignupModalOpen(false)}
         onLoginClick={() => {
           setIsSignupModalOpen(false)

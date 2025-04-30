@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['localhost'],
+    domains: ['127.0.0.1'],
     unoptimized: true,
   },
   eslint: {
@@ -11,6 +11,15 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Add custom domain configuration
+  async rewrites() {
+    return [
+      {
+        source: '/:path*',
+        destination: '/:path*',
+      },
+    ]
+  }
 };
 
 module.exports = nextConfig;
