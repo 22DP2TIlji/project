@@ -1,107 +1,218 @@
-'use client'
+"use client"
 
-import React, { useState } from 'react'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
+import { Cloud, Wind, Thermometer, Droplets, Calendar } from 'lucide-react'
+
+interface CurrentWeather {
+  temp: number
+  feels_like: number
+  humidity: number
+  pressure: number
+  weather: Array<{
+    main: string
+    description: string
+    icon: string
+  }>
+  wind_speed: number
+}
+
+interface ForecastDay {
+  dt: number
+  main: {
+    temp: number
+    humidity: number
+  }
+  weather: Array<{
+    main: string
+    description: string
+    icon: string
+  }>
+  wind: {
+    speed: number
+  }
+}
 
 export default function WeatherPage() {
-  const [searchQuery, setSearchQuery] = useState('')
+  const [current, setCurrent] = useState<CurrentWeather | null>(null)
+  const [forecast, setForecast] = useState<ForecastDay[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const seasons = [
-    {
-      id: 'spring',
-      name: 'Spring (March - May)',
-      description: 'Mild temperatures, perfect for exploring cities and nature awakening',
-      temperature: '5-15°C',
-      activities: ['City tours', 'Nature walks', 'Cultural events'],
-      packing: ['Light jacket', 'Umbrella', 'Comfortable walking shoes']
-    },
-    {
-      id: 'summer',
-      name: 'Summer (June - August)',
-      description: 'Warm and sunny, ideal for beach visits and outdoor activities',
-      temperature: '15-25°C',
-      activities: ['Beach holidays', 'Festivals', 'Outdoor sports'],
-      packing: ['Summer clothes', 'Sunscreen', 'Swimwear']
-    },
-    {
-      id: 'autumn',
-      name: 'Autumn (September - November)',
-      description: 'Colorful foliage, perfect for nature walks and cultural events',
-      temperature: '5-15°C',
-      activities: ['Nature photography', 'Cultural events', 'Mushroom picking'],
-      packing: ['Warm layers', 'Rain gear', 'Hiking boots']
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY
+        if (!API_KEY) throw new Error('API key not configured')
+
+        // Fetch current weather
+        const currentRes = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=Riga,lv&units=metric&appid=${API_KEY}`
+        )
+        if (!currentRes.ok) throw new Error('Failed to fetch current weather')
+        const currentData = await currentRes.json()
+
+        // Fetch 5-day forecast
+        const forecastRes = await fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?q=Riga,lv&units=metric&appid=${API_KEY}`
+        )
+        if (!forecastRes.ok) throw new Error('Failed to fetch forecast')
+        const forecastData = await forecastRes.json()
+
+        setCurrent({
+          temp: currentData.main.temp,
+          feels_like: currentData.main.feels_like,
+          humidity: currentData.main.humidity,
+          pressure: currentData.main.pressure,
+          weather: currentData.weather,
+          wind_speed: currentData.wind.speed,
+        })
+
+        // Get one forecast per day (at 12:00)
+        const daily = forecastData.list.filter((item: any) =>
+          item.dt_txt.includes("12:00:00")
+        )
+        setForecast(daily)
+        setLoading(false)
+      } catch (err) {
+        setError('Failed to load weather data. Please check your API key and try again.')
+        setLoading(false)
+      }
     }
-  ]
+    fetchWeather()
+  }, [])
 
-  const filteredSeasons = seasons.filter(season =>
-    season.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    season.description.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const getDayName = (timestamp: number) => {
+    return new Date(timestamp * 1000).toLocaleDateString('en-US', { weekday: 'long' })
+  }
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <h1 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">
+            Weather Information Unavailable
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Hero Section */}
-      <section className="relative h-[40vh] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200 dark:bg-gray-700">{/* Placeholder for background image */}</div>
-        <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white">Weather in Latvia</h1>
-          <p className="mt-4 text-xl text-gray-700 dark:text-gray-200">Plan your visit with current weather conditions</p>
-        </div>
-      </section>
-
-      {/* Search Section */}
-      <section className="py-8 bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto">
-            <input
-              type="text"
-              placeholder="Search seasons..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Seasons Grid */}
-      <section className="py-16 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredSeasons.map((season) => (
-              <div
-                key={season.id}
-                className="group border border-gray-200 dark:border-gray-700 rounded-md p-6 hover:shadow-md transition-shadow bg-white dark:bg-gray-800"
-              >
-                <h3 className="text-xl font-medium mb-2 text-gray-900 dark:text-white">{season.name}</h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">{season.description}</p>
-                <div className="space-y-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
+      <div className="container mx-auto px-4">
+        <h1 className="text-4xl font-light text-center mb-8 text-gray-900 dark:text-white">
+          Weather in Riga
+        </h1>
+        {current && (
+          <div className="max-w-3xl mx-auto mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-2">
+                    Current Weather
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {new Date().toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </p>
+                </div>
+                <img
+                  src={`https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png`}
+                  alt={current.weather[0].description}
+                  className="w-20 h-20"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex items-center space-x-3">
+                  <Thermometer className="w-6 h-6 text-blue-500" />
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">Average Temperature</h4>
-                    <p className="text-gray-600 dark:text-gray-300">{season.temperature}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Temperature</p>
+                    <p className="text-2xl font-medium text-gray-900 dark:text-white">
+                      {Math.round(current.temp)}°C
+                    </p>
                   </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Wind className="w-6 h-6 text-blue-500" />
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">Best Activities</h4>
-                    <ul className="list-disc list-inside text-gray-600 dark:text-gray-300">
-                      {season.activities.map((activity, index) => (
-                        <li key={index}>{activity}</li>
-                      ))}
-                    </ul>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Wind Speed</p>
+                    <p className="text-2xl font-medium text-gray-900 dark:text-white">
+                      {current.wind_speed} m/s
+                    </p>
                   </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Droplets className="w-6 h-6 text-blue-500" />
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">What to Pack</h4>
-                    <ul className="list-disc list-inside text-gray-600 dark:text-gray-300">
-                      {season.packing.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
-                    </ul>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Humidity</p>
+                    <p className="text-2xl font-medium text-gray-900 dark:text-white">
+                      {current.humidity}%
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Cloud className="w-6 h-6 text-blue-500" />
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Conditions</p>
+                    <p className="text-2xl font-medium text-gray-900 dark:text-white capitalize">
+                      {current.weather[0].description}
+                    </p>
                   </div>
                 </div>
               </div>
-            ))}
+            </div>
+          </div>
+        )}
+
+        {/* 5-Day Forecast */}
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6 flex items-center">
+              <Calendar className="w-6 h-6 mr-2" />
+              5-Day Forecast
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+              {forecast.map((day) => (
+                <div
+                  key={day.dt}
+                  className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                      {getDayName(day.dt)}
+                    </h3>
+                    <img
+                      src={`https://openweathermap.org/img/wn/${day.weather[0].icon}.png`}
+                      alt={day.weather[0].description}
+                      className="w-10 h-10"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Temp: {Math.round(day.main.temp)}°C
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 capitalize">
+                      {day.weather[0].description}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Wind: {day.wind.speed} m/s
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   )
-} 
+}

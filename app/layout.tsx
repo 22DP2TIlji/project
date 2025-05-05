@@ -7,6 +7,7 @@ import AuthProvider from '@/lib/auth-context';
 import { ThemeProvider } from '@/lib/theme-context';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
+import ChatBot from '../components/ChatBot'
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,6 +29,7 @@ export default function RootLayout({
             <Header />
             <main className="min-h-screen">{children}</main>
             <Footer />
+            <ChatBot />
           </ThemeProvider>
         </AuthProvider>
       </body>
