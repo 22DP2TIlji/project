@@ -5,8 +5,6 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useTheme } from "@/lib/theme-context"
-import LoginModal from "./login-modal"
-import SignupModal from "./signup-modal"
 import { Menu, X, User, Sun, Moon, LogOut, ChevronDown } from "lucide-react"
 
 export default function Header() {
@@ -136,18 +134,12 @@ export default function Header() {
                 </div>
               ) : (
                 <div className="flex items-center space-x-4">
-                  <button
-                    onClick={() => setIsLoginModalOpen(true)}
-                    className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  >
+                  <Link href="/login" className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                     Login
-                  </button>
-                  <button
-                    onClick={() => setIsSignupModalOpen(true)}
-                    className="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
-                  >
+                  </Link>
+                  <Link href="/signup" className="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors">
                     Sign Up
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>
@@ -236,18 +228,12 @@ export default function Header() {
                 </div>
               ) : (
                 <div className="flex flex-col space-y-4">
-                  <button
-                    onClick={() => setIsLoginModalOpen(true)}
-                    className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  >
+                  <Link href="/login" className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                     Login
-                  </button>
-                  <button
-                    onClick={() => setIsSignupModalOpen(true)}
-                    className="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
-                  >
+                  </Link>
+                  <Link href="/signup" className="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors">
                     Sign Up
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>
@@ -256,22 +242,6 @@ export default function Header() {
       </div>
 
       {/* Modals */}
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)}
-        onSignupClick={() => {
-          setIsLoginModalOpen(false)
-          setIsSignupModalOpen(true)
-        }}
-      />
-      <SignupModal 
-        isOpen={isSignupModalOpen} 
-        onClose={() => setIsSignupModalOpen(false)}
-        onLoginClick={() => {
-          setIsSignupModalOpen(false)
-          setIsLoginModalOpen(true)
-        }}
-      />
     </header>
   )
 }
