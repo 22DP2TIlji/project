@@ -8,7 +8,7 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react';
-import pool from './db';
+// import pool from './db'; // Remove direct database import
 
 interface User {
   id: string;
@@ -25,6 +25,7 @@ interface User {
   // Note: Storing passwords in localStorage is insecure. 
   // This is for demonstration purposes only.
   password?: string;
+  created_at?: string;
 }
 
 interface AuthContextType {
@@ -48,44 +49,57 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Check for existing session
-    const checkSession = async () => {
-      try {
-        const session = localStorage.getItem('session');
-        if (session) {
-          const [rows] = await pool.execute(
-            'SELECT * FROM users WHERE id = ?',
-            [session]
-          );
-          const users = rows as User[];
-          if (users.length > 0) {
-            setUser(users[0]);
-            setIsAuthenticated(true);
+    const fetchUser = async () => {
+      const session = localStorage.getItem('session')
+      if (session) {
+        try {
+          const response = await fetch('/api/auth/me', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: session }),
+          })
+          const data = await response.json()
+          if (response.ok && data.success) {
+            setUser(data.user)
+            setIsAuthenticated(true)
+          } else {
+            setUser(null)
+            setIsAuthenticated(false)
           }
+        } catch (error) {
+          setUser(null)
+          setIsAuthenticated(false)
         }
-      } catch (error) {
-        console.error('Error checking session:', error);
+      } else {
+        setUser(null)
+        setIsAuthenticated(false)
       }
-    };
-    checkSession();
-  }, []);
+    }
+    fetchUser()
+  }, [])
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const [rows] = await pool.execute(
-        'SELECT * FROM users WHERE email = ? AND password = ?',
-        [email, password]
-      );
-      const users = rows as User[];
-      
-      if (users.length > 0) {
-        const user = users[0];
-        setUser(user);
+      // Call a server-side API route for login
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setUser(data.user);
         setIsAuthenticated(true);
-        localStorage.setItem('session', user.id);
+        localStorage.setItem('session', data.user.id); // Store session ID
         return true;
+      } else {
+        console.error('Login failed:', data.message);
+        return false;
       }
-      return false;
     } catch (error) {
       console.error('Login error:', error);
       return false;
@@ -94,35 +108,26 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   const signup = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
-      // Check if email already exists
-      const [existingUsers] = await pool.execute(
-        'SELECT * FROM users WHERE email = ?',
-        [email]
-      );
-      
-      if ((existingUsers as User[]).length > 0) {
+      // Call a server-side API route for signup
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setUser(data.user);
+        setIsAuthenticated(true);
+        localStorage.setItem('session', data.user.id); // Store session ID
+        return true;
+      } else {
+         console.error('Signup failed:', data.message);
         return false;
       }
-
-      // Create new user
-      const [result] = await pool.execute(
-        'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-        [name, email, password, 'user']
-      );
-
-      const insertResult = result as any;
-      if (insertResult.insertId) {
-        const [rows] = await pool.execute(
-          'SELECT * FROM users WHERE id = ?',
-          [insertResult.insertId]
-        );
-        const newUser = (rows as User[])[0];
-        setUser(newUser);
-        setIsAuthenticated(true);
-        localStorage.setItem('session', newUser.id);
-        return true;
-      }
-      return false;
     } catch (error) {
       console.error('Signup error:', error);
       return false;
@@ -133,99 +138,37 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('session');
+    // Optionally call an API route to invalidate session on the server
   };
 
   const updatePreferences = async (preferences: Partial<User['preferences']>) => {
-    if (!user) return;
-
-    try {
-      await pool.execute(
-        'UPDATE users SET preferences = ? WHERE id = ?',
-        [JSON.stringify(preferences), user.id]
-      );
-
-      setUser({
-        ...user,
-        preferences: {
-          ...user.preferences,
-          ...preferences
-        }
-      });
-    } catch (error) {
-      console.error('Error updating preferences:', error);
-    }
+     if (!user) return;
+    // This should also call an API route
+     console.log('Update preferences called for user:', user.id, preferences);
   };
 
   const saveDestination = async (destinationId: string) => {
-    if (!user) return;
-
-    try {
-      await pool.execute(
-        'INSERT INTO user_destinations (user_id, destination_id) VALUES (?, ?)',
-        [user.id, destinationId]
-      );
-
-      setUser({
-        ...user,
-        savedDestinations: [...(user.savedDestinations || []), destinationId]
-      });
-    } catch (error) {
-      console.error('Error saving destination:', error);
-    }
+     if (!user) return;
+    // This should also call an API route
+     console.log('Save destination called for user:', user.id, destinationId);
   };
 
   const removeSavedDestination = async (destinationId: string) => {
-    if (!user) return;
-
-    try {
-      await pool.execute(
-        'DELETE FROM user_destinations WHERE user_id = ? AND destination_id = ?',
-        [user.id, destinationId]
-      );
-
-      setUser({
-        ...user,
-        savedDestinations: user.savedDestinations?.filter(id => id !== destinationId)
-      });
-    } catch (error) {
-      console.error('Error removing destination:', error);
-    }
+     if (!user) return;
+    // This should also call an API route
+     console.log('Remove saved destination called for user:', user.id, destinationId);
   };
 
   const saveItinerary = async (itinerary: any) => {
-    if (!user) return;
-
-    try {
-      await pool.execute(
-        'INSERT INTO user_itineraries (user_id, itinerary_id) VALUES (?, ?)',
-        [user.id, itinerary.id]
-      );
-
-      setUser({
-        ...user,
-        savedItineraries: [...(user.savedItineraries || []), itinerary]
-      });
-    } catch (error) {
-      console.error('Error saving itinerary:', error);
-    }
+     if (!user) return;
+     // This should also call an API route
+     console.log('Save itinerary called for user:', user.id, itinerary);
   };
 
   const removeSavedItinerary = async (itineraryId: string) => {
-    if (!user) return;
-
-    try {
-      await pool.execute(
-        'DELETE FROM user_itineraries WHERE user_id = ? AND itinerary_id = ?',
-        [user.id, itineraryId]
-      );
-
-      setUser({
-        ...user,
-        savedItineraries: user.savedItineraries?.filter(i => i.id !== itineraryId)
-      });
-    } catch (error) {
-      console.error('Error removing itinerary:', error);
-    }
+     if (!user) return;
+     // This should also call an API route
+     console.log('Remove saved itinerary called for user:', user.id, itineraryId);
   };
 
   const isAdmin = (): boolean => {

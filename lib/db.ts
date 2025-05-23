@@ -2,10 +2,11 @@ import mysql from 'mysql2/promise'
 
 // Create a connection pool
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',     // default MAMP username
-  password: 'root', // default MAMP password
-  database: 'latvia_travel', // your database name
+  host: '127.0.0.1', // Use IP instead of localhost
+  port: 3306,      // MAMP's default MySQL port
+  user: 'root',      // default MAMP username
+  password: 'root',  // default MAMP password
+  database: 'travellatvia',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

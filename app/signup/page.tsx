@@ -20,7 +20,7 @@ export default function SignupPage() {
     return null
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -39,7 +39,7 @@ export default function SignupPage() {
       return
     }
 
-    const success = signup(name, email, password)
+    const success = await signup(name, email, password)
 
     if (success) {
       // Redirect to home or dashboard on successful signup

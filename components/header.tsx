@@ -15,6 +15,7 @@ export default function Header() {
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
 
   const toggleUserMenu = () => {
     setIsUserMenuOpen(!isUserMenuOpen)
@@ -125,7 +126,13 @@ export default function Header() {
               {user ? (
                 <div className="flex items-center space-x-4">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
-                  <button 
+                  <button
+                    onClick={() => setIsProfileModalOpen(true)}
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors border border-blue-200 dark:border-blue-700 rounded px-3 py-1"
+                  >
+                    Profile
+                  </button>
+                  <button
                     onClick={handleLogout}
                     className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                   >
@@ -219,7 +226,13 @@ export default function Header() {
               {user ? (
                 <div className="flex flex-col space-y-4">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
-                  <button 
+                  <button
+                    onClick={() => setIsProfileModalOpen(true)}
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors border border-blue-200 dark:border-blue-700 rounded px-3 py-1"
+                  >
+                    Profile
+                  </button>
+                  <button
                     onClick={handleLogout}
                     className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                   >
@@ -241,7 +254,45 @@ export default function Header() {
         )}
       </div>
 
-      {/* Modals */}
+      {/* Profile Modal */}
+      {isProfileModalOpen && user && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8 w-full max-w-md relative mt-40">
+            <button
+              onClick={() => setIsProfileModalOpen(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-900 dark:hover:text-white"
+              aria-label="Close"
+            >
+              <X size={24} />
+            </button>
+            <h2 className="text-2xl font-light mb-6 text-center text-gray-900 dark:text-white">Account Profile</h2>
+            <div className="mb-4">
+              <span className="block text-sm text-gray-500 dark:text-gray-400">Name:</span>
+              <span className="text-lg font-medium text-gray-900 dark:text-white">{user.name}</span>
+            </div>
+            <div className="mb-4">
+              <span className="block text-sm text-gray-500 dark:text-gray-400">Email:</span>
+              <span className="text-lg font-medium text-gray-900 dark:text-white">{user.email}</span>
+            </div>
+            <div className="mb-4">
+              <span className="block text-sm text-gray-500 dark:text-gray-400">Role:</span>
+              <span className="text-lg font-medium text-gray-900 dark:text-white">{user.role}</span>
+            </div>
+            {user.created_at && (
+              <div className="mb-4">
+                <span className="block text-sm text-gray-500 dark:text-gray-400">Registered:</span>
+                <span className="text-lg font-medium text-gray-900 dark:text-white">{new Date(user.created_at).toLocaleDateString()}</span>
+              </div>
+            )}
+            {user.preferences && (
+              <div className="mb-4">
+                <span className="block text-sm text-gray-500 dark:text-gray-400">Preferences:</span>
+                <pre className="text-gray-900 dark:text-white text-xs bg-gray-100 dark:bg-gray-800 rounded p-2 overflow-x-auto">{JSON.stringify(user.preferences, null, 2)}</pre>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   )
 }
