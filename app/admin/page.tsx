@@ -65,6 +65,9 @@ export default function AdminPage() {
           <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Add</button>
           {destMsg && <div className="text-green-600 mt-2">{destMsg}</div>}
         </form>
+        <div className="mt-6">
+          <a href="/admin/users" className="inline-block bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-semibold">View All Users</a>
+        </div>
       </div>
       <div>
         <h2 className="text-xl font-semibold mb-4">All Users</h2>
