@@ -14,7 +14,15 @@ const ItineraryMap = dynamic(() => import("@/components/itinerary-map"), {
   ),
 })
 
-const popularDestinations = [
+// Define a type for popular destinations for clarity
+interface PopularDestination {
+  id: string;
+  name: string;
+  coordinates: [number, number]; // Explicitly a tuple
+}
+
+// Popular destinations with coordinates as tuples
+const popularDestinations: PopularDestination[] = [
   { id: "riga", name: "Riga", coordinates: [56.9496, 24.1052] },
   { id: "jurmala", name: "Jūrmala", coordinates: [56.9715, 23.7408] },
   { id: "sigulda", name: "Sigulda", coordinates: [57.1537, 24.8598] },
@@ -23,7 +31,7 @@ const popularDestinations = [
   { id: "liepaja", name: "Liepāja", coordinates: [56.5047, 21.0107] },
   { id: "daugavpils", name: "Daugavpils", coordinates: [55.8714, 26.5161] },
   { id: "ventspils", name: "Ventspils", coordinates: [57.3894, 21.5606] },
-]
+];
 
 // Transportation modes with average speeds in km/h
 const transportModes = [
@@ -43,6 +51,8 @@ export default function ItineraryPage() {
   const [savedItineraries, setSavedItineraries] = useState<any[]>([])
   const [isClient, setIsClient] = useState(false)
   const [isGeocoding, setIsGeocoding] = useState(false)
+  const [geocodedStartCoords, setGeocodedStartCoords] = useState<[number, number] | null>(null)
+  const [geocodedEndCoords, setGeocodedEndCoords] = useState<[number, number] | null>(null)
 
   // Set isClient to true when component mounts
   useEffect(() => {
@@ -60,16 +70,17 @@ export default function ItineraryPage() {
   }, [])
 
   // Find coordinates for selected destinations
-  const getCoordinates = (pointId: string) => {
+  const getCoordinates = (pointId: string): [number, number] | null => {
     const destination = popularDestinations.find((dest) => dest.id === pointId)
-    return destination ? destination.coordinates : null
+    return destination?.coordinates || null
   }
 
   // Geocode address to coordinates
-  const geocodeAddress = async (address: string) => {
+  const geocodeAddress = async (address: string): Promise<[number, number] | null> => {
     if (!address) return null
     
     setIsGeocoding(true)
+    console.log(`Attempting to geocode address: "${address}"`)
     try {
       // In a real app, you would use a geocoding service like OpenStreetMap Nominatim
       // For this example, we'll use a more sophisticated approach to simulate geocoding
@@ -84,8 +95,9 @@ export default function ItineraryPage() {
         // to simulate a specific address within that city
         const lat = cityMatch.coordinates[0] + (Math.random() * 0.02 - 0.01)
         const lng = cityMatch.coordinates[1] + (Math.random() * 0.02 - 0.01)
-        console.log(`Geocoded address "${address}" to coordinates near ${cityMatch.name}: [${lat}, ${lng}]`)
-        return [lat, lng]
+        const coords: [number, number] = [lat, lng]
+        console.log(`Geocoded address "${address}" to coordinates near ${cityMatch.name}: [${coords[0]}, ${coords[1]}]`)
+        return coords
       }
       
       // If no city match, try to extract a street name and number
@@ -105,8 +117,9 @@ export default function ItineraryPage() {
         const lat = baseCity.coordinates[0] + latOffset
         const lng = baseCity.coordinates[1] + lngOffset
         
-        console.log(`Geocoded address "${address}" to coordinates: [${lat}, ${lng}]`)
-        return [lat, lng]
+        const coords: [number, number] = [lat, lng]
+        console.log(`Geocoded address "${address}" to coordinates: [${coords[0]}, ${coords[1]}]`)
+        return coords
       }
       
       // If we couldn't extract any useful information, use a more structured approach
@@ -120,8 +133,9 @@ export default function ItineraryPage() {
       const lat = 56.5 + (Math.abs(addressHash) % 15) / 10
       const lng = 24.0 + (Math.abs(addressHash * 7) % 42) / 10
       
-      console.log(`Geocoded address "${address}" to coordinates: [${lat}, ${lng}]`)
-      return [lat, lng]
+      const coords: [number, number] = [lat, lng]
+      console.log(`Geocoded address "${address}" to coordinates: [${coords[0]}, ${coords[1]}]`)
+      return coords
     } catch (error) {
       console.error("Error geocoding address:", error)
       return null
@@ -132,45 +146,62 @@ export default function ItineraryPage() {
 
   // Calculate a route (in a real app, you'd use a routing API)
   const calculateRoute = async () => {
+    console.log('Calculate route called.')
     try {
-      let start = getCoordinates(startPoint)
-      let end = getCoordinates(endPoint)
+      let startCoords: [number, number] | null = null
+      let endCoords: [number, number] | null = null
+
+      // Get coordinates from selected popular destinations
+      if (startPoint !== "custom" && startPoint !== "address") {
+        startCoords = getCoordinates(startPoint)
+      }
+      if (endPoint !== "custom" && endPoint !== "address") {
+        endCoords = getCoordinates(endPoint)
+      }
 
       // If using custom points, parse them
       if (startPoint === "custom" && customStartPoint) {
         const [lat, lng] = customStartPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
         if (!isNaN(lat) && !isNaN(lng)) {
-          start = [lat, lng]
+          startCoords = [lat, lng] as [number, number]
         }
       }
 
       if (endPoint === "custom" && customEndPoint) {
         const [lat, lng] = customEndPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
         if (!isNaN(lat) && !isNaN(lng)) {
-          end = [lat, lng]
+          endCoords = [lat, lng] as [number, number]
         }
       }
 
       // If using address input, geocode the addresses
       if (startPoint === "address" && startAddress) {
-        start = await geocodeAddress(startAddress)
+        startCoords = await geocodeAddress(startAddress)
       }
 
       if (endPoint === "address" && endAddress) {
-        end = await geocodeAddress(endAddress)
+        endCoords = await geocodeAddress(endAddress)
       }
 
-      if (!start || !end) {
+      console.log('Resolved start coordinates:', startCoords)
+      console.log('Resolved end coordinates:', endCoords)
+
+      if (!startCoords || !endCoords) {
         alert("Please select valid start and end points")
+        console.log('Start or end coordinates missing.', { startCoords, endCoords })
         return
       }
+
+      // Store geocoded coordinates if successful for potential map use
+      if (startPoint === "address") setGeocodedStartCoords(startCoords)
+      if (endPoint === "address") setGeocodedEndCoords(endCoords)
 
       // Get the selected transport mode
       const selectedMode = transportModes.find(mode => mode.id === transportMode)
       const speed = selectedMode ? selectedMode.speed : 60 // Default to car speed
 
       // Calculate a straight line route (simplified)
-      const distance = calculateDistance(start[0], start[1], end[0], end[1])
+      const distance = calculateDistance(startCoords[0], startCoords[1], endCoords[0], endCoords[1])
       const timeInHours = distance / speed
       const timeInMinutes = Math.round(timeInHours * 60)
 
@@ -187,8 +218,8 @@ export default function ItineraryPage() {
             : endPoint === "address" 
               ? endAddress 
               : popularDestinations.find((d) => d.id === endPoint)?.name,
-        startCoords: start,
-        endCoords: end,
+        startCoords: startCoords,
+        endCoords: endCoords,
         distance: distance,
         time: timeInHours,
         timeInMinutes: timeInMinutes,
@@ -196,6 +227,7 @@ export default function ItineraryPage() {
       }
 
       setRoute(newRoute)
+      console.log('Route calculated:', newRoute)
     } catch (error) {
       console.error("Error calculating route:", error)
       alert("An error occurred while calculating the route. Please try again.")
@@ -203,7 +235,7 @@ export default function ItineraryPage() {
   }
 
   // Calculate distance between two points using Haversine formula
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371 // Radius of the earth in km
     const dLat = deg2rad(lat2 - lat1)
     const dLon = deg2rad(lon2 - lon1)
@@ -215,7 +247,7 @@ export default function ItineraryPage() {
     return Math.round(distance * 10) / 10
   }
 
-  const deg2rad = (deg: number) => {
+  const deg2rad = (deg: number): number => {
     return deg * (Math.PI / 180)
   }
 

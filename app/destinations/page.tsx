@@ -16,22 +16,36 @@ export default function DestinationsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/destinations')
+    setLoading(true);
+    const queryParams = new URLSearchParams();
+    if (searchTerm) {
+      queryParams.append('search', searchTerm);
+    }
+    if (selectedCategory !== 'all') {
+      queryParams.append('category', selectedCategory);
+    }
+    if (selectedRegion !== 'all') {
+      queryParams.append('region', selectedRegion);
+    }
+
+    const apiUrl = `/api/destinations?${queryParams.toString()}`;
+    console.log('Fetching destinations from:', apiUrl);
+
+    fetch(apiUrl)
       .then(res => res.json())
       .then(data => {
+        console.log('Received destinations data:', data);
         setDestinations(data.destinations || [])
         setLoading(false)
       })
-      .catch(() => setLoading(false))
-  }, [])
+      .catch((error) => {
+        console.error('Error fetching destinations:', error);
+        setLoading(false);
+        setDestinations([]);
+      })
+  }, [searchTerm, selectedCategory, selectedRegion])
 
-  const filteredDestinations = destinations.filter(destination => {
-    const matchesSearch = destination.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         destination.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === "all" || (destination.category && destination.category === selectedCategory)
-    const matchesRegion = selectedRegion === "all" || (destination.region && destination.region === selectedRegion)
-    return matchesSearch && matchesCategory && matchesRegion
-  })
+  const displayedDestinations = destinations;
 
   return (
     <>
@@ -113,7 +127,7 @@ export default function DestinationsPage() {
           {/* Results count */}
           <div className="mb-6">
             <p className="text-gray-600 dark:text-gray-300">
-              Showing {filteredDestinations.length} of {destinations.length} destinations
+              {loading ? "Loading count..." : `Showing ${displayedDestinations.length} destinations`}
             </p>
           </div>
 
@@ -122,9 +136,9 @@ export default function DestinationsPage() {
             <div className="text-center py-12">
               <p className="text-gray-500 dark:text-gray-300">Loading destinations...</p>
             </div>
-          ) : filteredDestinations.length > 0 ? (
+          ) : displayedDestinations.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredDestinations.map((destination) => (
+              {displayedDestinations.map((destination) => (
                 <div
                   key={destination.id}
                   className="group border border-gray-200 dark:border-gray-700 rounded-md p-6 hover:shadow-md transition-shadow bg-white dark:bg-gray-800"

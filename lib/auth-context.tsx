@@ -8,10 +8,11 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react';
+import { getUserFromId } from '@/lib/auth-utils'; // Import the helper using alias
 // import pool from './db'; // Remove direct database import
 
 interface User {
-  id: string;
+  id: string | number; // Allow number type for user ID
   name: string;
   email: string;
   role: 'user' | 'admin';
@@ -20,6 +21,7 @@ interface User {
     preferredTransportMode: string;
     language: string;
   };
+  // Change savedDestinations to be an array of destination IDs (strings)
   savedDestinations?: string[];
   savedItineraries?: any[];
   // Note: Storing passwords in localStorage is insecure. 
@@ -34,6 +36,7 @@ interface AuthContextType {
   logout: () => void;
   isAdmin: () => boolean;
   updatePreferences: (preferences: Partial<User['preferences']>) => Promise<void>;
+  // Update save/remove functions to work with destination ID strings
   saveDestination: (destinationId: string) => Promise<void>;
   removeSavedDestination: (destinationId: string) => Promise<void>;
   saveItinerary: (itinerary: any) => Promise<void>;
@@ -51,26 +54,35 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const fetchUser = async () => {
       const session = localStorage.getItem('session')
+      console.log('Auth useEffect: Checking for session', session);
       if (session) {
         try {
+          // Fetch user data including liked destinations
+          console.log('Auth useEffect: Fetching user data for session', session);
           const response = await fetch('/api/auth/me', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            // Send session ID in the body for the backend to fetch user
             body: JSON.stringify({ id: session }),
           })
           const data = await response.json()
+          console.log('Auth useEffect: /api/auth/me response data:', data);
           if (response.ok && data.success) {
+            console.log('Auth useEffect: User fetched successfully', data.user);
             setUser(data.user)
             setIsAuthenticated(true)
           } else {
+            console.log('Auth useEffect: Failed to fetch user', data.message);
             setUser(null)
             setIsAuthenticated(false)
           }
         } catch (error) {
+          console.error('Auth useEffect: Error fetching user from session:', error);
           setUser(null)
           setIsAuthenticated(false)
         }
       } else {
+        console.log('Auth useEffect: No session found');
         setUser(null)
         setIsAuthenticated(false)
       }
@@ -79,8 +91,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    console.log('Login called for email:', email);
     try {
-      // Call a server-side API route for login
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -90,9 +102,11 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       const data = await response.json();
+      console.log('Login /api/auth/login response data:', data);
 
       if (response.ok && data.success) {
-        setUser(data.user);
+        console.log('Login successful, setting user:', data.user);
+        setUser(data.user); // Backend should return user with savedDestinations
         setIsAuthenticated(true);
         localStorage.setItem('session', data.user.id); // Store session ID
         return true;
@@ -107,8 +121,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signup = async (name: string, email: string, password: string): Promise<boolean> => {
+     console.log('Signup called for email:', email);
     try {
-      // Call a server-side API route for signup
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -118,14 +132,16 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       const data = await response.json();
+      console.log('Signup /api/auth/signup response data:', data);
 
       if (response.ok && data.success) {
-        setUser(data.user);
+         console.log('Signup successful, setting user:', data.user);
+        setUser(data.user); // Backend should return user with savedDestinations
         setIsAuthenticated(true);
         localStorage.setItem('session', data.user.id); // Store session ID
         return true;
       } else {
-         console.error('Signup failed:', data.message);
+          console.error('Signup failed:', data.message);
         return false;
       }
     } catch (error) {
@@ -135,6 +151,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    console.log('Logout called');
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('session');
@@ -142,21 +159,76 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updatePreferences = async (preferences: Partial<User['preferences']>) => {
-     if (!user) return;
-    // This should also call an API route
+     if (!user) {
+        console.log('updatePreferences: User not logged in');
+        return;
+     }
      console.log('Update preferences called for user:', user.id, preferences);
+     // This should also call an API route
   };
 
   const saveDestination = async (destinationId: string) => {
-     if (!user) return;
-    // This should also call an API route
-     console.log('Save destination called for user:', user.id, destinationId);
+     if (!user) {
+        console.log('saveDestination: User not logged in');
+        return; // Must be logged in
+     }
+     console.log('saveDestination called for user:', user.id, 'destinationId:', destinationId);
+     try {
+       const response = await fetch('/api/users/liked-destinations', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ userId: user.id, destinationId }),
+       });
+       const data = await response.json();
+       console.log('saveDestination /api/users/liked-destinations response data:', data);
+       if (response.ok && data.success) {
+         console.log('saveDestination successful, updating user state');
+         // Update user state with the new liked destination
+         setUser(prevUser => {
+           if (!prevUser) return null;
+           const updatedSaved = [...(prevUser.savedDestinations || []), destinationId];
+           console.log('setUser in saveDestination: updatedSaved', updatedSaved);
+           return { ...prevUser, savedDestinations: updatedSaved };
+         });
+       } else {
+         console.error('Failed to save destination:', data.message);
+       }
+     } catch (error) {
+       console.error('Error saving destination:', error);
+     }
   };
 
   const removeSavedDestination = async (destinationId: string) => {
-     if (!user) return;
-    // This should also call an API route
-     console.log('Remove saved destination called for user:', user.id, destinationId);
+     if (!user) {
+        console.log('removeSavedDestination: User not logged in');
+        return; // Must be logged in
+     }
+      console.log('removeSavedDestination called for user:', user.id, 'destinationId:', destinationId);
+     try {
+       // Use the DELETE endpoint with destination ID in the path
+       const response = await fetch(`/api/users/liked-destinations/${destinationId}`, {
+         method: 'DELETE',
+         headers: { 'Content-Type': 'application/json' },
+          // Send user ID in the body for backend verification (optional, could use headers/session)
+          body: JSON.stringify({ userId: user.id }),
+       });
+       const data = await response.json();
+       console.log('removeSavedDestination /api/users/liked-destinations response data:', data);
+       if (response.ok && data.success) {
+         console.log('removeSavedDestination successful, updating user state');
+         // Update user state by removing the liked destination
+         setUser(prevUser => {
+           if (!prevUser) return null;
+           const updatedSaved = (prevUser.savedDestinations || []).filter(id => id !== destinationId);
+           console.log('setUser in removeSavedDestination: updatedSaved', updatedSaved);
+           return { ...prevUser, savedDestinations: updatedSaved };
+         });
+       } else {
+         console.error('Failed to remove saved destination:', data.message);
+       }
+     } catch (error) {
+       console.error('Error removing saved destination:', error);
+     }
   };
 
   const saveItinerary = async (itinerary: any) => {

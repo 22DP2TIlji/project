@@ -10,80 +10,31 @@ interface LikeButtonProps {
 }
 
 export default function LikeButton({ destinationId, destinationName }: LikeButtonProps) {
-  const { user } = useAuth()
-  const [isLiked, setIsLiked] = useState(false)
+  // Get user, saveDestination, and removeSavedDestination from auth context
+  const { user, saveDestination, removeSavedDestination } = useAuth();
+  // isLiked state is now derived from user.savedDestinations
+  const isLiked = user?.savedDestinations?.includes(destinationId) || false;
 
-  useEffect(() => {
-    checkIfLiked()
-  }, [user, destinationId])
+  // No need for a separate useEffect to check likes on user change, as isLiked is derived
+  // The auth context handles fetching the user with savedDestinations on load.
 
-  const checkIfLiked = () => {
-    if (user) {
-      // Check user's likes in localStorage
-      const users = JSON.parse(localStorage.getItem("users") || "[]")
-      const currentUser = users.find((u: any) => u.id === user.id)
-
-      if (currentUser && currentUser.likes && currentUser.likes[destinationId]) {
-        setIsLiked(true)
-        return
-      }
-    } else {
-      // Check anonymous likes in localStorage
-      const likedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
-      setIsLiked(!!likedDestinations[destinationId])
+  const toggleLike = async () => {
+    if (!user) {
+      // Optionally show a message or redirect to login if not authenticated
+      console.log("Please log in to like destinations.");
+      return;
     }
 
-    setIsLiked(false)
-  }
-
-  const toggleLike = () => {
-    if (user) {
-      // Update user's likes in localStorage
-      const users = JSON.parse(localStorage.getItem("users") || "[]")
-      const userIndex = users.findIndex((u: any) => u.id === user.id)
-
-      if (userIndex !== -1) {
-        // Initialize likes object if it doesn't exist
-        if (!users[userIndex].likes) {
-          users[userIndex].likes = {}
-        }
-
-        if (isLiked) {
-          // Remove from liked destinations
-          delete users[userIndex].likes[destinationId]
-        } else {
-          // Add to liked destinations
-          users[userIndex].likes[destinationId] = {
-            id: destinationId,
-            name: destinationName,
-          }
-        }
-
-        localStorage.setItem("users", JSON.stringify(users))
-      }
+    if (isLiked) {
+      // Call the removeSavedDestination function
+      await removeSavedDestination(destinationId);
     } else {
-      // Update anonymous likes in localStorage
-      const likedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
-
-      if (isLiked) {
-        // Remove from liked destinations
-        delete likedDestinations[destinationId]
-      } else {
-        // Add to liked destinations
-        likedDestinations[destinationId] = {
-          id: destinationId,
-          name: destinationName,
-        }
-      }
-
-      localStorage.setItem("likedDestinations", JSON.stringify(likedDestinations))
+      // Call the saveDestination function
+      await saveDestination(destinationId);
     }
 
-    setIsLiked(!isLiked)
-    
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new Event('likesUpdated'))
-  }
+    // The isLiked state will automatically update because the user object in the auth context changes
+  };
 
   return (
     <button

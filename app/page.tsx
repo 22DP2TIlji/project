@@ -1,7 +1,8 @@
 ﻿"use client"
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
+import type { Destination } from "@/lib/types"; // Assuming you have a types file for Destination
 
 interface LikedDestination {
   id: string
@@ -9,59 +10,61 @@ interface LikedDestination {
 }
 
 export default function Home() {
-  const { user } = useAuth()
-  const [likedDestinations, setLikedDestinations] = useState<Record<string, LikedDestination>>({})
-  const [isClient, setIsClient] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
+  const { user, isAuthenticated, removeSavedDestination } = useAuth(); // Get user and remove function
+  const [allDestinations, setAllDestinations] = useState<Destination[]>([]); // State to hold all destinations
+  const [isLoading, setIsLoading] = useState(true); // State for loading indicator
   const [darkMode, setDarkMode] = useState(false)
 
+  console.log('Home page rendered. User:', user, 'IsAuthenticated:', isAuthenticated);
+
   useEffect(() => {
-    setIsClient(true)
-    loadLikedDestinations()
-    
-    const handleStorageChange = () => {
-      loadLikedDestinations()
-    }
-    
-    // Check for dark mode preference
+    console.log('Home page useEffect running');
+    // Fetch all destinations when the component mounts
+    const fetchDestinations = async () => {
+      try {
+        const response = await fetch('/api/destinations');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Fetched all destinations:', data.destinations);
+          setAllDestinations(data.destinations);
+        } else {
+          console.error('Failed to fetch destinations:', response.statusText);
+          setAllDestinations([]);
+        }
+      } catch (error) {
+        console.error('Error fetching destinations:', error);
+        setAllDestinations([]);
+      }
+       setIsLoading(false);
+    };
+
+    fetchDestinations();
+
+    // The rest of your effects (like checking for dark mode) can remain or be adjusted
     if (typeof window !== 'undefined') {
       setDarkMode(document.documentElement.classList.contains('dark'))
     }
-    
-    window.addEventListener('storage', handleStorageChange)
-    window.addEventListener('likesUpdated', handleStorageChange)
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange)
-      window.removeEventListener('likesUpdated', handleStorageChange)
+
+  }, []); // Fetch destinations only once on mount
+
+  // Filter destinations based on user's savedDestinations when user or allDestinations changes
+  const likedDestinations = useMemo(() => {
+    console.log('useMemo calculating liked destinations...');
+    console.log('Current user:', user);
+    console.log('Current user.savedDestinations:', user?.savedDestinations);
+    console.log('Current allDestinations count:', allDestinations.length);
+
+    // Ensure user and savedDestinations exist and allDestinations is not empty
+    if (!user || !user.savedDestinations || allDestinations.length === 0) {
+      console.log('useMemo: Conditions not met for filtering, returning empty array.');
+      return [];
     }
-  }, [user, refreshKey])
-
-  const loadLikedDestinations = () => {
-    if (!isClient) return
-
-    try {
-      if (user) {
-        const users = JSON.parse(localStorage.getItem("users") || "[]")
-        const currentUser = users.find((u: any) => u.id === user.id)
-
-        if (currentUser && currentUser.likes) {
-          setLikedDestinations(currentUser.likes)
-          return
-        }
-      } else {
-        const savedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
-        setLikedDestinations(savedDestinations)
-      }
-    } catch (error) {
-      console.error("Error loading liked destinations:", error)
-      setLikedDestinations({})
-    }
-  }
-
-  const refreshLikedDestinations = () => {
-    setRefreshKey(prev => prev + 1)
-  }
+    // Filter all destinations to find the ones whose IDs are in user.savedDestinations
+    // At this point, TypeScript knows user and user.savedDestinations are not null/undefined
+    const filtered = allDestinations.filter(dest => user.savedDestinations!.includes(dest.id)); // Use non-null assertion (!)
+    console.log('useMemo calculated liked destinations:', filtered);
+    return filtered;
+  }, [user?.savedDestinations, allDestinations]); // Dependencies: user.savedDestinations and allDestinations
 
   return (
     <>
@@ -97,36 +100,23 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-light mb-4 text-center text-gray-900 dark:text-white">Your Favorite Destinations</h2>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Discover your saved places to visit</p>
-          {Object.keys(likedDestinations).length > 0 ? (
+
+          {isLoading ? (
+             <div className="text-center text-gray-600 dark:text-gray-300">Loading favorite destinations...</div>
+          ) : isAuthenticated && user && likedDestinations.length > 0 ? (
+             // Display liked destinations if authenticated and user has liked any
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Object.values(likedDestinations).map((destination) => (
+              {likedDestinations.map((destination) => (
                 <div key={destination.id} className="relative group">
-                  <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
-                    {/* Placeholder for destination image */}
+                  {/* Placeholder for destination image */}
+                   <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${destination.image || '/placeholder-image.jpg'})` }}></div> {/* Use destination image or placeholder */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent group-hover:from-black/70 transition-all duration-300"></div>
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <h3 className="text-lg font-medium text-white mb-2">{destination.name}</h3>
                     <button
-                      onClick={() => {
-                        if (user) {
-                          const users = JSON.parse(localStorage.getItem("users") || "[]")
-                          const updatedUsers = users.map((u: any) => {
-                            if (u.id === user.id) {
-                              const { [destination.id]: removed, ...rest } = u.likes || {}
-                              return { ...u, likes: rest }
-                            }
-                            return u
-                          })
-                          localStorage.setItem("users", JSON.stringify(updatedUsers))
-                        } else {
-                          const savedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
-                          const { [destination.id]: removed, ...rest } = savedDestinations
-                          localStorage.setItem("likedDestinations", JSON.stringify(rest))
-                        }
-                        window.dispatchEvent(new Event("likesUpdated"))
-                        refreshLikedDestinations()
-                      }}
+                      onClick={() => removeSavedDestination(destination.id)} // Use removeSavedDestination from auth context
                       className="text-sm text-white hover:text-red-400 transition-colors"
                     >
                       Remove
@@ -135,7 +125,8 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          ) : (
+          ) : isAuthenticated && user && likedDestinations.length === 0 ? (
+              // Message if authenticated but no liked destinations
             <div className="text-center">
               <p className="text-gray-600 dark:text-gray-300">
                 You haven't liked any destinations yet. Visit our{" "}
@@ -144,6 +135,17 @@ export default function Home() {
                 </Link>{" "}
                 page to discover amazing places in Latvia!
               </p>
+            </div>
+           ) : (
+              // Message if not authenticated
+            <div className="text-center">
+               <p className="text-gray-600 dark:text-gray-300">
+                 Please{" "}
+                 <Link href="/login" className="text-gray-900 dark:text-white hover:underline">
+                   log in
+                 </Link>{" "}
+                 to see your favorite destinations.
+               </p>
             </div>
           )}
         </div>

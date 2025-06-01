@@ -25,3 +25,24 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
 }
+
+export async function POST(request) {
+  const { name, description } = await request.json()
+  console.log('Attempting to add destination:', { name, description });
+  if (!name || !description) {
+    console.error('Validation failed: Name and description required');
+    return NextResponse.json({ success: false, message: 'Name and description required' }, { status: 400 })
+  }
+  try {
+    console.log('Executing database insert...');
+    const [result] = await pool.execute<OkPacket>(
+      'INSERT INTO destinations (name, description) VALUES (?, ?)',
+      [name, description]
+    )
+    console.log('Database insert successful:', result);
+    return NextResponse.json({ success: true, id: result.insertId })
+  } catch (error) {
+    console.error('Database error during destination insert:', error)
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+  }
+}
