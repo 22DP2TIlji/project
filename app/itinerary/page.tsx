@@ -3,6 +3,10 @@
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { Search, Clock, Navigation, Car, Footprints } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
+import type { Destination } from "@/lib/types"
+import Link from "next/link"
+import LikeButton from "@/components/like-button"
 
 // Dynamically import the Map component with no SSR
 const ItineraryMap = dynamic(() => import("@/components/itinerary-map"), {
@@ -40,6 +44,7 @@ const transportModes = [
 ]
 
 export default function ItineraryPage() {
+  const { user, isAuthenticated, removeSavedDestination } = useAuth()
   const [startPoint, setStartPoint] = useState("")
   const [endPoint, setEndPoint] = useState("")
   const [customStartPoint, setCustomStartPoint] = useState("")
@@ -53,6 +58,9 @@ export default function ItineraryPage() {
   const [isGeocoding, setIsGeocoding] = useState(false)
   const [geocodedStartCoords, setGeocodedStartCoords] = useState<[number, number] | null>(null)
   const [geocodedEndCoords, setGeocodedEndCoords] = useState<[number, number] | null>(null)
+  const [likedDestinations, setLikedDestinations] = useState<Destination[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [darkMode, setDarkMode] = useState(false)
 
   // Set isClient to true when component mounts
   useEffect(() => {
@@ -67,7 +75,46 @@ export default function ItineraryPage() {
     } catch (error) {
       console.error("Error loading saved itineraries:", error)
     }
-  }, [])
+
+    // Fetch liked destinations directly from the API
+    const fetchLikedDestinations = async () => {
+      setIsLoading(true)
+      if (isAuthenticated && user?.id) {
+        try {
+          const response = await fetch('/api/users/liked-destinations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id }),
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            console.log('Fetched liked destinations:', data.likedDestinations)
+            setLikedDestinations(data.likedDestinations || [])
+          } else {
+            console.error('Failed to fetch liked destinations:', response.statusText)
+            setLikedDestinations([])
+          }
+        } catch (error) {
+          console.error('Error fetching liked destinations:', error)
+          setLikedDestinations([])
+        } finally {
+          setIsLoading(false)
+        }
+      } else {
+        console.log('User not authenticated or user ID missing, clearing liked destinations')
+        setLikedDestinations([])
+        setIsLoading(false)
+      }
+    }
+
+    fetchLikedDestinations()
+
+    // Keep dark mode effect if needed
+    if (typeof window !== 'undefined') {
+      setDarkMode(document.documentElement.classList.contains('dark'))
+    }
+  }, [user?.id, isAuthenticated])
 
   // Find coordinates for selected destinations
   const getCoordinates = (pointId: string): [number, number] | null => {
@@ -300,11 +347,11 @@ export default function ItineraryPage() {
 
   return (
     <>
-      <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200">{/* Placeholder for background image */}</div>
+      <section className="relative h-[40vh] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+        <div className="absolute inset-0 overflow-hidden bg-gray-200 dark:bg-gray-700"></div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Plan Your Itinerary</h1>
-          <p className="mt-4 text-xl">Create your perfect route through Latvia</p>
+          <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white">Plan Your Itinerary</h1>
+          <p className="mt-4 text-xl text-gray-700 dark:text-gray-200">Create your perfect route through Latvia</p>
         </div>
       </section>
 
@@ -561,6 +608,78 @@ export default function ItineraryPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="py-16 bg-gray-50 dark:bg-gray-800">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-light mb-4 text-center text-gray-900 dark:text-white">Your Favorite Destinations</h2>
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Discover your saved places to visit</p>
+
+          {isLoading ? (
+             <div className="text-center text-gray-600 dark:text-gray-300">Loading favorite destinations...</div>
+          ) : isAuthenticated && user && likedDestinations.length > 0 ? (
+             // Display liked destinations if authenticated and user has liked any
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {likedDestinations.map((destination) => (
+                <div
+                  key={destination.id}
+                  className="group border border-gray-200 dark:border-gray-700 rounded-md p-6 hover:shadow-md transition-shadow bg-white dark:bg-gray-800"
+                >
+                  <div className="relative h-64 mb-4 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-700">
+                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${destination.image || '/placeholder-image.jpg'})` }}></div>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <h3 className="text-2xl font-medium text-gray-900 dark:text-white">{destination.name}</h3>
+                    <LikeButton destinationId={destination.id as string} destinationName={destination.name} initialLiked={true} />
+                  </div>
+                  <p className="mt-2 text-gray-600 dark:text-gray-200">{destination.description}</p>
+                  <div className="mt-4 flex justify-between items-center">
+                    <div className="flex gap-2">
+                      {destination.category && (
+                        <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-xs rounded-full text-gray-700 dark:text-gray-200">
+                          {destination.category}
+                        </span>
+                      )}
+                      {destination.region && (
+                        <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-xs rounded-full text-gray-700 dark:text-gray-200">
+                          {destination.region}
+                        </span>
+                      )}
+                    </div>
+                    <Link
+                      href={`/destination/${destination.id}`}
+                      className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+                    >
+                      View details
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : isAuthenticated && user && likedDestinations.length === 0 ? (
+              // Message if authenticated but no liked destinations
+            <div className="text-center">
+              <p className="text-gray-600 dark:text-gray-300">
+                You haven\'t liked any destinations yet. Visit our{" "}
+                <Link href="/destinations" className="text-gray-900 dark:text-white hover:underline">
+                  Destinations
+                </Link>{" "}
+                page to discover amazing places in Latvia!
+              </p>
+            </div>
+           ) : (
+              // Message if not authenticated
+            <div className="text-center">
+               <p className="text-gray-600 dark:text-gray-300">
+                 Please{" "}
+                 <Link href="/login" className="text-gray-900 dark:text-white hover:underline">
+                   log in
+                 </Link>{" "}
+                 to see your favorite destinations.
+               </p>
             </div>
           )}
         </div>

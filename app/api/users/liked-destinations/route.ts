@@ -9,7 +9,8 @@ export async function GET(request: Request) {
   try {
     // Get user ID from request body (as per simplified auth setup)
     // Note: GET requests typically don't have a body, but we are using POST-like behavior for this simplified auth.
-    const { userId } = await request.json();
+    // Consider revising auth for standard GET requests in production.
+    const { userId } = await request.json(); // Assuming userId is passed in body for this simplified setup
     console.log('GET liked destinations for userId:', userId);
 
     const user = await getUserFromId(userId);
@@ -19,16 +20,16 @@ export async function GET(request: Request) {
     }
     console.log('User found for GET liked destinations:', user.id);
 
-    console.log('Executing SELECT query for liked destinations...');
+    console.log('Executing SELECT JOIN query for liked destinations...');
+    // Select full destination details for liked destinations
     const [rows] = await pool.execute<RowDataPacket[]>(
-      'SELECT destination_id FROM user_liked_destinations WHERE user_id = ?',
+      'SELECT d.* FROM destinations d JOIN user_liked_destinations ul ON d.id = ul.destination_id WHERE ul.user_id = ?',
       [user.id]
     );
-    console.log('SELECT query result (rows):', rows);
+    console.log('SELECT JOIN query result (rows):', rows);
 
-    const likedDestinations = rows.map(row => row.destination_id);
-    console.log('Returning liked destinations:', likedDestinations);
-    return NextResponse.json({ success: true, likedDestinations });
+    // Return the full destination objects
+    return NextResponse.json({ success: true, likedDestinations: rows });
   } catch (error) {
     console.error('Error fetching liked destinations:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });

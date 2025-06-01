@@ -107,17 +107,16 @@ export default function Home() {
              // Display liked destinations if authenticated and user has liked any
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {likedDestinations.map((destination) => (
-                <div key={destination.id} className="relative group">
-                  {/* Placeholder for destination image */}
-                   <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
-                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${destination.image || '/placeholder-image.jpg'})` }}></div> {/* Use destination image or placeholder */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent group-hover:from-black/70 transition-all duration-300"></div>
+                <div key={destination.id} className="relative group rounded-md overflow-hidden shadow-lg">
+                  <div className="w-full h-64 bg-gray-300 dark:bg-gray-700 overflow-hidden">
+                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${destination.image || '/placeholder-image.jpg'})` }}></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent group-hover:from-black/90 transition-all duration-300"></div>
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="text-lg font-medium text-white mb-2">{destination.name}</h3>
+                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-black bg-opacity-60 flex flex-col">
+                    <h3 className="text-lg font-medium text-white mb-1 leading-tight">{destination.name}</h3>
                     <button
-                      onClick={() => removeSavedDestination(destination.id)} // Use removeSavedDestination from auth context
-                      className="text-sm text-white hover:text-red-400 transition-colors"
+                      onClick={() => removeSavedDestination(destination.id as string)}
+                      className="text-sm text-blue-300 hover:text-blue-400 transition-colors self-start"
                     >
                       Remove
                     </button>
