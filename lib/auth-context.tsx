@@ -87,8 +87,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         setIsAuthenticated(false)
       }
     }
-    fetchUser()
-  }, [])
+    // fetchUser() // Temporarily disabled to debug login flow
+  }, [isAuthenticated])
 
   const login = async (email: string, password: string): Promise<boolean> => {
     console.log('Login called for email:', email);

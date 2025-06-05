@@ -82,4 +82,46 @@ export async function POST(request: Request) {
     console.error('Error adding liked destination:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
+}
+
+// DELETE /api/users/liked-destinations/[destinationId] - Remove a liked destination for the current user
+// Note: This uses a dynamic route segment for the destinationId, but we still need the user ID from the body.
+export async function DELETE(request: Request, { params }: { params: { destinationId: string } }) {
+   console.log('Received DELETE request to remove liked destination');
+   try {
+     // Get user ID from request body
+     const { userId } = await request.json();
+     console.log('DELETE liked destination: userId =', userId, ', destinationId from params =', params.destinationId);
+
+     const user = await getUserFromId(userId);
+     if (!user) {
+        console.log('DELETE liked destination: User not authenticated or found');
+       return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
+     }
+      console.log('User found for DELETE liked destination:', user.id);
+
+     const { destinationId } = params;
+     if (!destinationId) {
+        console.log('DELETE liked destination: Destination ID is missing');
+       return NextResponse.json({ success: false, message: 'Destination ID is required' }, { status: 400 });
+     }
+
+     console.log('Executing DELETE query to remove liked destination...');
+     const [result] = await pool.execute<OkPacket>(
+       'DELETE FROM user_liked_destinations WHERE user_id = ? AND destination_id = ?',
+       [user.id, destinationId] // Assuming user.id and destinationId match the table types (INT and INT)
+     );
+     console.log('DELETE query result:', result);
+
+     if (result.affectedRows === 0) {
+        console.log('Liked destination not found for removal');
+        return NextResponse.json({ success: false, message: 'Liked destination not found for this user' }, { status: 404 });
+     }
+
+     console.log('Successfully removed liked destination');
+     return NextResponse.json({ success: true });
+   } catch (error) {
+     console.error('Error removing liked destination:', error);
+     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+   }
 } 

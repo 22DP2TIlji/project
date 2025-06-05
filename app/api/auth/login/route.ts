@@ -12,15 +12,27 @@ export async function POST(
   }
 
   try {
-    const [rows] = await pool.execute<RowDataPacket[]>(
+    // Fetch user data
+    const [userRows] = await pool.execute<RowDataPacket[]>(
       'SELECT id, name, email, role FROM users WHERE email = ? AND password = ?',
       [email, password]
     )
 
-    if (rows.length > 0) {
-      const user = rows[0]
+    if (userRows.length > 0) {
+      const user = userRows[0]
+
+      // Fetch the user's liked destinations
+      const [likedRows] = await pool.execute<RowDataPacket[]>(
+        'SELECT destination_id FROM user_liked_destinations WHERE user_id = ?',
+        [user.id]
+      )
+      const likedDestinations = likedRows.map(row => row.destination_id)
+
+      // Add liked destinations to the user object
+      const userWithLiked = { ...user, savedDestinations: likedDestinations }
+
       // In a real application, you would create a session or JWT here
-      return NextResponse.json({ success: true, user: user }, { status: 200 })
+      return NextResponse.json({ success: true, user: userWithLiked }, { status: 200 })
     } else {
       return NextResponse.json({ success: false, message: 'Invalid email or password' }, { status: 401 })
     }

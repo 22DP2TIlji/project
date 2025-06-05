@@ -106,23 +106,25 @@ export default function Home() {
           ) : isAuthenticated && user && likedDestinations.length > 0 ? (
              // Display liked destinations if authenticated and user has liked any
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {likedDestinations.map((destination) => (
+              {likedDestinations.map((destination) => {
+                console.log('Rendering liked destination:', destination);
+                return (
                 <div key={destination.id} className="relative group rounded-md overflow-hidden shadow-lg">
                   <div className="w-full h-64 bg-gray-300 dark:bg-gray-700 overflow-hidden">
-                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${destination.image || '/placeholder-image.jpg'})` }}></div>
+                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${destination.image || '/placeholder.jpg'})` }}></div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent group-hover:from-black/90 transition-all duration-300"></div>
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-black bg-opacity-60 flex flex-col">
                     <h3 className="text-lg font-medium text-white mb-1 leading-tight">{destination.name}</h3>
                     <button
-                      onClick={() => removeSavedDestination(destination.id as string)}
+                      onClick={() => removeSavedDestination(destination.id)}
                       className="text-sm text-blue-300 hover:text-blue-400 transition-colors self-start"
                     >
                       Remove
                     </button>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           ) : isAuthenticated && user && likedDestinations.length === 0 ? (
               // Message if authenticated but no liked destinations
