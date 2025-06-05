@@ -633,7 +633,7 @@ export default function ItineraryPage() {
                   </div>
                   <div className="flex justify-between items-start">
                     <h3 className="text-2xl font-medium text-gray-900 dark:text-white">{destination.name}</h3>
-                    <LikeButton destinationId={destination.id as string} destinationName={destination.name} initialLiked={true} />
+                    <LikeButton destinationId={destination.id as string} destinationName={destination.name} />
                   </div>
                   <p className="mt-2 text-gray-600 dark:text-gray-200">{destination.description}</p>
                   <div className="mt-4 flex justify-between items-center">
