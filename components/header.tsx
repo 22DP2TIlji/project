@@ -82,6 +82,14 @@ export default function Header() {
             >
               Transportation
             </Link>
+            <Link
+              href="/accommodations"
+              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                pathname === '/accommodations' ? 'font-medium' : ''
+              }`}
+            >
+              Accommodations
+            </Link>
             <Link 
               href="/cuisine" 
               className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
@@ -199,6 +207,14 @@ export default function Header() {
               }`}
             >
               Transportation
+            </Link>
+            <Link
+              href="/accommodations"
+              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
+                pathname === '/accommodations' ? 'font-medium' : ''
+              }`}
+            >
+              Accommodations
             </Link>
             <Link 
               href="/cuisine" 

@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 
 interface LikeButtonProps {
-  destinationId: string
+  destinationId: number
   destinationName: string
 }
 
@@ -26,10 +26,10 @@ export default function LikeButton({ destinationId, destinationName }: LikeButto
     }
 
     if (isLiked) {
-      // Call the removeSavedDestination function
+      // Call the removeSavedDestination function (which expects number ID)
       await removeSavedDestination(destinationId);
     } else {
-      // Call the saveDestination function
+      // Call the saveDestination function (which expects number ID)
       await saveDestination(destinationId);
     }
 

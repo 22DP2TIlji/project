@@ -96,7 +96,7 @@ export default function DestinationPage() {
       {destination.region && <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">{destination.region}</span>}
        {/* You can add the LikeButton component here, passing the destination.id */}
        {/* Make sure LikeButton handles fetching its own liked status */}
-       <LikeButton destinationId={destination.id.toString()} destinationName={destination.name} />
+       <LikeButton destinationId={destination.id} destinationName={destination.name} />
         </div>
   )
 }

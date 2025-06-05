@@ -1,5 +1,5 @@
 export interface Destination {
-  id: string; // Based on the database schema update
+  id: number; // Based on the database schema
   name: string;
   description?: string; // Made nullable in database
   category?: string; // Made nullable in database

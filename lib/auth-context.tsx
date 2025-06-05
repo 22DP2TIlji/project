@@ -22,7 +22,7 @@ interface User {
     language: string;
   };
   // Change savedDestinations to be an array of destination IDs (strings)
-  savedDestinations?: string[];
+  savedDestinations?: number[];
   savedItineraries?: any[];
   // Note: Storing passwords in localStorage is insecure. 
   // This is for demonstration purposes only.
@@ -37,8 +37,8 @@ interface AuthContextType {
   isAdmin: () => boolean;
   updatePreferences: (preferences: Partial<User['preferences']>) => Promise<void>;
   // Update save/remove functions to work with destination ID strings
-  saveDestination: (destinationId: string) => Promise<void>;
-  removeSavedDestination: (destinationId: string) => Promise<void>;
+  saveDestination: (destinationId: number) => Promise<void>;
+  removeSavedDestination: (destinationId: number) => Promise<void>;
   saveItinerary: (itinerary: any) => Promise<void>;
   removeSavedItinerary: (itineraryId: string) => Promise<void>;
   isAuthenticated: boolean;
@@ -167,17 +167,18 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
      // This should also call an API route
   };
 
-  const saveDestination = async (destinationId: string) => {
+  const saveDestination = async (destinationId: number) => {
      if (!user) {
         console.log('saveDestination: User not logged in');
         return; // Must be logged in
      }
      console.log('saveDestination called for user:', user.id, 'destinationId:', destinationId);
      try {
+       // Ensure destinationId is sent as number if backend expects it
        const response = await fetch('/api/users/liked-destinations', {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ userId: user.id, destinationId }),
+         body: JSON.stringify({ userId: user.id, destinationId: destinationId }), // Send number ID
        });
        const data = await response.json();
        console.log('saveDestination /api/users/liked-destinations response data:', data);
@@ -198,7 +199,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
      }
   };
 
-  const removeSavedDestination = async (destinationId: string) => {
+  const removeSavedDestination = async (destinationId: number) => {
      if (!user) {
         console.log('removeSavedDestination: User not logged in');
         return; // Must be logged in
@@ -219,6 +220,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
          // Update user state by removing the liked destination
          setUser(prevUser => {
            if (!prevUser) return null;
+           // Filter expects number IDs
            const updatedSaved = (prevUser.savedDestinations || []).filter(id => id !== destinationId);
            console.log('setUser in removeSavedDestination: updatedSaved', updatedSaved);
            return { ...prevUser, savedDestinations: updatedSaved };

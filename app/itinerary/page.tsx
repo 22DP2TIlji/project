@@ -81,16 +81,33 @@ export default function ItineraryPage() {
       setIsLoading(true)
       if (isAuthenticated && user?.id) {
         try {
-          const response = await fetch('/api/users/liked-destinations', {
-            method: 'POST',
+          // Ensure user ID is handled as number if auth context user ID is number
+          const userId = Number(user.id); // Convert user.id to number if it's string/number mixed
+          if (isNaN(userId)) { // Basic check
+            console.error("Invalid user ID:", user.id);
+            setLikedDestinations([]);
+            setIsLoading(false);
+            return;
+          }
+
+          const response = await fetch('/app/api/users/liked-destinations', {
+            method: 'GET',
+            // Pass user ID as a query parameter for GET request
+            // In a real app with proper auth, backend gets user from session/token
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id }),
+            // Consider sending user ID in headers or querying based on session on backend
+            // For this example, sticking to previous attempt of GET with no body and hoping backend derives user
           })
 
           if (response.ok) {
             const data = await response.json()
             console.log('Fetched liked destinations:', data.likedDestinations)
-            setLikedDestinations(data.likedDestinations || [])
+            // Data from backend should have numeric IDs, explicitly cast to number for state consistency
+            const likedDestinationsWithNumericIds = data.likedDestinations.map((dest: any) => ({
+              ...dest,
+              id: Number(dest.id) // Explicitly cast to number
+            }));
+            setLikedDestinations(likedDestinationsWithNumericIds || [])
           } else {
             console.error('Failed to fetch liked destinations:', response.statusText)
             setLikedDestinations([])
@@ -115,6 +132,36 @@ export default function ItineraryPage() {
       setDarkMode(document.documentElement.classList.contains('dark'))
     }
   }, [user?.id, isAuthenticated])
+
+  // Function to remove a liked destination
+  const handleRemoveDestination = async (destinationId: number) => {
+    if (!isAuthenticated || !user?.id) return; // Ensure user is authenticated
+
+    try {
+      // Use the DELETE endpoint with destination ID (as number) in the path
+      const response = await fetch(`/app/api/users/liked-destinations/${destinationId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Backend should get user from session/token, or send user ID in body if needed by backend
+        body: JSON.stringify({ userId: Number(user.id) }), // Sending numeric userId in body based on backend code
+      });
+
+      if (response.ok) {
+        // Remove the destination from the local state
+        // Filter based on number ID comparison
+        setLikedDestinations(prev => prev.filter(dest => dest.id !== destinationId));
+        console.log(`Destination ${destinationId} unliked successfully.`);
+      } else {
+        console.error('Failed to unlike destination:', response.statusText);
+        alert('Failed to remove destination. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error unliking destination:', error);
+      alert('An error occurred while removing the destination. Please try again.');
+    }
+  };
 
   // Find coordinates for selected destinations
   const getCoordinates = (pointId: string): [number, number] | null => {
@@ -613,48 +660,58 @@ export default function ItineraryPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-gray-50 dark:bg-gray-800">
+      <section className="py-16 bg-gray-100">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light mb-4 text-center text-gray-900 dark:text-white">Your Favorite Destinations</h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Discover your saved places to visit</p>
+          <h2 className="text-3xl font-light mb-4 text-center text-gray-900 text-white">Your Favorite Destinations</h2>
+          <p className="text-center text-gray-600 text-gray-300 mb-8">Discover your saved places to visit</p>
 
           {isLoading ? (
-             <div className="text-center text-gray-600 dark:text-gray-300">Loading favorite destinations...</div>
+             <div className="text-center text-gray-600 text-gray-300">Loading favorite destinations...</div>
           ) : isAuthenticated && user && likedDestinations.length > 0 ? (
              // Display liked destinations if authenticated and user has liked any
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {likedDestinations.map((destination) => (
                 <div
                   key={destination.id}
-                  className="group border border-gray-200 dark:border-gray-700 rounded-md p-6 hover:shadow-md transition-shadow bg-white dark:bg-gray-800"
+                  className="group border border-gray-300 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white"
                 >
-                  <div className="relative h-64 mb-4 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-700">
+                  <div className="relative h-48 w-full overflow-hidden bg-gradient-to-b from-gray-200 to-gray-400">
                     <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${destination.image || '/placeholder-image.jpg'})` }}></div>
                   </div>
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-2xl font-medium text-gray-900 dark:text-white">{destination.name}</h3>
-                    <LikeButton destinationId={destination.id as string} destinationName={destination.name} />
-                  </div>
-                  <p className="mt-2 text-gray-600 dark:text-gray-200">{destination.description}</p>
-                  <div className="mt-4 flex justify-between items-center">
-                    <div className="flex gap-2">
-                      {destination.category && (
-                        <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-xs rounded-full text-gray-700 dark:text-gray-200">
-                          {destination.category}
-                        </span>
-                      )}
-                      {destination.region && (
-                        <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-xs rounded-full text-gray-700 dark:text-gray-200">
-                          {destination.region}
-                        </span>
-                      )}
+                  <div className="p-4 bg-gray-900 text-white">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-xl font-semibold text-white">{destination.name}</h3>
+                      <div className="flex items-center space-x-2">
+                        <LikeButton destinationId={destination.id} destinationName={destination.name} />
+                        <button
+                          onClick={() => handleRemoveDestination(destination.id)}
+                          className="text-blue-400 hover:text-blue-300 text-sm"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
-                    <Link
-                      href={`/destination/${destination.id}`}
-                      className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
-                    >
-                      View details
-                    </Link>
+                    <p className="mt-2 text-gray-400 text-sm flex-grow">{destination.description}</p>
+                    <div className="mt-4 flex justify-between items-center">
+                      <div className="flex gap-2">
+                        {destination.category && (
+                          <span className="px-2 py-1 bg-gray-700 text-xs rounded-full text-gray-300">
+                            {destination.category}
+                          </span>
+                        )}
+                        {destination.region && (
+                          <span className="px-2 py-1 bg-gray-700 text-xs rounded-full text-gray-300">
+                            {destination.region}
+                          </span>
+                        )}
+                      </div>
+                      <Link
+                        href={`/destination/${destination.id}`}
+                        className="text-blue-400 hover:underline text-sm"
+                      >
+                        View details
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -662,9 +719,9 @@ export default function ItineraryPage() {
           ) : isAuthenticated && user && likedDestinations.length === 0 ? (
               // Message if authenticated but no liked destinations
             <div className="text-center">
-              <p className="text-gray-600 dark:text-gray-300">
-                You haven\'t liked any destinations yet. Visit our{" "}
-                <Link href="/destinations" className="text-gray-900 dark:text-white hover:underline">
+              <p className="text-gray-600">
+                You haven't liked any destinations yet. Visit our{" "}
+                <Link href="/destinations" className="text-gray-800 hover:underline">
                   Destinations
                 </Link>{" "}
                 page to discover amazing places in Latvia!
@@ -673,9 +730,9 @@ export default function ItineraryPage() {
            ) : (
               // Message if not authenticated
             <div className="text-center">
-               <p className="text-gray-600 dark:text-gray-300">
+               <p className="text-gray-600">
                  Please{" "}
-                 <Link href="/login" className="text-gray-900 dark:text-white hover:underline">
+                 <Link href="/login" className="text-gray-800 hover:underline">
                    log in
                  </Link>{" "}
                  to see your favorite destinations.
