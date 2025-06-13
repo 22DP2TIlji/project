@@ -53,13 +53,14 @@ export default function AdminDashboard() {
         setUsers(usersData.users || [])
         setDestinations(destinationsData.destinations || [])
         
-        setStats({
+        setStats(prevStats => ({
+          ...prevStats,
           totalUsers: usersData.users?.length || 0,
           activeUsers: usersData.users?.filter((u: any) => u.lastLogin)?.length || 0,
           totalDestinations: destinationsData.destinations?.length || 0,
           totalItineraries: usersData.users?.reduce((acc: number, user: any) => 
             acc + (user.savedItineraries?.length || 0), 0) || 0
-        })
+        }))
       } catch (error) {
         console.error('Error loading admin data:', error)
       }
@@ -91,12 +92,13 @@ export default function AdminDashboard() {
 
       const data = await res.json()
       if (data.success) {
-        // Update the destinations list with the edited destination
-        setDestinations(destinations.map(d => 
+        const updatedDestinations = destinations.map(d => 
           d.id === editingDestination.id 
             ? { ...d, ...editForm }
             : d
-        ))
+        )
+        setDestinations(updatedDestinations)
+        setStats(prevStats => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
         setEditingDestination(null)
       }
     } catch (error) {
@@ -112,7 +114,9 @@ export default function AdminDashboard() {
 
       const data = await res.json()
       if (data.success) {
-        setDestinations(destinations.filter(d => d.id !== destinationId))
+        const updatedDestinations = destinations.filter(d => d.id !== destinationId)
+        setDestinations(updatedDestinations)
+        setStats(prevStats => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
       }
     } catch (error) {
       console.error('Error deleting destination:', error)
@@ -160,10 +164,10 @@ export default function AdminDashboard() {
 
       const data = await res.json()
       if (data.success) {
-        setDestinations([
-          ...destinations,
-          { id: data.id, name: destName, description: destDesc, category: null, region: null } 
-        ])
+        const newDestination = { id: data.id, name: destName, description: destDesc, category: null, region: null }
+        const updatedDestinations = [...destinations, newDestination]
+        setDestinations(updatedDestinations)
+        setStats(prevStats => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
         setDestName('')
         setDestDesc('')
         setDestMsg('Destination added successfully')
@@ -280,6 +284,7 @@ export default function AdminDashboard() {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead>
                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">№</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
@@ -288,8 +293,9 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {destinations.map((destination) => (
+                {destinations.map((destination, index) => (
                   <tr key={destination.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{index + 1}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{destination.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{destination.description}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{destination.category || '-'}</td>
