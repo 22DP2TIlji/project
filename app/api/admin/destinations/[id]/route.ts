@@ -14,11 +14,11 @@ export async function DELETE(request, { params }) {
 
 export async function PUT(request, { params }) {
   const { id } = params
-  const { name, description } = await request.json()
+  const { name, description, category, region } = await request.json()
   try {
     await pool.execute<OkPacket>(
-      'UPDATE destinations SET name = ?, description = ? WHERE id = ?',
-      [name, description, id]
+      'UPDATE destinations SET name = ?, description = ?, category = ?, region = ? WHERE id = ?',
+      [name, description, category || null, region || null, id]
     )
     return NextResponse.json({ success: true })
   } catch (error) {

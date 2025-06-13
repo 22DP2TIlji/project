@@ -43,6 +43,7 @@ interface AuthContextType {
   removeSavedItinerary: (itineraryId: string) => Promise<void>;
   isAuthenticated: boolean;
   signup: (name: string, email: string, password: string) => Promise<boolean>;
+  updateUserRole: (userId: string | number, newRole: 'user' | 'admin') => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -249,6 +250,16 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     return user?.role === 'admin';
   };
 
+  const updateUserRole = (userId: string | number, newRole: 'user' | 'admin') => {
+    setUser(prevUser => {
+      if (!prevUser) return null;
+      if (prevUser.id === userId) {
+        return { ...prevUser, role: newRole };
+      }
+      return prevUser;
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -262,7 +273,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         saveItinerary,
         removeSavedItinerary,
         isAuthenticated,
-        signup
+        signup,
+        updateUserRole,
       }}
     >
       {children}

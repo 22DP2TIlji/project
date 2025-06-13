@@ -1,6 +1,5 @@
 import mysql from 'mysql2/promise'
 
-// Create a connection pool
 const pool = mysql.createPool({
   host: '127.0.0.1', // Use IP instead of localhost
   port: 3306,      // MAMP's default MySQL port
