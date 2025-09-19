@@ -1,27 +1,18 @@
 import { NextResponse } from 'next/server'
-import pool from '@/lib/db'
-import { OkPacket } from 'mysql2/promise'
+import { supabase } from '@/lib/supabaseClient'
 
-export async function DELETE(request, { params }) {
-  const { id } = params
+export async function GET() {
   try {
-    await pool.execute<OkPacket>('DELETE FROM destinations WHERE id = ?', [id])
-    return NextResponse.json({ success: true })
-  } catch (error) {
+    const { data, error } = await supabase.from('destinations').select('*')
+
+    if (error) {
+      console.error('Supabase select error:', error)
+      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, destinations: data })
+  } catch (err) {
+    console.error('Error in GET /destinations:', err)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
 }
-
-export async function PUT(request, { params }) {
-  const { id } = params
-  const { name, description, category, region } = await request.json()
-  try {
-    await pool.execute<OkPacket>(
-      'UPDATE destinations SET name = ?, description = ?, category = ?, region = ? WHERE id = ?',
-      [name, description, category || null, region || null, id]
-    )
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
-  }
-} 

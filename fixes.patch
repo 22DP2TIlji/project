@@ -1,0 +1,213 @@
+diff --git a/lib/db.ts b/lib/supabaseClient.ts
+similarity index 0%
+rename from lib/db.ts
+rename to lib/supabaseClient.ts
+--- a/lib/db.ts
++++ b/lib/supabaseClient.ts
+@@
+-import mysql, { Pool } from 'mysql2/promise'
+-
+-declare global {
+-  // eslint-disable-next-line no-var
+-  var __mysql_pool__: Pool | undefined
+-}
+-
+-const pool: Pool =
+-  global.__mysql_pool__ ??
+-  mysql.createPool({
+-    host: process.env.MYSQL_HOST || 'localhost',
+-    user: process.env.MYSQL_USER || 'root',
+-    password: process.env.MYSQL_PASSWORD || '',
+-    database: process.env.MYSQL_DB || 'travellatvia',
+-    waitForConnections: true,
+-    connectionLimit: 10,
+-    queueLimit: 0,
+-  })
+-
+-if (!global.__mysql_pool__) {
+-  global.__mysql_pool__ = pool
+-}
+-
+-export default pool
++import { createClient } from '@supabase/supabase-js'
++
++const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
++const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
++
++export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+diff --git a/app/api/auth/login/route.ts b/app/api/auth/login/route.ts
+index 1234567..abcdef0 100644
+--- a/app/api/auth/login/route.ts
++++ b/app/api/auth/login/route.ts
+@@
+-import { NextResponse } from 'next/server'
+-import pool from '@/lib/db'
+-
+-export async function POST(request: Request) {
+-  // old mysql2 login code
+-}
++import { NextResponse } from 'next/server'
++import { supabase } from '@/lib/supabaseClient'
++import bcrypt from 'bcryptjs'
++
++export async function POST(request: Request) {
++  try {
++    const { email, password } = await request.json()
++
++    if (!email || !password) {
++      return NextResponse.json({ success: false, message: 'Missing email or password' }, { status: 400 })
++    }
++
++    const { data: users, error } = await supabase
++      .from('users')
++      .select('*')
++      .eq('email', email)
++      .limit(1)
++
++    if (error) {
++      console.error('Supabase select error:', error)
++      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
++    }
++
++    if (!users || users.length === 0) {
++      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
++    }
++
++    const user = users[0]
++    const valid = await bcrypt.compare(password, user.password)
++
++    if (!valid) {
++      return NextResponse.json({ success: false, message: 'Invalid credentials' }, { status: 401 })
++    }
++
++    return NextResponse.json({ success: true, user: { id: user.id, email: user.email, role: user.role } })
++  } catch (err) {
++    console.error('Error in login:', err)
++    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
++  }
++}
+diff --git a/app/api/auth/signup/route.ts b/app/api/auth/signup/route.ts
+index 1234567..abcdef0 100644
+--- a/app/api/auth/signup/route.ts
++++ b/app/api/auth/signup/route.ts
+@@
+-import { NextResponse } from 'next/server'
+-import pool from '@/lib/db'
+-
+-export async function POST(request: Request) {
+-  // old mysql2 signup code
+-}
++import { NextResponse } from 'next/server'
++import { supabase } from '@/lib/supabaseClient'
++import bcrypt from 'bcryptjs'
++
++export async function POST(request: Request) {
++  try {
++    const { name, email, password } = await request.json()
++
++    if (!email || !password) {
++      return NextResponse.json({ success: false, message: 'Missing email or password' }, { status: 400 })
++    }
++
++    const hashed = await bcrypt.hash(password, 10)
++
++    const { error } = await supabase
++      .from('users')
++      .insert([{ name, email, password: hashed, role: 'user' }])
++
++    if (error) {
++      if (error.code === '23505') {
++        return NextResponse.json({ success: false, message: 'Email already exists' }, { status: 409 })
++      }
++      console.error('Supabase insert error:', error)
++      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
++    }
++
++    return NextResponse.json({ success: true })
++  } catch (err) {
++    console.error('Error in signup:', err)
++    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
++  }
++}
+diff --git a/app/api/destinations/route.ts b/app/api/destinations/route.ts
+index 1234567..abcdef0 100644
+--- a/app/api/destinations/route.ts
++++ b/app/api/destinations/route.ts
+@@
+-import { NextResponse } from 'next/server'
+-import pool from '@/lib/db'
+-
+-export async function GET() {
+-  // old mysql2 select code
+-}
++import { NextResponse } from 'next/server'
++import { supabase } from '@/lib/supabaseClient'
++
++export async function GET() {
++  try {
++    const { data, error } = await supabase.from('destinations').select('*')
++
++    if (error) {
++      console.error('Supabase select error:', error)
++      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
++    }
++
++    return NextResponse.json({ success: true, destinations: data })
++  } catch (err) {
++    console.error('Error in GET /destinations:', err)
++    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
++  }
++}
+diff --git a/app/api/admin/destinations/[id]/route.ts b/app/api/admin/destinations/[id]/route.ts
+index 1234567..abcdef0 100644
+--- a/app/api/admin/destinations/[id]/route.ts
++++ b/app/api/admin/destinations/[id]/route.ts
+@@
+-import { NextResponse } from 'next/server'
+-import pool from '@/lib/db'
+-
+-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+-  // old mysql2 delete
+-}
+-
+-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+-  // old mysql2 update
+-}
++import { NextResponse } from 'next/server'
++import { supabase } from '@/lib/supabaseClient'
++
++export async function DELETE(request: Request, { params }: { params: { id: string } }) {
++  const { id } = params
++  try {
++    const { error } = await supabase.from('destinations').delete().eq('id', id)
++    if (error) {
++      console.error('Supabase delete error:', error)
++      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
++    }
++    return NextResponse.json({ success: true })
++  } catch (err) {
++    console.error('Error in DELETE destination:', err)
++    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
++  }
++}
++
++export async function PUT(request: Request, { params }: { params: { id: string } }) {
++  const { id } = params
++  const body = await request.json()
++  const { name, description, category, region } = body
++  try {
++    const { error } = await supabase
++      .from('destinations')
++      .update({ name, description, category, region })
++      .eq('id', id)
++
++    if (error) {
++      console.error('Supabase update error:', error)
++      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
++    }
++    return NextResponse.json({ success: true })
++  } catch (err) {
++    console.error('Error in PUT destination:', err)
++    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
++  }
++}

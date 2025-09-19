@@ -1,35 +1,33 @@
-import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabaseClient'
+import bcrypt from 'bcryptjs'
 
 export async function POST(request: Request) {
-  const { name, email, password } = await request.json();
-
-  if (!name || !email || !password) {
-    return NextResponse.json({ message: 'Name, email, and password are required' }, { status: 400 });
-  }
-
   try {
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      options: {
-        data: {
-          name: name
-        }
-      }
-    });
+    const { name, email, password } = await request.json()
+
+    if (!email || !password) {
+      return NextResponse.json({ success: false, message: 'Missing email or password' }, { status: 400 })
+    }
+
+    // хешируем пароль
+    const hashed = await bcrypt.hash(password, 10)
+
+    const { error } = await supabase
+      .from('users')
+      .insert([{ name, email, password: hashed, role: 'user' }])
 
     if (error) {
-      console.error('Supabase signup error:', error);
-      return NextResponse.json({ success: false, message: 'Failed to sign up', error: error.message }, { status: 400 });
+      if (error.code === '23505') { // unique violation
+        return NextResponse.json({ success: false, message: 'Email already exists' }, { status: 409 })
+      }
+      console.error('Supabase insert error:', error)
+      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
     }
 
-    if (data.user) {
-      return NextResponse.json({ success: true, message: 'User signed up successfully', user: data.user }, { status: 201 });
-    }
-
-  } catch (error) {
-    console.error('Unexpected error during signup:', error);
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('Error in signup:', err)
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
 }

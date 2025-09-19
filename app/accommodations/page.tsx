@@ -1,12 +1,19 @@
-
-import { db } from '@/lib/db'
+import { supabase } from '@/lib/supabaseClient'
 
 export default async function AccommodationsPage() {
   try {
-    const accommodations = await db.getAccommodations()
+    // загружаем данные из Supabase
+    const { data: accommodations, error } = await supabase
+      .from('accommodations')
+      .select('*')
+
+    if (error) {
+      throw error
+    }
+
     return (
       <div>
-        {accommodations.map(accommodation => (
+        {accommodations?.map((accommodation) => (
           <div key={accommodation.id}>
             <h3>{accommodation.name}</h3>
             <p>{accommodation.description}</p>
@@ -14,7 +21,7 @@ export default async function AccommodationsPage() {
         ))}
       </div>
     )
-  } catch (error) {
+  } catch (error: any) {
     return <div>Error fetching accommodations: {error.message}</div>
   }
 }

@@ -1,48 +1,42 @@
 import { NextResponse } from 'next/server'
-import pool from '@/lib/db'
-import { OkPacket } from 'mysql2/promise'
+import { supabase } from '@/lib/supabaseClient'
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   const { id } = params
   try {
-    await pool.execute<OkPacket>('DELETE FROM destinations WHERE id = ?', [id])
+    const { error } = await supabase.from('destinations').delete().eq('id', id)
+
+    if (error) {
+      console.error('Supabase delete error:', error)
+      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
+    }
+
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (err) {
+    console.error('Error in DELETE destination:', err)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   const { id } = params
-  const { name, description } = await request.json()
-  try {
-    await pool.execute<OkPacket>(
-      'UPDATE destinations SET name = ?, description = ? WHERE id = ?',
-      [name, description, id]
-    )
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
-  }
-}
+  const body = await request.json()
+  const { name, description, category, region } = body
 
-export async function POST(request) {
-  const { name, description } = await request.json()
-  console.log('Attempting to add destination:', { name, description });
-  if (!name || !description) {
-    console.error('Validation failed: Name and description required');
-    return NextResponse.json({ success: false, message: 'Name and description required' }, { status: 400 })
-  }
   try {
-    console.log('Executing database insert...');
-    const [result] = await pool.execute<OkPacket>(
-      'INSERT INTO destinations (name, description) VALUES (?, ?)',
-      [name, description]
-    )
-    console.log('Database insert successful:', result);
-    return NextResponse.json({ success: true, id: result.insertId })
-  } catch (error) {
-    console.error('Database error during destination insert:', error)
+    const { error } = await supabase
+      .from('destinations')
+      .update({ name, description, category, region })
+      .eq('id', id)
+
+    if (error) {
+      console.error('Supabase update error:', error)
+      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('Error in PUT destination:', err)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
 }
