@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server'
-import pool from '../../../../lib/db'
-import { RowDataPacket } from 'mysql2/promise'
+import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/db';
 
 export async function POST(
   request: Request

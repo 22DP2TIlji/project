@@ -1,52 +1,35 @@
-import { NextResponse } from 'next/server'
-import pool from '@/lib/db'
-import { RowDataPacket } from 'mysql2/promise'
+import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/db';
 
 export async function GET(request: Request) {
   try {
-    // Parse query parameters from the request URL
     const { searchParams } = new URL(request.url);
     const searchTerm = searchParams.get('search');
     const category = searchParams.get('category');
     const region = searchParams.get('region');
 
-    let query = 'SELECT * FROM destinations';
-    const queryParams: (string | number)[] = [];
-    const conditions: string[] = [];
+    let query = supabase.from('destinations').select('*');
 
-    // Add search condition if searchTerm is provided
     if (searchTerm) {
-      conditions.push('(name LIKE ? OR description LIKE ?)');
-      queryParams.push(`%${searchTerm}%`);
-      queryParams.push(`%${searchTerm}%`);
+      query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
     }
 
-    // Add category condition if category is provided and not 'all'
     if (category && category !== 'all') {
-      conditions.push('category = ?');
-      queryParams.push(category);
+      query = query.eq('category', category);
     }
 
-    // Add region condition if region is provided and not 'all'
     if (region && region !== 'all') {
-      conditions.push('region = ?');
-      queryParams.push(region);
+      query = query.eq('region', region);
     }
 
-    // Combine conditions with AND
-    if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
+    const { data: destinations, error } = await query;
+
+    if (error) {
+      console.error('Supabase query error:', error);
+      return NextResponse.json({ success: false, message: 'Supabase query error' }, { status: 500 });
     }
 
-    console.log('Executing query:', query);
-    console.log('With parameters:', queryParams);
-
-    // Execute the query with parameters
-    const [rows] = await pool.execute<RowDataPacket[]>(query, queryParams);
-
-    console.log('Query results:', rows);
-
-    return NextResponse.json({ success: true, destinations: rows });
+    return NextResponse.json({ success: true, destinations });
   } catch (error) {
     console.error('Error fetching destinations:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
