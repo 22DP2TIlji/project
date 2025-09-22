@@ -1,6 +1,6 @@
+// components/like-button.tsx
 "use client"
 
-import { Heart } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 
@@ -10,41 +10,65 @@ interface LikeButtonProps {
 }
 
 export default function LikeButton({ destinationId, destinationName }: LikeButtonProps) {
-  // Get user, saveDestination, and removeSavedDestination from auth context
   const { user, saveDestination, removeSavedDestination } = useAuth();
-  // isLiked state is now derived from user.savedDestinations
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Check if destination is liked
   const isLiked = user?.savedDestinations?.includes(destinationId) || false;
-
-  // No need for a separate useEffect to check likes on user change, as isLiked is derived
-  // The auth context handles fetching the user with savedDestinations on load.
 
   const toggleLike = async () => {
     if (!user) {
-      // Optionally show a message or redirect to login if not authenticated
-      console.log("Please log in to like destinations.");
+      alert("Please log in to save destinations");
       return;
     }
 
-    if (isLiked) {
-      // Call the removeSavedDestination function (which expects number ID)
-      await removeSavedDestination(destinationId);
-    } else {
-      // Call the saveDestination function (which expects number ID)
-      await saveDestination(destinationId);
+    setIsLoading(true);
+    
+    try {
+      if (isLiked) {
+        await removeSavedDestination(destinationId);
+      } else {
+        await saveDestination(destinationId);
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+    } finally {
+      setIsLoading(false);
     }
-
-    // The isLiked state will automatically update because the user object in the auth context changes
   };
+
+  // Simple heart SVG icon
+  const HeartIcon = ({ filled }: { filled: boolean }) => (
+    <svg 
+      className={`w-5 h-5 ${filled ? "fill-red-500 text-red-500" : "text-gray-400"}`}
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor" 
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+    >
+      <path 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+      />
+    </svg>
+  );
 
   return (
     <button
       onClick={toggleLike}
-      className="flex items-center space-x-1 text-sm"
+      disabled={isLoading}
+      className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+        isLoading 
+          ? "opacity-50 cursor-not-allowed" 
+          : "hover:bg-gray-100 dark:hover:bg-gray-800"
+      }`}
       aria-label={isLiked ? "Remove from favorites" : "Add to favorites"}
     >
-      <Heart className={`w-5 h-5 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
-      <span>{isLiked ? "Liked" : "Like"}</span>
+      <HeartIcon filled={isLiked} />
+      <span className={isLiked ? "text-red-500" : "text-gray-600 dark:text-gray-400"}>
+        {isLoading ? "..." : isLiked ? "Liked" : "Like"}
+      </span>
     </button>
   )
 }
-

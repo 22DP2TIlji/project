@@ -1,308 +1,196 @@
-"use client"
+// components/header.tsx
+'use client'
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useState } from "react"
 import { useAuth } from "@/lib/auth-context"
-import { useTheme } from "@/lib/theme-context"
-import { Menu, X, User, Sun, Moon, LogOut, ChevronDown } from "lucide-react"
+import { useTheme, ThemeContextType } from "@/lib/theme-context"
+import { usePathname } from "next/navigation"
+
+
+export interface ThemeContextType {
+  darkMode: boolean
+  toggleDarkMode: () => void
+}
 
 export default function Header() {
-  const pathname = usePathname()
   const { user, logout } = useAuth()
-  const { darkMode, toggleDarkMode } = useTheme()
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
-  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+  const { theme, toggleTheme } = useTheme() as ThemeContextType
+  const pathname = usePathname()
 
-  const toggleUserMenu = () => {
-    setIsUserMenuOpen(!isUserMenuOpen)
-  }
+  // Simple SVG icons to replace lucide-react icons
+  const MenuIcon = () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  )
 
-  const handleLogout = () => {
-    logout()
-    setIsUserMenuOpen(false)
-  }
+  const SunIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="5"/>
+      <path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/>
+    </svg>
+  )
+
+  const MoonIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  )
+
+  const UserIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+  )
+
+  const LogOutIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+    </svg>
+  )
+
+  const ChevronDownIcon = () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+  )
 
   return (
-    <header className="w-full py-4 px-6 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm sticky top-0 z-40 shadow-sm transition-colors duration-300">
-      <div className="container mx-auto flex flex-wrap justify-between items-center gap-4 px-0 md:px-4">
-        <div className="flex items-center gap-8 w-full md:w-auto">
-          <Link href="/" className="text-2xl font-medium text-gray-800 dark:text-gray-100 mr-6 whitespace-nowrap">
-            Travellatvia
-          </Link>
-          <nav className="flex flex-wrap gap-4 md:gap-8 items-center">
-            <Link 
-              href="/" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/' ? 'font-medium' : ''
-              }`}
-            >
-              Home
-            </Link>
-            <Link 
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <a href="/" className="flex items-center">
+              <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                TravelLatvia
+              </span>
+            </a>
+          </div>
+
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <a 
               href="/destinations" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/destinations' ? 'font-medium' : ''
+              className={`text-sm font-medium transition-colors ${
+                pathname === '/destinations' 
+                  ? 'text-blue-600 dark:text-blue-400' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
               }`}
             >
               Destinations
-            </Link>
-            <Link 
-              href="/itinerary" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/itinerary' ? 'font-medium' : ''
-              }`}
-            >
-              Itinerary
-            </Link>
-            <Link 
-              href="/weather" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/weather' ? 'font-medium' : ''
-              }`}
-            >
-              Weather
-            </Link>
-            <Link 
-              href="/events" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/events' ? 'font-medium' : ''
-              }`}
-            >
-              Events
-            </Link>
-            <Link 
-              href="/transportation" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/transportation' ? 'font-medium' : ''
-              }`}
-            >
-              Transportation
-            </Link>
-            <Link
-              href="/accommodations"
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/accommodations' ? 'font-medium' : ''
+            </a>
+            <a 
+              href="/accommodations" 
+              className={`text-sm font-medium transition-colors ${
+                pathname === '/accommodations' 
+                  ? 'text-blue-600 dark:text-blue-400' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
               }`}
             >
               Accommodations
-            </Link>
-            <Link 
-              href="/cuisine" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/cuisine' ? 'font-medium' : ''
+            </a>
+            <a 
+              href="/itinerary" 
+              className={`text-sm font-medium transition-colors ${
+                pathname === '/itinerary' 
+                  ? 'text-blue-600 dark:text-blue-400' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
               }`}
             >
-              Cuisine
-            </Link>
-            <Link 
-              href="/projects" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/projects' ? 'font-medium' : ''
-              }`}
-            >
-              Projects
-            </Link>
-            {user?.role === 'admin' && (
-              <Link
-                href="/admin"
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-semibold"
+              Plan Trip
+            </a>
+            {user && (
+              <a 
+                href="/saved" 
+                className={`text-sm font-medium transition-colors ${
+                  pathname === '/saved' 
+                    ? 'text-blue-600 dark:text-blue-400' 
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                }`}
               >
-                Admin
-              </Link>
+                Saved
+              </a>
             )}
           </nav>
-        </div>
-        <div className="flex items-center gap-4 border-l border-gray-200 dark:border-gray-800 pl-4 mt-4 md:mt-0">
-          {/* Dark mode toggle */}
-          <button 
-            onClick={toggleDarkMode}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {darkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-gray-600 dark:text-gray-300" />}
-          </button>
 
-          {/* Auth buttons */}
-          {user ? (
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
-              <button
-                onClick={() => setIsProfileModalOpen(true)}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors border border-blue-200 dark:border-blue-700 rounded px-3 py-1"
-              >
-                Profile
-              </button>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-4">
-              <Link href="/login" className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                Login
-              </Link>
-              <Link href="/signup" className="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors">
-                Sign Up
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
+          {/* Right side */}
+          <div className="flex items-center space-x-4">
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+            </button>
 
-      {/* Mobile menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden mt-4 py-4 border-t border-gray-200 dark:border-gray-800">
-          <nav className="flex flex-col space-y-4">
-            <Link 
-              href="/" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/' ? 'font-medium' : ''
-              }`}
-            >
-              Home
-            </Link>
-            <Link 
-              href="/destinations" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/destinations' ? 'font-medium' : ''
-              }`}
-            >
-              Destinations
-            </Link>
-            <Link 
-              href="/itinerary" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/itinerary' ? 'font-medium' : ''
-              }`}
-            >
-              Itinerary
-            </Link>
-            <Link 
-              href="/weather" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/weather' ? 'font-medium' : ''
-              }`}
-            >
-              Weather
-            </Link>
-            <Link 
-              href="/events" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/events' ? 'font-medium' : ''
-              }`}
-            >
-              Events
-            </Link>
-            <Link 
-              href="/transportation" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/transportation' ? 'font-medium' : ''
-              }`}
-            >
-              Transportation
-            </Link>
-            <Link
-              href="/accommodations"
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/accommodations' ? 'font-medium' : ''
-              }`}
-            >
-              Accommodations
-            </Link>
-            <Link 
-              href="/cuisine" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/cuisine' ? 'font-medium' : ''
-              }`}
-            >
-              Cuisine
-            </Link>
-            <Link 
-              href="/projects" 
-              className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
-                pathname === '/projects' ? 'font-medium' : ''
-              }`}
-            >
-              Projects
-            </Link>
-          </nav>
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+            {/* User menu */}
             {user ? (
-              <div className="flex flex-col space-y-4">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
-                <button
-                  onClick={() => setIsProfileModalOpen(true)}
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors border border-blue-200 dark:border-blue-700 rounded px-3 py-1"
-                >
-                  Profile
+              <div className="relative group">
+                <button className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <UserIcon />
+                  <span>{user.name}</span>
+                  <ChevronDownIcon />
                 </button>
-                <button
-                  onClick={handleLogout}
-                  className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
-                >
-                  Logout
-                </button>
+                
+                {/* Dropdown menu */}
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-1">
+                    <a
+                      href="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      Profile
+                    </a>
+                    <a
+                      href="/saved"
+                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      Saved Items
+                    </a>
+                    {user.role === 'admin' && (
+                      <a
+                        href="/admin"
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        Admin Panel
+                      </a>
+                    )}
+                    <div className="border-t border-gray-200 dark:border-gray-700"></div>
+                    <button
+                      onClick={logout}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2"
+                    >
+                      <LogOutIcon />
+                      <span>Sign out</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="flex flex-col space-y-4">
-                <Link href="/login" className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                  Login
-                </Link>
-                <Link href="/signup" className="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors">
-                  Sign Up
-                </Link>
+              <div className="flex items-center space-x-3">
+                <a
+                  href="/login"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
+                  Sign in
+                </a>
+                <a
+                  href="/signup"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Sign up
+                </a>
               </div>
             )}
-          </div>
-        </div>
-      )}
 
-      {/* Profile Modal */}
-      {isProfileModalOpen && user && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-40">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8 w-full max-w-md relative mt-40">
-            <button
-              onClick={() => setIsProfileModalOpen(false)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-900 dark:hover:text-white"
-              aria-label="Close"
-            >
-              <X size={24} />
+            {/* Mobile menu button */}
+            <button className="md:hidden p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+              <MenuIcon />
             </button>
-            <h2 className="text-2xl font-light mb-6 text-center text-gray-900 dark:text-white">Account Profile</h2>
-            <div className="mb-4">
-              <span className="block text-sm text-gray-500 dark:text-gray-400">Name:</span>
-              <span className="text-lg font-medium text-gray-900 dark:text-white">{user.name}</span>
-            </div>
-            <div className="mb-4">
-              <span className="block text-sm text-gray-500 dark:text-gray-400">Email:</span>
-              <span className="text-lg font-medium text-gray-900 dark:text-white">{user.email}</span>
-            </div>
-            <div className="mb-4">
-              <span className="block text-sm text-gray-500 dark:text-gray-400">Role:</span>
-              <span className="text-lg font-medium text-gray-900 dark:text-white">{user.role}</span>
-            </div>
-            {user.created_at && (
-              <div className="mb-4">
-                <span className="block text-sm text-gray-500 dark:text-gray-400">Registered:</span>
-                <span className="text-lg font-medium text-gray-900 dark:text-white">{new Date(user.created_at).toLocaleDateString()}</span>
-              </div>
-            )}
-            {user.preferences && (
-              <div className="mb-4">
-                <span className="block text-sm text-gray-500 dark:text-gray-400">Preferences:</span>
-                <pre className="text-gray-900 dark:text-white text-xs bg-gray-100 dark:bg-gray-800 rounded p-2 overflow-x-auto">{JSON.stringify(user.preferences, null, 2)}</pre>
-              </div>
-            )}
           </div>
         </div>
-      )}
+      </div>
     </header>
   )
 }
