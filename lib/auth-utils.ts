@@ -1,5 +1,5 @@
 // lib/auth-utils.ts
-import { supabase } from './db'
+import { supabase } from './supabaseClient'
 
 export async function getUserFromId(userId: string) {
   try {
