@@ -1,6 +1,3 @@
-'use client'
-import React, { useReducer } from 'react'
-
 export default function Projects() {
   return (
     <>
@@ -14,11 +11,11 @@ export default function Projects() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-light mb-8">Travel Experiences We've Created</h2>
+            <h2 className="text-3xl font-light mb-8 text-gray-800">Travel Experiences We've Created</h2>
 
             <div className="mb-12">
-              <h3 className="text-xl font-medium mb-4">Cultural Heritage Tours</h3>
-              <p className="mb-4">
+              <h3 className="text-xl font-medium mb-4 text-gray-800">Cultural Heritage Tours</h3>
+              <p className="mb-4 text-gray-700">
                 Our specialized tours focus on Latvia's rich cultural heritage, from ancient Baltic traditions to
                 Soviet-era history. These carefully curated experiences connect travelers with local artisans,
                 historians, and communities.
@@ -27,8 +24,8 @@ export default function Projects() {
             </div>
 
             <div className="mb-12">
-              <h3 className="text-xl font-medium mb-4">Nature Retreats</h3>
-              <p className="mb-4">
+              <h3 className="text-xl font-medium mb-4 text-gray-800">Nature Retreats</h3>
+              <p className="mb-4 text-gray-700">
                 Latvia's diverse landscapes offer perfect settings for our nature retreats. From coastal getaways to
                 forest immersions, these projects connect travelers with Latvia's natural beauty while promoting
                 sustainable tourism practices.
@@ -37,8 +34,8 @@ export default function Projects() {
             </div>
 
             <div>
-              <h3 className="text-xl font-medium mb-4">Gastronomic Journeys</h3>
-              <p className="mb-4">
+              <h3 className="text-xl font-medium mb-4 text-gray-800">Gastronomic Journeys</h3>
+              <p className="mb-4 text-gray-700">
                 Our food-focused travel experiences showcase Latvia's culinary traditions. Participants enjoy
                 farm-to-table experiences, cooking classes with local chefs, and tastings of regional specialties across
                 different regions of Latvia.
@@ -51,4 +48,3 @@ export default function Projects() {
     </>
   )
 }
-

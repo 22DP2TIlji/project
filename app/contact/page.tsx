@@ -1,6 +1,3 @@
-'use client'
-import React, { useReducer } from 'react'
-
 import { Mail, MapPin, Phone } from "lucide-react"
 
 export default function Contact() {
@@ -19,30 +16,30 @@ export default function Contact() {
             <div className="grid md:grid-cols-2 gap-12">
               <div>
                 <h2 className="text-3xl font-light mb-6">Get in Touch</h2>
-                <p className="mb-8">
+                <p className="mb-8 text-gray-700">
                   Have questions about traveling in Latvia? Want to book a tour or create a custom itinerary? We're here
                   to help make your Latvian adventure unforgettable.
                 </p>
 
                 <div className="space-y-4 mb-8">
-                  <div className="flex items-start">
-                    <MapPin className="w-5 h-5 mr-3 mt-1" />
+                  <div className="flex items-start text-gray-700">
+                    <MapPin className="w-5 h-5 mr-3 mt-1 text-gray-600" />
                     <div>
                       <h3 className="font-medium">Address</h3>
                       <p className="text-gray-600">Kalēju iela 23, Riga, LV-1050, Latvia</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start">
-                    <Phone className="w-5 h-5 mr-3 mt-1" />
+                  <div className="flex items-start text-gray-700">
+                    <Phone className="w-5 h-5 mr-3 mt-1 text-gray-600" />
                     <div>
                       <h3 className="font-medium">Phone</h3>
                       <p className="text-gray-600">+371 2345 6789</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start">
-                    <Mail className="w-5 h-5 mr-3 mt-1" />
+                  <div className="flex items-start text-gray-700">
+                    <Mail className="w-5 h-5 mr-3 mt-1 text-gray-600" />
                     <div>
                       <h3 className="font-medium">Email</h3>
                       <p className="text-gray-600">info@travellatvia.com</p>
@@ -63,7 +60,7 @@ export default function Contact() {
                     <input
                       type="text"
                       id="name"
-                      className="w-full p-3 border border-gray-300 rounded-md"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                       placeholder="John Doe"
                     />
                   </div>
@@ -75,7 +72,7 @@ export default function Contact() {
                     <input
                       type="email"
                       id="email"
-                      className="w-full p-3 border border-gray-300 rounded-md"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                       placeholder="john@example.com"
                     />
                   </div>
@@ -87,7 +84,7 @@ export default function Contact() {
                     <input
                       type="text"
                       id="subject"
-                      className="w-full p-3 border border-gray-300 rounded-md"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                       placeholder="Trip Inquiry"
                     />
                   </div>
@@ -99,7 +96,7 @@ export default function Contact() {
                     <textarea
                       id="message"
                       rows={5}
-                      className="w-full p-3 border border-gray-300 rounded-md"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                       placeholder="Tell us about your travel plans..."
                     ></textarea>
                   </div>
@@ -119,4 +116,3 @@ export default function Contact() {
     </>
   )
 }
-

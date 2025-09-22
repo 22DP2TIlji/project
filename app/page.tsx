@@ -10,7 +10,8 @@ interface LikedDestination {
 }
 
 export default function Home() {
-  const { user, isAuthenticated, removeSavedDestination } = useAuth(); // Get user and remove function
+  const { user, removeSavedDestination } = useAuth(); // Get user and remove function
+  const isAuthenticated = !!user;
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]); // State to hold all destinations
   const [isLoading, setIsLoading] = useState(true); // State for loading indicator
   const [darkMode, setDarkMode] = useState(false)

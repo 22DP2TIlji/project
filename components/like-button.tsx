@@ -1,74 +1,95 @@
-// components/like-button.tsx
 "use client"
 
+import { Heart } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 
 interface LikeButtonProps {
-  destinationId: number
+  destinationId: string
   destinationName: string
 }
 
 export default function LikeButton({ destinationId, destinationName }: LikeButtonProps) {
-  const { user, saveDestination, removeSavedDestination } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Check if destination is liked
-  const isLiked = user?.savedDestinations?.includes(destinationId) || false;
+  const { user } = useAuth()
+  const [isLiked, setIsLiked] = useState(false)
 
-  const toggleLike = async () => {
-    if (!user) {
-      alert("Please log in to save destinations");
-      return;
-    }
+  useEffect(() => {
+    checkIfLiked()
+  }, [user, destinationId])
 
-    setIsLoading(true);
-    
-    try {
-      if (isLiked) {
-        await removeSavedDestination(destinationId);
-      } else {
-        await saveDestination(destinationId);
+  const checkIfLiked = () => {
+    if (user) {
+      // Check user's likes in localStorage
+      const users = JSON.parse(localStorage.getItem("users") || "[]")
+      const currentUser = users.find((u: any) => u.id === user.id)
+
+      if (currentUser && currentUser.likes && currentUser.likes[destinationId]) {
+        setIsLiked(true)
+        return
       }
-    } catch (error) {
-      console.error("Error toggling like:", error);
-    } finally {
-      setIsLoading(false);
+    } else {
+      // Check anonymous likes in localStorage
+      const likedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
+      setIsLiked(!!likedDestinations[destinationId])
     }
-  };
 
-  // Simple heart SVG icon
-  const HeartIcon = ({ filled }: { filled: boolean }) => (
-    <svg 
-      className={`w-5 h-5 ${filled ? "fill-red-500 text-red-500" : "text-gray-400"}`}
-      fill={filled ? "currentColor" : "none"}
-      stroke="currentColor" 
-      viewBox="0 0 24 24"
-      strokeWidth={2}
-    >
-      <path 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
-        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
-      />
-    </svg>
-  );
+    setIsLiked(false)
+  }
+
+  const toggleLike = () => {
+    if (user) {
+      // Update user's likes in localStorage
+      const users = JSON.parse(localStorage.getItem("users") || "[]")
+      const userIndex = users.findIndex((u: any) => u.id === user.id)
+
+      if (userIndex !== -1) {
+        // Initialize likes object if it doesn't exist
+        if (!users[userIndex].likes) {
+          users[userIndex].likes = {}
+        }
+
+        if (isLiked) {
+          // Remove from liked destinations
+          delete users[userIndex].likes[destinationId]
+        } else {
+          // Add to liked destinations
+          users[userIndex].likes[destinationId] = {
+            id: destinationId,
+            name: destinationName,
+          }
+        }
+
+        localStorage.setItem("users", JSON.stringify(users))
+      }
+    } else {
+      // Update anonymous likes in localStorage
+      const likedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
+
+      if (isLiked) {
+        // Remove from liked destinations
+        delete likedDestinations[destinationId]
+      } else {
+        // Add to liked destinations
+        likedDestinations[destinationId] = {
+          id: destinationId,
+          name: destinationName,
+        }
+      }
+
+      localStorage.setItem("likedDestinations", JSON.stringify(likedDestinations))
+    }
+
+    setIsLiked(!isLiked)
+  }
 
   return (
     <button
       onClick={toggleLike}
-      disabled={isLoading}
-      className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-        isLoading 
-          ? "opacity-50 cursor-not-allowed" 
-          : "hover:bg-gray-100 dark:hover:bg-gray-800"
-      }`}
+      className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
       aria-label={isLiked ? "Remove from favorites" : "Add to favorites"}
     >
-      <HeartIcon filled={isLiked} />
-      <span className={isLiked ? "text-red-500" : "text-gray-600 dark:text-gray-400"}>
-        {isLoading ? "..." : isLiked ? "Liked" : "Like"}
-      </span>
+      <Heart className={`w-5 h-5 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-400 hover:text-gray-600"}`} />
+      <span className="text-gray-600">{isLiked ? "Liked" : "Like"}</span>
     </button>
   )
 }
