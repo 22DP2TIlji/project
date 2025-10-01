@@ -1,5 +1,6 @@
-// components/header.tsx
 'use client'
+
+// components/header.tsx
 
 import { useAuth } from "@/lib/auth-context"
 import { usePathname } from "next/navigation"
@@ -48,7 +49,7 @@ export default function Header() {
   const pathname = usePathname()
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/70 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/60 border-b border-gray-200/70 dark:border-gray-800 notranslate" translate="no">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -61,36 +62,116 @@ export default function Header() {
           </div>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center flex-wrap gap-x-2 gap-y-2">
             <Link 
               href="/destinations" 
-              className={`text-sm font-medium transition-colors ${
+              className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
                 pathname === '/destinations' 
-                  ? 'text-blue-600 dark:text-blue-400' 
-                  : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
-              Destinations
+              <span suppressHydrationWarning>Destinations</span>
             </Link>
             <Link 
               href="/accommodations" 
-              className={`text-sm font-medium transition-colors ${
+              className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
                 pathname === '/accommodations' 
-                  ? 'text-blue-600 dark:text-blue-400' 
-                  : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
-              Accommodations
+              <span suppressHydrationWarning>Accommodations</span>
             </Link>
             <Link 
               href="/itinerary" 
-              className={`text-sm font-medium transition-colors ${
+              className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
                 pathname === '/itinerary' 
-                  ? 'text-blue-600 dark:text-blue-400' 
-                  : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
-              Plan Trip
+              <span suppressHydrationWarning>Plan Trip</span>
+            </Link>
+            <Link 
+              href="/events" 
+              className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+                pathname === '/events' 
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <span suppressHydrationWarning>Events</span>
+            </Link>
+            <Link 
+              href="/transportation" 
+              className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+                pathname === '/transportation' 
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <span suppressHydrationWarning>Transportation</span>
+            </Link>
+            <Link 
+              href="/weather" 
+              className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+                pathname === '/weather' 
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <span suppressHydrationWarning>Weather</span>
+            </Link>
+            <Link 
+              href="/cuisine" 
+              className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+                pathname === '/cuisine' 
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <span suppressHydrationWarning>Cuisine</span>
+            </Link>
+            <Link 
+              href="/services" 
+              className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+                pathname === '/services' 
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <span suppressHydrationWarning>Services</span>
+            </Link>
+            <Link 
+              href="/projects" 
+              className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+                pathname === '/projects' 
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <span suppressHydrationWarning>Projects</span>
+            </Link>
+            <Link 
+              href="/about" 
+              className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+                pathname === '/about' 
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <span suppressHydrationWarning>About</span>
+            </Link>
+            <Link 
+              href="/contact" 
+              className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+                pathname === '/contact' 
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <span suppressHydrationWarning>Contact</span>
             </Link>
             {user && (
               <Link 
@@ -101,7 +182,19 @@ export default function Header() {
                     : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
                 }`}
               >
-                Saved
+                <span suppressHydrationWarning>Saved</span>
+              </Link>
+            )}
+            {user && user.role === 'admin' && (
+              <Link 
+                href="/admin" 
+                className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+                  pathname === '/admin' 
+                    ? 'text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30' 
+                    : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+              >
+                <span suppressHydrationWarning>Admin</span>
               </Link>
             )}
           </nav>

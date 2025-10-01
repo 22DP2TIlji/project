@@ -135,7 +135,7 @@ const destinations = {
 export default function DestinationPage() {
   const params = useParams()
   const id = params?.id as string
-  const [destination, setDestination] = useState<any>(null)
+  const [destination, setDestination] = useState(null as any)
 
   useEffect(() => {
     if (id && destinations[id as keyof typeof destinations]) {
