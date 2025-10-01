@@ -2,7 +2,7 @@ export default function Projects() {
   return (
     <>
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200">{/* Placeholder for background image */}</div>
+        <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
           <h1 className="text-5xl md:text-6xl font-light">Our Projects</h1>
         </div>
@@ -20,7 +20,7 @@ export default function Projects() {
                 Soviet-era history. These carefully curated experiences connect travelers with local artisans,
                 historians, and communities.
               </p>
-              <div className="relative h-64 rounded-md overflow-hidden bg-gray-200">{/* Placeholder for image */}</div>
+              <div className="relative h-64 rounded-md overflow-hidden bg-gray-200"></div>
             </div>
 
             <div className="mb-12">
@@ -30,7 +30,7 @@ export default function Projects() {
                 forest immersions, these projects connect travelers with Latvia's natural beauty while promoting
                 sustainable tourism practices.
               </p>
-              <div className="relative h-64 rounded-md overflow-hidden bg-gray-200">{/* Placeholder for image */}</div>
+              <div className="relative h-64 rounded-md overflow-hidden bg-gray-200"></div>
             </div>
 
             <div>
@@ -40,7 +40,7 @@ export default function Projects() {
                 farm-to-table experiences, cooking classes with local chefs, and tastings of regional specialties across
                 different regions of Latvia.
               </p>
-              <div className="relative h-64 rounded-md overflow-hidden bg-gray-200">{/* Placeholder for image */}</div>
+              <div className="relative h-64 rounded-md overflow-hidden bg-gray-200"></div>
             </div>
           </div>
         </div>

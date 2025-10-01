@@ -2,31 +2,18 @@
 
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
-import { Search, Clock, Navigation, Car, Footprints } from "lucide-react"
-import { useAuth } from "@/lib/auth-context"
-import type { Destination } from "@/lib/types"
-import Link from "next/link"
-import LikeButton from "@/components/like-button"
+import { Search, Clock, Navigation } from "lucide-react"
 
-// Dynamically import the Map component with no SSR
 const ItineraryMap = dynamic(() => import("@/components/itinerary-map"), {
   ssr: false,
   loading: () => (
     <div className="h-[600px] w-full flex items-center justify-center bg-gray-100 rounded-md">
-      <p>Loading map...</p>
+      <p className="text-gray-600">Loading map...</p>
     </div>
   ),
 })
 
-// Define a type for popular destinations for clarity
-interface PopularDestination {
-  id: string;
-  name: string;
-  coordinates: [number, number]; // Explicitly a tuple
-}
-
-// Popular destinations with coordinates as tuples
-const popularDestinations: PopularDestination[] = [
+const popularDestinations = [
   { id: "riga", name: "Riga", coordinates: [56.9496, 24.1052] },
   { id: "jurmala", name: "Jūrmala", coordinates: [56.9715, 23.7408] },
   { id: "sigulda", name: "Sigulda", coordinates: [57.1537, 24.8598] },
@@ -35,38 +22,20 @@ const popularDestinations: PopularDestination[] = [
   { id: "liepaja", name: "Liepāja", coordinates: [56.5047, 21.0107] },
   { id: "daugavpils", name: "Daugavpils", coordinates: [55.8714, 26.5161] },
   { id: "ventspils", name: "Ventspils", coordinates: [57.3894, 21.5606] },
-];
-
-// Transportation modes with average speeds in km/h
-const transportModes = [
-  { id: "car", name: "Car", icon: Car, speed: 60 },
-  { id: "walking", name: "Walking", icon: Footprints, speed: 5 },
 ]
 
 export default function ItineraryPage() {
-  const { user, isAuthenticated, removeSavedDestination } = useAuth()
   const [startPoint, setStartPoint] = useState("")
   const [endPoint, setEndPoint] = useState("")
   const [customStartPoint, setCustomStartPoint] = useState("")
   const [customEndPoint, setCustomEndPoint] = useState("")
-  const [startAddress, setStartAddress] = useState("")
-  const [endAddress, setEndAddress] = useState("")
-  const [transportMode, setTransportMode] = useState("car")
   const [route, setRoute] = useState<any>(null)
   const [savedItineraries, setSavedItineraries] = useState<any[]>([])
   const [isClient, setIsClient] = useState(false)
-  const [isGeocoding, setIsGeocoding] = useState(false)
-  const [geocodedStartCoords, setGeocodedStartCoords] = useState<[number, number] | null>(null)
-  const [geocodedEndCoords, setGeocodedEndCoords] = useState<[number, number] | null>(null)
-  const [likedDestinations, setLikedDestinations] = useState<Destination[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [darkMode, setDarkMode] = useState(false)
 
-  // Set isClient to true when component mounts
   useEffect(() => {
     setIsClient(true)
 
-    // Load saved itineraries from localStorage
     try {
       const saved = localStorage.getItem("savedItineraries")
       if (saved) {
@@ -75,277 +44,70 @@ export default function ItineraryPage() {
     } catch (error) {
       console.error("Error loading saved itineraries:", error)
     }
+  }, [])
 
-    // Fetch liked destinations directly from the API
-    const fetchLikedDestinations = async () => {
-      setIsLoading(true)
-      if (isAuthenticated && user?.id) {
-        try {
-          // Ensure user ID is handled as number if auth context user ID is number
-          const userId = Number(user.id); // Convert user.id to number if it's string/number mixed
-          if (isNaN(userId)) { // Basic check
-            console.error("Invalid user ID:", user.id);
-            setLikedDestinations([]);
-            setIsLoading(false);
-            return;
-          }
-
-          const response = await fetch('/app/api/users/liked-destinations', {
-            method: 'GET',
-            // Pass user ID as a query parameter for GET request
-            // In a real app with proper auth, backend gets user from session/token
-            headers: { 'Content-Type': 'application/json' },
-            // Consider sending user ID in headers or querying based on session on backend
-            // For this example, sticking to previous attempt of GET with no body and hoping backend derives user
-          })
-
-          if (response.ok) {
-            const data = await response.json()
-            console.log('Fetched liked destinations:', data.likedDestinations)
-            // Data from backend should have numeric IDs, explicitly cast to number for state consistency
-            const likedDestinationsWithNumericIds = data.likedDestinations.map((dest: any) => ({
-              ...dest,
-              id: Number(dest.id) // Explicitly cast to number
-            }));
-            setLikedDestinations(likedDestinationsWithNumericIds || [])
-          } else {
-            console.error('Failed to fetch liked destinations:', response.statusText)
-            setLikedDestinations([])
-          }
-        } catch (error) {
-          console.error('Error fetching liked destinations:', error)
-          setLikedDestinations([])
-        } finally {
-          setIsLoading(false)
-        }
-      } else {
-        console.log('User not authenticated or user ID missing, clearing liked destinations')
-        setLikedDestinations([])
-        setIsLoading(false)
-      }
-    }
-
-    fetchLikedDestinations()
-
-    // Keep dark mode effect if needed
-    if (typeof window !== 'undefined') {
-      setDarkMode(document.documentElement.classList.contains('dark'))
-    }
-  }, [user?.id, isAuthenticated])
-
-  // Function to remove a liked destination
-  const handleRemoveDestination = async (destinationId: number) => {
-    if (!isAuthenticated || !user?.id) return; // Ensure user is authenticated
-
-    try {
-      // Use the DELETE endpoint with destination ID (as number) in the path
-      const response = await fetch(`/app/api/users/liked-destinations/${destinationId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // Backend should get user from session/token, or send user ID in body if needed by backend
-        body: JSON.stringify({ userId: Number(user.id) }), // Sending numeric userId in body based on backend code
-      });
-
-      if (response.ok) {
-        // Remove the destination from the local state
-        // Filter based on number ID comparison
-        setLikedDestinations(prev => prev.filter(dest => dest.id !== destinationId));
-        console.log(`Destination ${destinationId} unliked successfully.`);
-      } else {
-        console.error('Failed to unlike destination:', response.statusText);
-        alert('Failed to remove destination. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error unliking destination:', error);
-      alert('An error occurred while removing the destination. Please try again.');
-    }
-  };
-
-  // Find coordinates for selected destinations
-  const getCoordinates = (pointId: string): [number, number] | null => {
+  const getCoordinates = (pointId: string) => {
     const destination = popularDestinations.find((dest) => dest.id === pointId)
-    return destination?.coordinates || null
+    return destination ? destination.coordinates : null
   }
 
-  // Geocode address to coordinates
-  const geocodeAddress = async (address: string): Promise<[number, number] | null> => {
-    if (!address) return null
-    
-    setIsGeocoding(true)
-    console.log(`Attempting to geocode address: "${address}"`)
+  const calculateRoute = () => {
     try {
-      // In a real app, you would use a geocoding service like OpenStreetMap Nominatim
-      // For this example, we'll use a more sophisticated approach to simulate geocoding
-      
-      // First, check if the address contains a city name from our popular destinations
-      const cityMatch = popularDestinations.find(dest => 
-        address.toLowerCase().includes(dest.name.toLowerCase())
-      )
-      
-      if (cityMatch) {
-        // If the address contains a known city, use its coordinates with a small random offset
-        // to simulate a specific address within that city
-        const lat = cityMatch.coordinates[0] + (Math.random() * 0.02 - 0.01)
-        const lng = cityMatch.coordinates[1] + (Math.random() * 0.02 - 0.01)
-        const coords: [number, number] = [lat, lng]
-        console.log(`Geocoded address "${address}" to coordinates near ${cityMatch.name}: [${coords[0]}, ${coords[1]}]`)
-        return coords
-      }
-      
-      // If no city match, try to extract a street name and number
-      const streetMatch = address.match(/(\d+)\s+([A-Za-z\s]+)/)
-      if (streetMatch) {
-        // If we found a street number and name, use a more deterministic approach
-        const streetNumber = parseInt(streetMatch[1])
-        const streetName = streetMatch[2].trim().toLowerCase()
-        
-        // Use the street number to generate a deterministic offset
-        // This ensures the same address always gets the same coordinates
-        const latOffset = (streetNumber % 100) / 1000
-        const lngOffset = ((streetNumber * 7) % 100) / 1000
-        
-        // Use Riga as the base city if no specific city is mentioned
-        const baseCity = popularDestinations.find(dest => dest.id === "riga") || popularDestinations[0]
-        const lat = baseCity.coordinates[0] + latOffset
-        const lng = baseCity.coordinates[1] + lngOffset
-        
-        const coords: [number, number] = [lat, lng]
-        console.log(`Geocoded address "${address}" to coordinates: [${coords[0]}, ${coords[1]}]`)
-        return coords
-      }
-      
-      // If we couldn't extract any useful information, use a more structured approach
-      // Generate coordinates based on the address string itself
-      const addressHash = address.split('').reduce((hash, char) => {
-        return char.charCodeAt(0) + ((hash << 5) - hash)
-      }, 0)
-      
-      // Use the hash to generate deterministic coordinates within Latvia
-      // Latvia is roughly between 55.7-58.1°N and 20.5-28.2°E
-      const lat = 56.5 + (Math.abs(addressHash) % 15) / 10
-      const lng = 24.0 + (Math.abs(addressHash * 7) % 42) / 10
-      
-      const coords: [number, number] = [lat, lng]
-      console.log(`Geocoded address "${address}" to coordinates: [${coords[0]}, ${coords[1]}]`)
-      return coords
-    } catch (error) {
-      console.error("Error geocoding address:", error)
-      return null
-    } finally {
-      setIsGeocoding(false)
-    }
-  }
+      let start = getCoordinates(startPoint)
+      let end = getCoordinates(endPoint)
 
-  // Calculate a route (in a real app, you'd use a routing API)
-  const calculateRoute = async () => {
-    console.log('Calculate route called.')
-    try {
-      let startCoords: [number, number] | null = null
-      let endCoords: [number, number] | null = null
-
-      // Get coordinates from selected popular destinations
-      if (startPoint !== "custom" && startPoint !== "address") {
-        startCoords = getCoordinates(startPoint)
-      }
-      if (endPoint !== "custom" && endPoint !== "address") {
-        endCoords = getCoordinates(endPoint)
-      }
-
-      // If using custom points, parse them
       if (startPoint === "custom" && customStartPoint) {
         const [lat, lng] = customStartPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
         if (!isNaN(lat) && !isNaN(lng)) {
-          startCoords = [lat, lng] as [number, number]
+          start = [lat, lng]
         }
       }
 
       if (endPoint === "custom" && customEndPoint) {
         const [lat, lng] = customEndPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
         if (!isNaN(lat) && !isNaN(lng)) {
-          endCoords = [lat, lng] as [number, number]
+          end = [lat, lng]
         }
       }
 
-      // If using address input, geocode the addresses
-      if (startPoint === "address" && startAddress) {
-        startCoords = await geocodeAddress(startAddress)
-      }
-
-      if (endPoint === "address" && endAddress) {
-        endCoords = await geocodeAddress(endAddress)
-      }
-
-      console.log('Resolved start coordinates:', startCoords)
-      console.log('Resolved end coordinates:', endCoords)
-
-      if (!startCoords || !endCoords) {
+      if (!start || !end) {
         alert("Please select valid start and end points")
-        console.log('Start or end coordinates missing.', { startCoords, endCoords })
         return
       }
 
-      // Store geocoded coordinates if successful for potential map use
-      if (startPoint === "address") setGeocodedStartCoords(startCoords)
-      if (endPoint === "address") setGeocodedEndCoords(endCoords)
-
-      // Get the selected transport mode
-      const selectedMode = transportModes.find(mode => mode.id === transportMode)
-      const speed = selectedMode ? selectedMode.speed : 60 // Default to car speed
-
-      // Calculate a straight line route (simplified)
-      const distance = calculateDistance(startCoords[0], startCoords[1], endCoords[0], endCoords[1])
-      const timeInHours = distance / speed
-      const timeInMinutes = Math.round(timeInHours * 60)
-
       const newRoute = {
         startPoint:
-          startPoint === "custom" 
-            ? "Custom location" 
-            : startPoint === "address" 
-              ? startAddress 
-              : popularDestinations.find((d) => d.id === startPoint)?.name,
-        endPoint: 
-          endPoint === "custom" 
-            ? "Custom location" 
-            : endPoint === "address" 
-              ? endAddress 
-              : popularDestinations.find((d) => d.id === endPoint)?.name,
-        startCoords: startCoords,
-        endCoords: endCoords,
-        distance: distance,
-        time: timeInHours,
-        timeInMinutes: timeInMinutes,
-        transportMode: transportMode,
+          startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
+        endPoint: endPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === endPoint)?.name,
+        startCoords: start,
+        endCoords: end,
+        distance: calculateDistance(start[0], start[1], end[0], end[1]),
+        time: calculateDistance(start[0], start[1], end[0], end[1]) / 60,
       }
 
       setRoute(newRoute)
-      console.log('Route calculated:', newRoute)
     } catch (error) {
       console.error("Error calculating route:", error)
       alert("An error occurred while calculating the route. Please try again.")
     }
   }
 
-  // Calculate distance between two points using Haversine formula
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371 // Radius of the earth in km
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371
     const dLat = deg2rad(lat2 - lat1)
     const dLon = deg2rad(lon2 - lon1)
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    const distance = R * c // Distance in km
+    const distance = R * c
     return Math.round(distance * 10) / 10
   }
 
-  const deg2rad = (deg: number): number => {
+  const deg2rad = (deg: number) => {
     return deg * (Math.PI / 180)
   }
 
-  // Save the current itinerary
   const saveItinerary = () => {
     try {
       if (!route) return
@@ -366,7 +128,6 @@ export default function ItineraryPage() {
     }
   }
 
-  // Delete a saved itinerary
   const deleteItinerary = (id: string) => {
     try {
       const updatedItineraries = savedItineraries.filter((itinerary) => itinerary.id !== id)
@@ -378,27 +139,13 @@ export default function ItineraryPage() {
     }
   }
 
-  // Format time for display
-  const formatTime = (hours: number) => {
-    const wholeHours = Math.floor(hours)
-    const minutes = Math.round((hours - wholeHours) * 60)
-    
-    if (wholeHours === 0) {
-      return `${minutes} minutes`
-    } else if (minutes === 0) {
-      return `${wholeHours} ${wholeHours === 1 ? 'hour' : 'hours'}`
-    } else {
-      return `${wholeHours} ${wholeHours === 1 ? 'hour' : 'hours'} ${minutes} minutes`
-    }
-  }
-
   return (
     <>
-      <section className="relative h-[40vh] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200 dark:bg-gray-700"></div>
+      <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
+        <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white">Plan Your Itinerary</h1>
-          <p className="mt-4 text-xl text-gray-700 dark:text-gray-200">Create your perfect route through Latvia</p>
+          <h1 className="text-5xl md:text-6xl font-light">Plan Your Itinerary</h1>
+          <p className="mt-4 text-xl">Create your perfect route through Latvia</p>
         </div>
       </section>
 
@@ -407,7 +154,7 @@ export default function ItineraryPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-1">
               <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                <h2 className="text-2xl font-light mb-6">Route Planner</h2>
+                <h2 className="text-2xl font-light mb-6 text-gray-800">Route Planner</h2>
 
                 <div className="mb-4">
                   <label htmlFor="startPoint" className="block mb-2 text-sm font-medium">
@@ -417,7 +164,7 @@ export default function ItineraryPage() {
                     id="startPoint"
                     value={startPoint}
                     onChange={(e) => setStartPoint(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                   >
                     <option value="">Select starting point</option>
                     {popularDestinations.map((dest) => (
@@ -425,8 +172,7 @@ export default function ItineraryPage() {
                         {dest.name}
                       </option>
                     ))}
-                    <option value="custom">Custom coordinates</option>
-                    <option value="address">Enter address</option>
+                    <option value="custom">Custom location</option>
                   </select>
                 </div>
 
@@ -440,305 +186,119 @@ export default function ItineraryPage() {
                       id="customStartPoint"
                       value={customStartPoint}
                       onChange={(e) => setCustomStartPoint(e.target.value)}
-                      placeholder="56.9496, 24.1052"
-                      className="w-full p-3 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                )}
-
-                {startPoint === "address" && (
-                  <div className="mb-4">
-                    <label htmlFor="startAddress" className="block mb-2 text-sm font-medium">
-                      Starting Address
-                    </label>
-                    <input
-                      type="text"
-                      id="startAddress"
-                      value={startAddress}
-                      onChange={(e) => setStartAddress(e.target.value)}
-                      placeholder="Enter starting address"
-                      className="w-full p-3 border border-gray-300 rounded-md"
+                      placeholder="e.g. 56.9496, 24.1052"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                     />
                   </div>
                 )}
 
                 <div className="mb-4">
                   <label htmlFor="endPoint" className="block mb-2 text-sm font-medium">
-                    End Point
+                    Destination
                   </label>
                   <select
                     id="endPoint"
                     value={endPoint}
                     onChange={(e) => setEndPoint(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                   >
-                    <option value="">Select end point</option>
+                    <option value="">Select destination</option>
                     {popularDestinations.map((dest) => (
                       <option key={`end-${dest.id}`} value={dest.id}>
                         {dest.name}
                       </option>
                     ))}
-                    <option value="custom">Custom coordinates</option>
-                    <option value="address">Enter address</option>
+                    <option value="custom">Custom location</option>
                   </select>
                 </div>
 
                 {endPoint === "custom" && (
                   <div className="mb-4">
                     <label htmlFor="customEndPoint" className="block mb-2 text-sm font-medium">
-                      Custom End Point (lat, lng)
+                      Custom Destination (lat, lng)
                     </label>
                     <input
                       type="text"
                       id="customEndPoint"
                       value={customEndPoint}
                       onChange={(e) => setCustomEndPoint(e.target.value)}
-                      placeholder="56.9715, 23.7408"
-                      className="w-full p-3 border border-gray-300 rounded-md"
+                      placeholder="e.g. 57.3119, 25.2749"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                     />
                   </div>
                 )}
-
-                {endPoint === "address" && (
-                  <div className="mb-4">
-                    <label htmlFor="endAddress" className="block mb-2 text-sm font-medium">
-                      End Address
-                    </label>
-                    <input
-                      type="text"
-                      id="endAddress"
-                      value={endAddress}
-                      onChange={(e) => setEndAddress(e.target.value)}
-                      placeholder="Enter end address"
-                      className="w-full p-3 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                )}
-
-                <div className="mb-6">
-                  <label className="block mb-2 text-sm font-medium">
-                    Transportation Mode
-                  </label>
-                  <div className="flex space-x-4">
-                    {transportModes.map((mode) => {
-                      const Icon = mode.icon
-                      return (
-                        <label 
-                          key={mode.id} 
-                          className={`flex items-center space-x-2 p-3 border rounded-md cursor-pointer ${
-                            transportMode === mode.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="transportMode"
-                            value={mode.id}
-                            checked={transportMode === mode.id}
-                            onChange={(e) => setTransportMode(e.target.value)}
-                            className="sr-only"
-                          />
-                          <Icon className={`w-5 h-5 ${transportMode === mode.id ? 'text-blue-500' : 'text-gray-500'}`} />
-                          <span className={transportMode === mode.id ? 'text-blue-500' : 'text-gray-700'}>
-                            {mode.name}
-                          </span>
-                        </label>
-                      )
-                    })}
-                  </div>
-                </div>
 
                 <button
                   onClick={calculateRoute}
-                  className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                  disabled={isGeocoding}
+                  className="w-full py-3 px-4 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!startPoint || !endPoint}
                 >
-                  {isGeocoding ? "Processing..." : "Calculate Route"}
+                  <Search className="w-4 h-4 mr-2" />
+                  Calculate Route
                 </button>
+
+                {route && (
+                  <div className="mt-6 p-4 bg-gray-50 rounded-md border border-gray-200">
+                    <h3 className="font-medium mb-2 text-gray-800">Route Details</h3>
+                    <p className="text-sm mb-1">
+                      <strong>From:</strong> {route.startPoint}
+                    </p>
+                    <p className="text-sm mb-1">
+                      <strong>To:</strong> {route.endPoint}
+                    </p>
+                    <div className="flex items-center text-sm mb-1">
+                      <Navigation className="w-4 h-4 mr-1" />
+                      <span>
+                        <strong>Distance:</strong> {route.distance} km
+                      </span>
+                    </div>
+                    <div className="flex items-center text-sm mb-3">
+                      <Clock className="w-4 h-4 mr-1" />
+                      <span>
+                        <strong>Est. Time:</strong> {Math.floor(route.time)} hours {Math.round((route.time % 1) * 60)}{" "}
+                        minutes
+                      </span>
+                    </div>
+                    <button
+                      onClick={saveItinerary}
+                      className="w-full py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      Save Itinerary
+                    </button>
+                  </div>
+                )}
               </div>
+
+              {isClient && savedItineraries.length > 0 && (
+                <div className="mt-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">
+                  <h2 className="text-2xl font-light mb-4 text-gray-800">Saved Itineraries</h2>
+                  <div className="space-y-3">
+                    {savedItineraries.map((itinerary) => (
+                      <div key={itinerary.id} className="p-3 border border-gray-200 rounded-md bg-gray-50">
+                        <div className="flex justify-between">
+                          <h4 className="font-medium text-gray-800">
+                            {itinerary.startPoint} to {itinerary.endPoint}
+                          </h4>
+                          <button onClick={() => deleteItinerary(itinerary.id)} className="text-red-500 text-sm">
+                            Delete
+                          </button>
+                        </div>
+                        <p className="text-sm text-gray-600">{new Date(itinerary.date).toLocaleDateString()}</p>
+                        <p className="text-sm">
+                          {itinerary.distance} km • {Math.floor(itinerary.time)} hours{" "}
+                          {Math.round((itinerary.time % 1) * 60)} minutes
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="md:col-span-2">
-              {route ? (
-                <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-8">
-                  <h2 className="text-2xl font-light mb-4">Route Details</h2>
-                  <div className="grid md:grid-cols-2 gap-4 mb-6">
-                    <div className="p-4 bg-gray-50 rounded-md">
-                      <h3 className="text-lg font-medium mb-2">From</h3>
-                      <p>{route.startPoint}</p>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded-md">
-                      <h3 className="text-lg font-medium mb-2">To</h3>
-                      <p>{route.endPoint}</p>
-                    </div>
-                  </div>
-                  <div className="grid md:grid-cols-3 gap-4 mb-6">
-                    <div className="p-4 bg-gray-50 rounded-md text-center">
-                      <Navigation className="w-6 h-6 mx-auto mb-2 text-blue-500" />
-                      <h3 className="text-lg font-medium">Distance</h3>
-                      <p>{route.distance} km</p>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded-md text-center">
-                      <Clock className="w-6 h-6 mx-auto mb-2 text-blue-500" />
-                      <h3 className="text-lg font-medium">Time</h3>
-                      <p>{formatTime(route.time)}</p>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded-md text-center">
-                      {transportMode === "car" ? (
-                        <Car className="w-6 h-6 mx-auto mb-2 text-blue-500" />
-                      ) : (
-                        <Footprints className="w-6 h-6 mx-auto mb-2 text-blue-500" />
-                      )}
-                      <h3 className="text-lg font-medium">Mode</h3>
-                      <p className="capitalize">{route.transportMode}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={saveItinerary}
-                    className="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                  >
-                    Save Itinerary
-                  </button>
-                </div>
-              ) : (
-                <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-8 text-center">
-                  <p className="text-gray-500">Calculate a route to see details here</p>
-                </div>
-              )}
-
-              <ItineraryMap route={route} destinations={popularDestinations} />
+              {isClient && <ItineraryMap route={route} destinations={popularDestinations} />}
             </div>
           </div>
-
-          {savedItineraries.length > 0 && (
-            <div className="mt-16">
-              <h2 className="text-3xl font-light mb-6">Saved Itineraries</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedItineraries.map((itinerary) => (
-                  <div key={itinerary.id} className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-xl font-medium">
-                        {itinerary.startPoint} → {itinerary.endPoint}
-                      </h3>
-                      <button
-                        onClick={() => deleteItinerary(itinerary.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm text-gray-500">Distance</p>
-                        <p className="font-medium">{itinerary.distance} km</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Time</p>
-                        <p className="font-medium">{formatTime(itinerary.time)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Mode</p>
-                        <p className="font-medium capitalize">{itinerary.transportMode}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Date</p>
-                        <p className="font-medium">
-                          {new Date(itinerary.date).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setRoute(itinerary)}
-                      className="w-full py-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-colors"
-                    >
-                      View on Map
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="py-16 bg-gray-100">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light mb-4 text-center text-gray-900 text-white">Your Favorite Destinations</h2>
-          <p className="text-center text-gray-600 text-gray-300 mb-8">Discover your saved places to visit</p>
-
-          {isLoading ? (
-             <div className="text-center text-gray-600 text-gray-300">Loading favorite destinations...</div>
-          ) : isAuthenticated && user && likedDestinations.length > 0 ? (
-             // Display liked destinations if authenticated and user has liked any
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {likedDestinations.map((destination) => (
-                <div
-                  key={destination.id}
-                  className="group border border-gray-300 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white"
-                >
-                  <div className="relative h-48 w-full overflow-hidden bg-gradient-to-b from-gray-200 to-gray-400">
-                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${destination.image || '/placeholder-image.jpg'})` }}></div>
-                  </div>
-                  <div className="p-4 bg-gray-900 text-white">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-xl font-semibold text-white">{destination.name}</h3>
-                      <div className="flex items-center space-x-2">
-                        <LikeButton destinationId={destination.id} destinationName={destination.name} />
-                        <button
-                          onClick={() => handleRemoveDestination(destination.id)}
-                          className="text-blue-400 hover:text-blue-300 text-sm"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                    <p className="mt-2 text-gray-400 text-sm flex-grow">{destination.description}</p>
-                    <div className="mt-4 flex justify-between items-center">
-                      <div className="flex gap-2">
-                        {destination.category && (
-                          <span className="px-2 py-1 bg-gray-700 text-xs rounded-full text-gray-300">
-                            {destination.category}
-                          </span>
-                        )}
-                        {destination.region && (
-                          <span className="px-2 py-1 bg-gray-700 text-xs rounded-full text-gray-300">
-                            {destination.region}
-                          </span>
-                        )}
-                      </div>
-                      <Link
-                        href={`/destination/${destination.id}`}
-                        className="text-blue-400 hover:underline text-sm"
-                      >
-                        View details
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : isAuthenticated && user && likedDestinations.length === 0 ? (
-              // Message if authenticated but no liked destinations
-            <div className="text-center">
-              <p className="text-gray-600">
-                You haven't liked any destinations yet. Visit our{" "}
-                <Link href="/destinations" className="text-gray-800 hover:underline">
-                  Destinations
-                </Link>{" "}
-                page to discover amazing places in Latvia!
-              </p>
-            </div>
-           ) : (
-              // Message if not authenticated
-            <div className="text-center">
-               <p className="text-gray-600">
-                 Please{" "}
-                 <Link href="/login" className="text-gray-800 hover:underline">
-                   log in
-                 </Link>{" "}
-                 to see your favorite destinations.
-               </p>
-            </div>
-          )}
         </div>
       </section>
     </>
