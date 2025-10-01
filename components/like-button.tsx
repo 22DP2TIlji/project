@@ -19,7 +19,6 @@ export default function LikeButton({ destinationId, destinationName }: LikeButto
 
   const checkIfLiked = () => {
     if (user) {
-      // Check user's likes in localStorage
       const users = JSON.parse(localStorage.getItem("users") || "[]")
       const currentUser = users.find((u: any) => u.id === user.id)
 
@@ -28,7 +27,6 @@ export default function LikeButton({ destinationId, destinationName }: LikeButto
         return
       }
     } else {
-      // Check anonymous likes in localStorage
       const likedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
       setIsLiked(!!likedDestinations[destinationId])
     }
@@ -38,21 +36,17 @@ export default function LikeButton({ destinationId, destinationName }: LikeButto
 
   const toggleLike = () => {
     if (user) {
-      // Update user's likes in localStorage
       const users = JSON.parse(localStorage.getItem("users") || "[]")
       const userIndex = users.findIndex((u: any) => u.id === user.id)
 
       if (userIndex !== -1) {
-        // Initialize likes object if it doesn't exist
         if (!users[userIndex].likes) {
           users[userIndex].likes = {}
         }
 
         if (isLiked) {
-          // Remove from liked destinations
           delete users[userIndex].likes[destinationId]
         } else {
-          // Add to liked destinations
           users[userIndex].likes[destinationId] = {
             id: destinationId,
             name: destinationName,
@@ -62,14 +56,11 @@ export default function LikeButton({ destinationId, destinationName }: LikeButto
         localStorage.setItem("users", JSON.stringify(users))
       }
     } else {
-      // Update anonymous likes in localStorage
       const likedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
 
       if (isLiked) {
-        // Remove from liked destinations
         delete likedDestinations[destinationId]
       } else {
-        // Add to liked destinations
         likedDestinations[destinationId] = {
           id: destinationId,
           name: destinationName,

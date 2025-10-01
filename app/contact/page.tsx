@@ -4,7 +4,7 @@ export default function Contact() {
   return (
     <>
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200">{/* Placeholder for background image */}</div>
+        <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
           <h1 className="text-5xl md:text-6xl font-light">Contact</h1>
         </div>
@@ -47,7 +47,7 @@ export default function Contact() {
                   </div>
                 </div>
 
-                <div className="h-64 rounded-md overflow-hidden bg-gray-200">{/* Placeholder for map */}</div>
+                <div className="h-64 rounded-md overflow-hidden bg-gray-200"></div>
               </div>
 
               <div>

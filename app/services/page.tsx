@@ -4,7 +4,7 @@ export default function Services() {
   return (
     <>
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200">{/* Placeholder for background image */}</div>
+        <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
           <h1 className="text-5xl md:text-6xl font-light">Our Services</h1>
         </div>

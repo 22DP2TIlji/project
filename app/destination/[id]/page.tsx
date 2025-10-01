@@ -134,7 +134,7 @@ const destinations = {
 
 export default function DestinationPage() {
   const params = useParams()
-  const id = params?.id as string
+  const id = params.id as string
   const [destination, setDestination] = useState<any>(null)
 
   useEffect(() => {
@@ -147,7 +147,7 @@ export default function DestinationPage() {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
         <h1 className="text-3xl font-light mb-4">Destination not found</h1>
-        <p className="mb-8">The destination you're looking for doesn't exist or has been removed.</p>
+        <p className="mb-8 text-gray-600">The destination you're looking for doesn't exist or has been removed.</p>
         <Link
           href="/popular-sights"
           className="inline-block px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
@@ -161,7 +161,7 @@ export default function DestinationPage() {
   return (
     <>
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200">{/* Placeholder for background image */}</div>
+        <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
           <h1 className="text-5xl md:text-6xl font-light">{destination.name}</h1>
         </div>
@@ -177,15 +177,13 @@ export default function DestinationPage() {
               <LikeButton destinationId={destination.id} destinationName={destination.name} />
             </div>
 
-            <div className="relative h-96 mb-8 overflow-hidden rounded-md bg-gray-200">
-              {/* Placeholder for large image */}
-            </div>
+            <div className="relative h-96 mb-8 overflow-hidden rounded-md bg-gray-200"></div>
 
             <div className="prose max-w-none">
               <p className="text-xl text-gray-700 mb-6">{destination.description}</p>
 
               {destination.fullDescription.split("\n\n").map((paragraph: string, index: number) => (
-                <p key={index} className="mb-4">
+                <p key={index} className="mb-4 text-gray-700">
                   {paragraph.trim()}
                 </p>
               ))}
@@ -199,9 +197,7 @@ export default function DestinationPage() {
                   .slice(0, 4)
                   .map((d: any) => (
                     <Link key={d.id} href={`/destination/${d.id}`} className="group">
-                      <div className="relative h-32 mb-2 overflow-hidden rounded-md bg-gray-200">
-                        {/* Placeholder for image */}
-                      </div>
+                      <div className="relative h-32 mb-2 overflow-hidden rounded-md bg-gray-200"></div>
                       <h3 className="text-sm font-medium group-hover:underline">{d.name}</h3>
                     </Link>
                   ))}

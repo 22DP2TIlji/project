@@ -2,7 +2,7 @@ export default function About() {
   return (
     <>
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200">{/* Placeholder for background image */}</div>
+        <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
           <h1 className="text-5xl md:text-6xl font-light">About Us</h1>
         </div>
@@ -24,9 +24,7 @@ export default function About() {
               </p>
             </div>
 
-            <div className="relative h-80 mb-12 rounded-md overflow-hidden bg-gray-200">
-              {/* Placeholder for image */}
-            </div>
+            <div className="relative h-80 mb-12 rounded-md overflow-hidden bg-gray-200"></div>
 
             <div className="mb-12">
               <h2 className="text-3xl font-light mb-6 text-gray-800">Our Philosophy</h2>
@@ -46,23 +44,17 @@ export default function About() {
               <h2 className="text-3xl font-light mb-6 text-gray-800">Meet Our Team</h2>
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <div className="h-40 w-40 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200">
-                    {/* Placeholder for image */}
-                  </div>
+                  <div className="h-40 w-40 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200"></div>
                   <h3 className="font-medium text-gray-800">Līga Bērziņa</h3>
                   <p className="text-sm text-gray-600">Founder & CEO</p>
                 </div>
                 <div className="text-center">
-                  <div className="h-40 w-40 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200">
-                    {/* Placeholder for image */}
-                  </div>
+                  <div className="h-40 w-40 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200"></div>
                   <h3 className="font-medium text-gray-800">Jānis Kalniņš</h3>
                   <p className="text-sm text-gray-600">Travel Expert</p>
                 </div>
                 <div className="text-center">
-                  <div className="h-40 w-40 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200">
-                    {/* Placeholder for image */}
-                  </div>
+                  <div className="h-40 w-40 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200"></div>
                   <h3 className="font-medium text-gray-800">Anna Ozoliņa</h3>
                   <p className="text-sm text-gray-600">Cultural Guide</p>
                 </div>
