@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, logout, isAdmin } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -19,7 +19,9 @@ export default function ProfilePage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
       <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-8 shadow-lg">
-        <h2 className="mb-6 text-center text-2xl font-light text-gray-900 dark:text-white">Account Profile</h2>
+        <h2 className="mb-6 text-center text-2xl font-light text-gray-900 dark:text-white">
+          Account Profile
+        </h2>
         <div className="mb-4">
           <span className="block text-sm text-gray-500 dark:text-gray-400">Name:</span>
           <span className="text-lg font-medium text-gray-900 dark:text-white">{user.name}</span>
@@ -30,7 +32,9 @@ export default function ProfilePage() {
         </div>
         <div className="mb-6">
           <span className="block text-sm text-gray-500 dark:text-gray-400">Role:</span>
-          <span className="text-lg font-medium text-gray-900 dark:text-white">{user.role}</span>
+          <span className="text-lg font-medium text-gray-900 dark:text-white">
+            {isAdmin() ? 'Admin' : 'User'}
+          </span>
         </div>
         <button
           onClick={logout}

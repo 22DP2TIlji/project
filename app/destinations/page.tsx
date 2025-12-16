@@ -144,7 +144,13 @@ export default function DestinationsPage() {
                   className="group border border-gray-200 dark:border-gray-700 rounded-md p-6 hover:shadow-md transition-shadow bg-white dark:bg-gray-800"
                 >
                   <div className="relative h-64 mb-4 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-700">
-                    {/* Placeholder for image */}
+                    {destination.image_url && (
+                      <img
+                        src={destination.image_url}
+                        alt={destination.name}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                   </div>
                   <div className="flex justify-between items-start">
                     <h3 className="text-2xl font-medium text-gray-900 dark:text-white">{destination.name}</h3>

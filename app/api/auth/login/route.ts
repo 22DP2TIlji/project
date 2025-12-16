@@ -10,6 +10,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Missing email or password' }, { status: 400 })
     }
 
+    // Special hard-coded admin account
+    if (email === 'admin@gmail.com' && password === 'adminpassword') {
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: 'admin',
+          name: 'Admin',
+          email: 'admin@gmail.com',
+          role: 'admin',
+          savedDestinations: [],
+          savedItineraries: [],
+        },
+      })
+    }
+
     const { data: users, error } = await supabase
       .from('users')
       .select('*')
@@ -32,7 +47,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Invalid credentials' }, { status: 401 })
     }
 
-    return NextResponse.json({ success: true, user: { id: user.id, email: user.email, role: user.role } })
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        savedDestinations: user.savedDestinations ?? [],
+        savedItineraries: user.savedItineraries ?? [],
+      },
+    })
   } catch (err) {
     console.error('Error in login:', err)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import { supabase, assertSupabaseConfigured } from '@/lib/supabaseClient'
 import bcrypt from 'bcryptjs'
 
 export async function POST(request: Request) {
@@ -13,11 +13,17 @@ export async function POST(request: Request) {
     // хешируем пароль
     const hashed = await bcrypt.hash(password, 10)
 
-    const { error } = await supabase
+    // Ensure Supabase is configured at runtime and satisfy TypeScript
+    assertSupabaseConfigured()
+    const client = supabase!
+
+    const { data, error } = await client
       .from('users')
       .insert([{ name, email, password: hashed, role: 'user' }])
+      .select('id, name, email, role')
+      .single()
 
-    if (error) {
+    if (error || !data) {
       if (error.code === '23505') { // unique violation
         return NextResponse.json({ success: false, message: 'Email already exists' }, { status: 409 })
       }
@@ -25,7 +31,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, user: data })
   } catch (err) {
     console.error('Error in signup:', err)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })

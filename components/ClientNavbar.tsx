@@ -17,8 +17,11 @@ export function ClientNavbar() {
 
       {open && (
         <ul className="mt-2 space-y-1">
-          <li><Link href="/">Home</Link></li>
-          <li><Link href="/about">About</Link></li>
+          <li><Link href="/destinations">Destinations</Link></li>
+          <li><Link href="/itinerary">Plan Trip</Link></li>
+          <li><Link href="/events">Events</Link></li>
+          <li><Link href="/cuisine">Cuisine</Link></li>
+          <li><Link href="/weather">Weather</Link></li>
           <li><Link href="/contact">Contact</Link></li>
         </ul>
       )}

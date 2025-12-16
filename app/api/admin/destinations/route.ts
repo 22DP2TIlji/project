@@ -1,42 +1,38 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabaseClient'
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  const { id } = params
-  try {
-    const { error } = await supabase.from('destinations').delete().eq('id', id)
-
-    if (error) {
-      console.error('Supabase delete error:', error)
-      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
-    }
-
-    return NextResponse.json({ success: true })
-  } catch (err) {
-    console.error('Error in DELETE destination:', err)
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
-  }
-}
-
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  const { id } = params
+// Create destination (no params on this root route)
+export async function POST(request: Request) {
   const body = await request.json()
-  const { name, description, category, region } = body
+  const { name, description, category, region, imageUrl } = body
+
+  if (!name || !description) {
+    return NextResponse.json({ success: false, message: 'Name and description are required' }, { status: 400 })
+  }
 
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('destinations')
-      .update({ name, description, category, region })
-      .eq('id', id)
+      .insert([
+        {
+          name,
+          description,
+          category: category || null,
+          region: region || null,
+          image_url: imageUrl || null,
+        },
+      ])
+      .select('id')
+      .single()
 
-    if (error) {
-      console.error('Supabase update error:', error)
+    if (error || !data) {
+      console.error('Supabase insert destination error:', error)
       return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, id: data.id })
   } catch (err) {
-    console.error('Error in PUT destination:', err)
+    console.error('Error in POST destination:', err)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
 }

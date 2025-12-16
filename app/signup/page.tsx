@@ -16,7 +16,7 @@ export default function SignupPage() {
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    router.push('/')
+    router.push('/profile')
     return null
   }
 
@@ -39,11 +39,12 @@ export default function SignupPage() {
       return
     }
 
-    const success = await signup(name, email, password)
+    const result = await signup(name, email, password)
 
-    if (success) {
-      // Redirect to home or dashboard on successful signup
-      router.push('/') 
+    if (result.success) {
+      router.push('/profile') 
+    } else if (result.message) {
+      setError(result.message)
     } else {
       setError('Email already in use')
     }

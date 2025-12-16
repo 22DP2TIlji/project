@@ -14,6 +14,8 @@ interface User {
 
 interface AuthContextType {
   user: User | null
+  isAuthenticated: boolean
+  isAdmin: () => boolean
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>
   signup: (name: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>
   logout: () => void
@@ -21,6 +23,7 @@ interface AuthContextType {
   removeSavedDestination: (destinationId: number) => Promise<void>
   removeSavedItinerary: (itineraryId: string) => Promise<void>
   refreshUser: () => Promise<void>
+  updateUserRole: (userId: string | number, role: 'user' | 'admin') => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -210,15 +213,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const isAuthenticated = !!user
+
+  const isAdmin = () => user?.role === 'admin'
+
+  const updateUserRole = (userId: string | number, role: 'user' | 'admin') => {
+    setUser(prev => {
+      if (!prev || prev.id !== userId) return prev
+      const updated = { ...prev, role }
+      localStorage.setItem('user', JSON.stringify(updated))
+      return updated
+    })
+  }
+
   const value = {
     user,
+    isAuthenticated,
+    isAdmin,
     login,
     signup,
     logout,
     saveDestination,
     removeSavedDestination,
     removeSavedItinerary,
-    refreshUser
+    refreshUser,
+    updateUserRole
   }
 
   return (

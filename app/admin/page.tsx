@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import AdminDashboard from '@/components/admin-dashboard'
 
 export default function AdminPage() {
-  const { user, isAdmin } = useAuth()
+  const { isAdmin } = useAuth()
   const router = useRouter()
   const [users, setUsers] = useState<any[]>([])
 

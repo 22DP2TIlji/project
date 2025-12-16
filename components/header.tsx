@@ -5,20 +5,15 @@ import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 
 export default function Header() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const pathname = usePathname()
 
   const links: Array<[string, string]> = [
     ["/destinations", "Destinations"],
-    ["/accommodations", "Accommodations"],
     ["/itinerary", "Plan Trip"],
     ["/events", "Events"],
-    ["/transportation", "Transportation"],
-    ["/weather", "Weather"],
     ["/cuisine", "Cuisine"],
-    ["/services", "Services"],
-    ["/projects", "Projects"],
-    ["/about", "About"],
+    ["/weather", "Weather"],
     ["/contact", "Contact"],
   ]
 
@@ -46,20 +41,19 @@ export default function Header() {
                 <span suppressHydrationWarning>{label}</span>
               </Link>
             ))}
+          </nav>
 
+          <div className="hidden md:flex items-center gap-3">
             {user && (
               <Link
-                href="/saved"
-                className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
-                  pathname === "/saved"
-                    ? "text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30"
-                    : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
-                }`}
+                href="/profile"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               >
-                <span suppressHydrationWarning>Saved</span>
+                Account
               </Link>
             )}
-            {user && (user as any).role === "admin" && (
+
+            {user && isAdmin && isAdmin() && (
               <Link
                 href="/admin"
                 className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
@@ -71,17 +65,8 @@ export default function Header() {
                 <span suppressHydrationWarning>Admin</span>
               </Link>
             )}
-          </nav>
 
-          <div className="hidden md:flex items-center gap-3">
-            {user ? (
-              <Link
-                href="/profile"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              >
-                {((user as any).name as string) || 'Profile'}
-              </Link>
-            ) : (
+            {!user && (
               <>
                 <Link
                   href="/login"

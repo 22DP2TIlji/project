@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabaseClient'
 
 interface UserStats {
   totalUsers: number;
@@ -27,10 +28,13 @@ export default function AdminDashboard() {
     name: '',
     description: '',
     category: '',
-    region: ''
+    region: '',
+    imageUrl: ''
   })
   const [destName, setDestName] = useState('')
   const [destDesc, setDestDesc] = useState('')
+  const [destImageFile, setDestImageFile] = useState<File | null>(null)
+  const [editImageFile, setEditImageFile] = useState<File | null>(null)
   const [destMsg, setDestMsg] = useState('')
 
   useEffect(() => {
@@ -75,8 +79,46 @@ export default function AdminDashboard() {
       name: destination.name,
       description: destination.description,
       category: destination.category || '',
-      region: destination.region || ''
+      region: destination.region || '',
+      imageUrl: destination.image_url || ''
     })
+  }
+
+  const uploadImage = async (file: File) => {
+    if (!supabase) {
+      throw new Error('Supabase client is not configured')
+    }
+
+    const ext = file.name.split('.').pop() || 'jpg'
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+
+    const { data, error } = await supabase
+      .storage
+      .from('destination-images')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      })
+
+    if (error) {
+      console.error('Error uploading image to Supabase:', error)
+      throw new Error(`Failed to upload image: ${error.message}`)
+    }
+
+    if (!data) {
+      throw new Error('No data returned from upload')
+    }
+
+    const { data: publicData } = supabase
+      .storage
+      .from('destination-images')
+      .getPublicUrl(data.path)
+
+    if (!publicData?.publicUrl) {
+      throw new Error('Failed to get public URL for uploaded image')
+    }
+
+    return publicData.publicUrl
   }
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -84,17 +126,22 @@ export default function AdminDashboard() {
     if (!editingDestination) return
 
     try {
+      let imageUrl = editForm.imageUrl
+      if (editImageFile) {
+        imageUrl = await uploadImage(editImageFile)
+      }
+
       const res = await fetch(`/api/admin/destinations/${editingDestination.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm)
+        body: JSON.stringify({ ...editForm, imageUrl })
       })
 
       const data = await res.json()
       if (data.success) {
         const updatedDestinations = destinations.map(d => 
           d.id === editingDestination.id 
-            ? { ...d, ...editForm }
+            ? { ...d, ...editForm, image_url: imageUrl }
             : d
         )
         setDestinations(updatedDestinations)
@@ -156,27 +203,40 @@ export default function AdminDashboard() {
     e.preventDefault()
     setDestMsg('')
     try {
+      let imageUrl: string | undefined
+      if (destImageFile) {
+        try {
+          imageUrl = await uploadImage(destImageFile)
+          console.log('Image uploaded successfully:', imageUrl)
+        } catch (uploadError: any) {
+          console.error('Image upload failed:', uploadError)
+          setDestMsg(`Ошибка загрузки изображения: ${uploadError.message || 'Неизвестная ошибка'}`)
+          return
+        }
+      }
+
       const res = await fetch('/api/admin/destinations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: destName, description: destDesc })
+        body: JSON.stringify({ name: destName, description: destDesc, imageUrl })
       })
 
       const data = await res.json()
       if (data.success) {
-        const newDestination = { id: data.id, name: destName, description: destDesc, category: null, region: null }
+        const newDestination = { id: data.id, name: destName, description: destDesc, category: null, region: null, image_url: imageUrl }
         const updatedDestinations = [...destinations, newDestination]
         setDestinations(updatedDestinations)
         setStats(prevStats => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
         setDestName('')
         setDestDesc('')
+        setDestImageFile(null)
         setDestMsg('Destination added successfully')
       } else {
         setDestMsg(data.message || 'Error adding destination')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding destination:', error)
-      setDestMsg('Error adding destination')
+      setDestMsg(`Ошибка: ${error.message || 'Неизвестная ошибка'}`)
     }
   }
 
@@ -222,18 +282,18 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {users.map((user, index) => (
-                  <tr key={user.id}>
+                {users.map((u, index) => (
+                  <tr key={u.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{index + 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{user.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{user.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{user.role}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.role}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <button
-                        onClick={() => handleToggleRole(user.id, user.role)}
+                        onClick={() => handleToggleRole(u.id, u.role)}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                       >
-                        {user.role === 'admin' ? 'Demote to User' : 'Promote to Admin'}
+                        {u.role === 'admin' ? 'Demote to User' : 'Promote to Admin'}
                       </button>
                     </td>
                   </tr>
@@ -268,6 +328,15 @@ export default function AdminDashboard() {
                 onChange={e => setDestDesc(e.target.value)}
                 className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setDestImageFile(e.target.files?.[0] || null)}
+                className="w-full text-sm text-gray-700 dark:text-gray-300"
               />
             </div>
             <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Destination</button>
@@ -365,6 +434,15 @@ export default function AdminDashboard() {
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setEditImageFile(e.target.files?.[0] || null)}
+                  className="w-full text-sm text-gray-700 dark:text-gray-300"
+                />
+              </div>
               <div className="flex justify-end space-x-2">
                 <button
                   type="button"
@@ -386,4 +464,4 @@ export default function AdminDashboard() {
       )}
     </div>
   )
-} 
+}

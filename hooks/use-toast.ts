@@ -1,7 +1,7 @@
 "use client"
 
 // Inspired by react-hot-toast library
-import React, { useReducer } from 'react'
+import React from 'react'
 
 
 import type {

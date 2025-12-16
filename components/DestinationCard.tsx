@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/auth-context';
 import { useLikeDestination } from '@/hooks/useLikeDestination';
 import { Heart } from 'lucide-react';
 
@@ -22,12 +22,12 @@ export default function DestinationCard({
   isLiked: initialIsLiked = false,
   onLikeChange,
 }: DestinationCardProps) {
-  const { data: session } = useSession();
+  const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const { toggleLike, isLoading, error } = useLikeDestination();
 
   const handleLikeClick = async () => {
-    if (!session) {
+    if (!user) {
       // You might want to show a login prompt here
       return;
     }
@@ -49,11 +49,11 @@ export default function DestinationCard({
           <h3 className="text-xl font-semibold text-gray-800">{name}</h3>
           <button
             onClick={handleLikeClick}
-            disabled={isLoading || !session}
+            disabled={isLoading || !user}
             className={`p-2 rounded-full transition-colors ${
               isLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
-            } ${!session ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-            title={session ? (isLiked ? 'Unlike' : 'Like') : 'Login to like'}
+            } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            title={user ? (isLiked ? 'Unlike' : 'Like') : 'Login to like'}
           >
             <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
           </button>

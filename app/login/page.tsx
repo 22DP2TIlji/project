@@ -14,7 +14,7 @@ export default function LoginPage() {
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    router.push('/')
+    router.push('/profile')
     return null
   }
 
@@ -29,9 +29,8 @@ export default function LoginPage() {
 
     const success = await login(email, password)
 
-    if (success) {
-      // Redirect to home or dashboard on successful login
-      router.push('/') 
+    if (success.success) {
+      router.push('/profile') 
     } else {
       setError('Invalid email or password')
     }
