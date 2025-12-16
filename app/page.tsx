@@ -4,33 +4,56 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useAuth } from "@/lib/auth-context"
 
-interface LikedDestination {
-  id: string
+type Destination = {
+  id: number | string
   name: string
+  description?: string
+  image_url?: string
+  category?: string
+  region?: string
 }
 
 export default function Home() {
   const { user } = useAuth()
-  const [likedDestinations, setLikedDestinations] = useState<Record<string, LikedDestination>>({})
+  const [featured, setFeatured] = useState([] as Destination[])
 
   useEffect(() => {
-    loadLikedDestinations()
-  }, [user])
+    const load = async () => {
+      try {
+        // 1) Determine liked IDs
+        let likedIds: Array<string | number> = []
 
-  const loadLikedDestinations = () => {
-    if (user) {
-      const users = JSON.parse(localStorage.getItem("users") || "[]")
-      const currentUser = users.find((u: any) => u.id === user.id)
+        if (user?.savedDestinations?.length) {
+          likedIds = user.savedDestinations
+        } else {
+          const saved = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
+          likedIds = Object.values(saved || {}).map((d: any) => d.id)
+        }
 
-      if (currentUser && currentUser.likes) {
-        setLikedDestinations(currentUser.likes)
-        return
+        if (!likedIds.length) {
+          setFeatured([])
+          return
+        }
+
+        // 2) Fetch all destinations and filter by liked IDs
+        const res = await fetch("/api/destinations")
+        const data = await res.json()
+        const all: Destination[] = data?.destinations || []
+
+        const filtered = all.filter((d: Destination) => {
+          const idStr = String(d.id)
+          return likedIds.includes(d.id) || likedIds.includes(idStr)
+        })
+
+        setFeatured(filtered)
+      } catch (err) {
+        console.error("Error loading featured destinations:", err)
+        setFeatured([])
       }
-    } else {
-      const savedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
-      setLikedDestinations(savedDestinations)
     }
-  }
+
+    load()
+  }, [user])
 
   return (
     <>
@@ -60,15 +83,26 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-light mb-4 text-center">Featured Destinations</h2>
 
-          {Object.keys(likedDestinations).length > 0 ? (
+          {featured.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-              {Object.values(likedDestinations).map((destination) => (
-                <div key={destination.id} className="group">
-                  <div className="relative h-64 mb-4 overflow-hidden rounded-md bg-gray-200"></div>
+              {featured.map((destination: Destination) => (
+                <div key={destination.id} className="group border border-gray-200 rounded-md p-4 bg-white">
+                  <div className="relative h-48 mb-3 overflow-hidden rounded-md bg-gray-200">
+                    {destination.image_url && (
+                      <img
+                        src={destination.image_url}
+                        alt={destination.name}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
                   <h3 className="text-xl font-medium">{destination.name}</h3>
-                  <Link href={`/destination/${destination.id}`} className="text-sm text-gray-600 hover:underline">
+                  <p className="mt-1 text-sm text-gray-600 line-clamp-2">{destination.description}</p>
+                  <div className="mt-3">
+                    <Link href={`/destination/${destination.id}`} className="text-sm text-blue-600 hover:underline">
                     View details
                   </Link>
+                  </div>
                 </div>
               ))}
             </div>
