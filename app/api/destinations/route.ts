@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import prisma from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const { data, error } = await supabase.from('destinations').select('*')
-    if (error) return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
-    return NextResponse.json({ success: true, destinations: data })
-  } catch {
+    const destinations = await prisma.destination.findMany()
+    return NextResponse.json({ success: true, destinations })
+  } catch (error) {
+    console.error('Error fetching destinations:', error)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
 }

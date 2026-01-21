@@ -1,15 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
 
 export default function TestPage() {
   const [destinations, setDestinations] = useState<any[]>([])
 
   useEffect(() => {
     const load = async () => {
-      const { data, error } = await supabase.from('destinations').select('*')
-      if (!error && data) setDestinations(data)
+      try {
+        const res = await fetch('/api/destinations')
+        const data = await res.json()
+        if (data.success) setDestinations(data.destinations || [])
+      } catch (error) {
+        console.error('Error loading destinations:', error)
+      }
     }
     load()
   }, [])

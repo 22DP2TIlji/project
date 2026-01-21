@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import prisma from '@/lib/prisma'
 import { getUserFromId } from '@/lib/auth-utils'
+
+interface LikedDestinationRow {
+  destinationId: number
+}
 
 export async function POST(request: Request) {
   try {
-    const { id: userId } = await request.json()
+    const { id: userId } = await request.json() as { id: string | undefined }
 
     if (!userId) {
       return NextResponse.json({ success: false, message: 'User ID is required' }, { status: 400 })
@@ -31,18 +35,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
     }
 
-    // Fetch the user's liked destinations from Supabase
-    const { data: likedRows, error } = await supabase
-      .from('user_liked_destinations')
-      .select('destination_id')
-      .eq('user_id', user.id)
-
-    if (error) {
-      console.error('Supabase liked destinations error:', error)
-      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
+    // Fetch the user's liked destinations (skip for admin)
+    let likedDestinations: number[] = []
+    if (userId !== 'admin' && typeof userId === 'string') {
+      const likedRows = await prisma.userLikedDestination.findMany({
+        where: { userId: parseInt(userId) },
+        select: { destinationId: true },
+      }) as LikedDestinationRow[]
+      likedDestinations = likedRows.map((row: LikedDestinationRow) => row.destinationId)
     }
-
-    const likedDestinations = (likedRows ?? []).map((row: any) => row.destination_id)
 
     // Add liked destinations to the user object
     const userWithLiked = { ...user, savedDestinations: likedDestinations }

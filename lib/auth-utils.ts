@@ -1,19 +1,36 @@
 // lib/auth-utils.ts
-import { supabase } from './supabaseClient'
+import prisma from './prisma'
 
 export async function getUserFromId(userId: string) {
   try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, name, email, role')
-      .eq('id', userId)
-      .single()
+    // Handle special admin case
+    if (userId === 'admin') {
+      return {
+        id: 'admin',
+        name: 'Admin',
+        email: 'admin@gmail.com',
+        role: 'admin',
+      }
+    }
 
-    if (error || !data) {
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(userId) },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    })
+
+    if (!user) {
       return null
     }
 
-    return data
+    return {
+      ...user,
+      id: user.id.toString(),
+    }
   } catch (error) {
     console.error('Error fetching user:', error)
     return null

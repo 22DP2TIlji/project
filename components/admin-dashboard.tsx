@@ -3,13 +3,30 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
 
 interface UserStats {
   totalUsers: number;
   activeUsers: number;
   totalDestinations: number;
   totalItineraries: number;
+}
+
+interface User {
+  id: string | number;
+  name: string;
+  email: string;
+  role: 'user' | 'admin';
+  lastLogin?: string;
+  savedItineraries?: any[];
+}
+
+interface Destination {
+  id: number;
+  name: string;
+  description: string;
+  category?: string | null;
+  region?: string | null;
+  image_url?: string | null;
 }
 
 export default function AdminDashboard() {
@@ -21,9 +38,9 @@ export default function AdminDashboard() {
     totalDestinations: 0,
     totalItineraries: 0
   })
-  const [users, setUsers] = useState<any[]>([])
-  const [destinations, setDestinations] = useState<any[]>([])
-  const [editingDestination, setEditingDestination] = useState<any>(null)
+  const [users, setUsers] = useState<User[]>([])
+  const [destinations, setDestinations] = useState<Destination[]>([])
+  const [editingDestination, setEditingDestination] = useState<Destination | null>(null)
   const [editForm, setEditForm] = useState({
     name: '',
     description: '',
@@ -57,12 +74,12 @@ export default function AdminDashboard() {
         setUsers(usersData.users || [])
         setDestinations(destinationsData.destinations || [])
         
-        setStats(prevStats => ({
+        setStats((prevStats: UserStats) => ({
           ...prevStats,
           totalUsers: usersData.users?.length || 0,
-          activeUsers: usersData.users?.filter((u: any) => u.lastLogin)?.length || 0,
+          activeUsers: usersData.users?.filter((u: User) => u.lastLogin)?.length || 0,
           totalDestinations: destinationsData.destinations?.length || 0,
-          totalItineraries: usersData.users?.reduce((acc: number, user: any) => 
+          totalItineraries: usersData.users?.reduce((acc: number, user: User) => 
             acc + (user.savedItineraries?.length || 0), 0) || 0
         }))
       } catch (error) {
@@ -73,7 +90,7 @@ export default function AdminDashboard() {
     loadAdminData()
   }, [isAdmin, router])
 
-  const handleEditClick = (destination: any) => {
+  const handleEditClick = (destination: Destination) => {
     setEditingDestination(destination)
     setEditForm({
       name: destination.name,
@@ -84,41 +101,26 @@ export default function AdminDashboard() {
     })
   }
 
-  const uploadImage = async (file: File) => {
-    if (!supabase) {
-      throw new Error('Supabase client is not configured')
-    }
-
-    const ext = file.name.split('.').pop() || 'jpg'
-    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-
-    const { data, error } = await supabase
-      .storage
-      .from('destination-images')
-      .upload(fileName, file, {
-        cacheControl: '3600',
-        upsert: false
-      })
-
-    if (error) {
-      console.error('Error uploading image to Supabase:', error)
-      throw new Error(`Failed to upload image: ${error.message}`)
-    }
-
-    if (!data) {
-      throw new Error('No data returned from upload')
-    }
-
-    const { data: publicData } = supabase
-      .storage
-      .from('destination-images')
-      .getPublicUrl(data.path)
-
-    if (!publicData?.publicUrl) {
-      throw new Error('Failed to get public URL for uploaded image')
-    }
-
-    return publicData.publicUrl
+  const uploadImage = async (file: File): Promise<string> => {
+    // For Laragon/MySQL setup, you can either:
+    // 1. Store images in public/images folder and return the path
+    // 2. Use a different storage service (AWS S3, Cloudinary, etc.)
+    // 3. Store base64 encoded images in the database (not recommended for large files)
+    
+    // For now, we'll convert to base64 and return it as a data URL
+    // In production, you should upload to a proper storage service
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result)
+        } else {
+          reject(new Error('Failed to read file'))
+        }
+      }
+      reader.onerror = () => reject(new Error('Failed to read file'))
+      reader.readAsDataURL(file)
+    })
   }
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -139,13 +141,13 @@ export default function AdminDashboard() {
 
       const data = await res.json()
       if (data.success) {
-        const updatedDestinations = destinations.map(d => 
+        const updatedDestinations = destinations.map((d: Destination) => 
           d.id === editingDestination.id 
             ? { ...d, ...editForm, image_url: imageUrl }
             : d
         )
         setDestinations(updatedDestinations)
-        setStats(prevStats => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
+        setStats((prevStats: UserStats) => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
         setEditingDestination(null)
       }
     } catch (error) {
@@ -161,9 +163,9 @@ export default function AdminDashboard() {
 
       const data = await res.json()
       if (data.success) {
-        const updatedDestinations = destinations.filter(d => d.id !== destinationId)
+        const updatedDestinations = destinations.filter((d: Destination) => d.id !== destinationId)
         setDestinations(updatedDestinations)
-        setStats(prevStats => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
+        setStats((prevStats: UserStats) => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
       }
     } catch (error) {
       console.error('Error deleting destination:', error)
@@ -182,7 +184,7 @@ export default function AdminDashboard() {
       const data = await res.json()
       if (data.success) {
         // Update local state
-        setUsers(users.map(u => 
+        setUsers(users.map((u: User) => 
           u.id === userId 
             ? { ...u, role: newRole }
             : u
@@ -223,10 +225,10 @@ export default function AdminDashboard() {
 
       const data = await res.json()
       if (data.success) {
-        const newDestination = { id: data.id, name: destName, description: destDesc, category: null, region: null, image_url: imageUrl }
+        const newDestination: Destination = { id: data.id, name: destName, description: destDesc, category: null, region: null, image_url: imageUrl }
         const updatedDestinations = [...destinations, newDestination]
         setDestinations(updatedDestinations)
-        setStats(prevStats => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
+        setStats((prevStats: UserStats) => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
         setDestName('')
         setDestDesc('')
         setDestImageFile(null)
@@ -282,7 +284,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {users.map((u, index) => (
+                {users.map((u: User, index: number) => (
                   <tr key={u.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{index + 1}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.name}</td>
@@ -362,7 +364,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {destinations.map((destination, index) => (
+                {destinations.map((destination: Destination, index: number) => (
                   <tr key={destination.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{index + 1}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{destination.name}</td>

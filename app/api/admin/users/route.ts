@@ -1,19 +1,30 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import prisma from '@/lib/prisma'
 
 // Get all users for admin panel
 export async function GET() {
   try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, name, email, role, created_at')
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
 
-    if (error) {
-      console.error('Supabase users select error:', error)
-      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
-    }
+    // Convert id to string for consistency
+    const usersWithStringIds = users.map((user: { id: number; name: string; email: string; role: string; createdAt: Date }) => ({
+      ...user,
+      id: user.id.toString(),
+      created_at: user.createdAt,
+    }))
 
-    return NextResponse.json({ success: true, users: data ?? [] })
+    return NextResponse.json({ success: true, users: usersWithStringIds })
   } catch (error) {
     console.error('GET /api/admin/users error:', error)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
@@ -27,20 +38,23 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: false, message: 'User ID and role are required' }, { status: 400 })
   }
 
-  try {
-    const { error } = await supabase
-      .from('users')
-      .update({ role })
-      .eq('id', id)
+  // Cannot update admin user role
+  if (id === 'admin') {
+    return NextResponse.json({ success: false, message: 'Cannot modify admin user' }, { status: 403 })
+  }
 
-    if (error) {
-      console.error('Supabase update role error:', error)
-      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
-    }
+  try {
+    await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { role: role as 'user' | 'admin' },
+    })
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating user role:', error)
+    if (error.code === 'P2025') {
+      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
+    }
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
 } 

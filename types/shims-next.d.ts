@@ -10,14 +10,13 @@ declare module 'next/link' {
 declare module 'next/navigation' {
   export function usePathname(): string
   export function useParams<T extends Record<string, string | string[]>>() : T
-}
-
-declare module 'react' {
-  export const useEffect: any
-  export const useState: any
-  export const useRef: any
-  const React: any
-  export default React
+  export function useRouter(): {
+    push: (href: string) => void
+    replace: (href: string) => void
+    refresh: () => void
+    back: () => void
+    forward: () => void
+  }
 }
 
 

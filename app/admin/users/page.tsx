@@ -1,51 +1,68 @@
-'use client'
+import { NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
 
-import { useAuth } from '@/lib/auth-context'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+interface UserData {
+  id: number
+  name: string
+  email: string
+  role: string
+  createdAt: Date
+}
 
-export default function AdminUsersPage() {
-  const { isAdmin } = useAuth()
-  const router = useRouter()
-  const [users, setUsers] = useState<any[]>([])
+// Get all users for admin panel
+export async function GET() {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    }) as UserData[]
 
-  useEffect(() => {
-    if (!isAdmin()) {
-      router.push('/')
-    } else {
-      fetch('/api/admin/users')
-        .then(res => res.json())
-        .then(data => setUsers(data.users || []))
+    // Convert id to string for consistency
+    const usersWithStringIds = users.map((user: UserData) => ({
+      ...user,
+      id: user.id.toString(),
+      created_at: user.createdAt,
+    }))
+
+    return NextResponse.json({ success: true, users: usersWithStringIds })
+  } catch (error) {
+    console.error('GET /api/admin/users error:', error)
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// Update a user's role
+export async function PUT(request: Request) {
+  const { id, role } = await request.json()
+  if (!id || !role) {
+    return NextResponse.json({ success: false, message: 'User ID and role are required' }, { status: 400 })
+  }
+
+  // Cannot update admin user role
+  if (id === 'admin') {
+    return NextResponse.json({ success: false, message: 'Cannot modify admin user' }, { status: 403 })
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { role: role as 'user' | 'admin' },
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('Error updating user role:', error)
+    if (error.code === 'P2025') {
+      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
     }
-  }, [isAdmin, router])
-
-  return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
-      <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">All Users</h1>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white dark:bg-gray-800 rounded shadow">
-          <thead>
-            <tr>
-              <th className="p-2 border">ID</th>
-              <th className="p-2 border">Name</th>
-              <th className="p-2 border">Email</th>
-              <th className="p-2 border">Role</th>
-              <th className="p-2 border">Registered</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(u => (
-              <tr key={u.id}>
-                <td className="p-2 border">{u.id}</td>
-                <td className="p-2 border">{u.name}</td>
-                <td className="p-2 border">{u.email}</td>
-                <td className="p-2 border">{u.role}</td>
-                <td className="p-2 border">{u.created_at ? new Date(u.created_at).toLocaleDateString() : ''}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+  }
 } 

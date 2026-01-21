@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("https://vlcxbtdxhesdselqxyqv.supabase.co")
+  url      = env("mysql://root@127.0.0.1:3306/travellatvia")
 }
 
 model User {

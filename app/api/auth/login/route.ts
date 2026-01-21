@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 export async function POST(request: Request) {
@@ -25,22 +25,14 @@ export async function POST(request: Request) {
       })
     }
 
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .limit(1)
+    const user = await prisma.user.findUnique({
+      where: { email },
+    })
 
-    if (error) {
-      console.error('Supabase select error:', error)
-      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
-    }
-
-    if (!users || users.length === 0) {
+    if (!user) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
     }
 
-    const user = users[0]
     const valid = await bcrypt.compare(password, user.password)
 
     if (!valid) {
@@ -50,12 +42,12 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       user: {
-        id: user.id,
+        id: user.id.toString(),
         name: user.name,
         email: user.email,
         role: user.role,
-        savedDestinations: user.savedDestinations ?? [],
-        savedItineraries: user.savedItineraries ?? [],
+        savedDestinations: [],
+        savedItineraries: [],
       },
     })
   } catch (err) {

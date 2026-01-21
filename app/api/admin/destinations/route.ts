@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import prisma from '@/lib/prisma'
 
 // Create destination (no params on this root route)
 export async function POST(request: Request) {
@@ -11,26 +11,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { data, error } = await supabase
-      .from('destinations')
-      .insert([
-        {
-          name,
-          description,
-          category: category || null,
-          region: region || null,
-          image_url: imageUrl || null,
-        },
-      ])
-      .select('id')
-      .single()
+    const destination = await prisma.destination.create({
+      data: {
+        name,
+        description,
+        category: category || null,
+        region: region || null,
+      },
+      select: {
+        id: true,
+      },
+    })
 
-    if (error || !data) {
-      console.error('Supabase insert destination error:', error)
-      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
-    }
-
-    return NextResponse.json({ success: true, id: data.id })
+    return NextResponse.json({ success: true, id: destination.id })
   } catch (err) {
     console.error('Error in POST destination:', err)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
