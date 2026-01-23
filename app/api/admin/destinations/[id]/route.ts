@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/prisma'
 
 // Update a single destination by id
 export async function PUT(request: Request, { params }: { params: { id: string } }) {

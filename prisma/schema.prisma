@@ -15,7 +15,8 @@ model User {
   name      String   @db.VarChar(50)
   email     String   @unique @db.VarChar(100)
   password  String   @db.VarChar(255)
-  role      Role     @default(user)
+  role      Role     @default(user)cat .env.local
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -36,6 +37,7 @@ model Destination {
   description String   @db.Text
   category    String?  @db.VarChar(50)
   region      String?  @db.VarChar(50)
+  images      Image[]
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -43,6 +45,14 @@ model Destination {
   weatherData  WeatherData[]
 
   @@map("destinations")
+}
+
+model Image {
+  id            Int         @id @default(autoincrement())
+  url           String      @db.Text
+  destinationId Int?
+  destination   Destination? @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
 }
 
 model Accommodation {
