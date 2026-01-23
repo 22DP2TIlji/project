@@ -16,8 +16,17 @@ type Destination = {
 export default function Home() {
   const { user } = useAuth()
   const [featured, setFeatured] = useState([] as Destination[])
+  const [mounted, setMounted] = useState(false)
+
+  // Track if component is mounted (client-side only)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
+    // Only run on client side after mount
+    if (!mounted) return
+
     const load = async () => {
       try {
         // 1) Determine liked IDs
@@ -26,8 +35,11 @@ export default function Home() {
         if (user?.savedDestinations?.length) {
           likedIds = user.savedDestinations
         } else {
-          const saved = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
-          likedIds = Object.values(saved || {}).map((d: any) => d.id)
+          // Only access localStorage on client side
+          if (typeof window !== 'undefined') {
+            const saved = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
+            likedIds = Object.values(saved || {}).map((d: any) => d.id)
+          }
         }
 
         if (!likedIds.length) {
@@ -53,15 +65,17 @@ export default function Home() {
     }
 
     load()
-  }, [user])
+  }, [user, mounted])
 
   return (
     <>
       <section className="relative h-[70vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light mb-4">Travellatvia</h1>
-          <p className="text-xl md:text-2xl font-light mb-8">Choose your next adventure</p>
+          <h1 className="text-5xl md:text-6xl font-light mb-4" translate="no">Travellatvia</h1>
+          <p className="text-xl md:text-2xl font-light mb-8" suppressHydrationWarning translate="no">
+            Choose your next adventure
+          </p>
         </div>
       </section>
 
