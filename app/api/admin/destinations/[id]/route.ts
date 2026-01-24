@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 
 // Update a single destination by id
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
@@ -8,21 +8,15 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   const { name, description, category, region, imageUrl } = body
 
   try {
-    const { error } = await supabase
-      .from('destinations')
-      .update({
+    await prisma.destination.update({
+      where: { id: parseInt(id) },
+      data: {
         name,
         description,
         category,
-        region,
-        image_url: imageUrl ?? null,
-      })
-      .eq('id', id)
-
-    if (error) {
-      console.error('Supabase update error:', error)
-      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
-    }
+        region
+      },
+    })
 
     return NextResponse.json({ success: true })
   } catch (err) {
@@ -35,12 +29,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   const { id } = params
   try {
-    const { error } = await supabase.from('destinations').delete().eq('id', id)
-
-    if (error) {
-      console.error('Supabase delete error:', error)
-      return NextResponse.json({ success: false, message: 'Database error' }, { status: 500 })
-    }
+    await prisma.destination.delete({
+      where: { id: parseInt(id) },
+    })
 
     return NextResponse.json({ success: true })
   } catch (err) {
