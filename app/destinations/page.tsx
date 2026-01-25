@@ -5,8 +5,11 @@ import Link from 'next/link'
 import { Search, MapPin, Filter } from 'lucide-react'
 import LikeButton from "@/components/like-button"
 
+
 const categories = ["all", "city", "nature", "beach", "palace"]
 const regions = ["all", "central", "western", "southern", "eastern"]
+
+
 
 export default function DestinationsPage() {
   const [destinations, setDestinations] = useState<any[]>([])
@@ -138,47 +141,56 @@ export default function DestinationsPage() {
             </div>
           ) : displayedDestinations.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {displayedDestinations.map((destination) => (
-                <div
-                  key={destination.id}
-                  className="group border border-gray-200 dark:border-gray-700 rounded-md p-6 hover:shadow-md transition-shadow bg-white dark:bg-gray-800"
-                >
-                  <div className="relative h-64 mb-4 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-700">
-                    {destination.image_url && (
-                      <img
-                        src={destination.image_url}
-                        alt={destination.name}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-2xl font-medium text-gray-900 dark:text-white">{destination.name}</h3>
-                    <LikeButton destinationId={destination.id} destinationName={destination.name} />
-                  </div>
-                  <p className="mt-2 text-gray-600 dark:text-gray-200">{destination.description}</p>
-                  <div className="mt-4 flex justify-between items-center">
-                    <div className="flex gap-2">
-                      {destination.category && (
-                        <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-xs rounded-full text-gray-700 dark:text-gray-200">
-                          {destination.category}
-                        </span>
-                      )}
-                      {destination.region && (
-                        <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-xs rounded-full text-gray-700 dark:text-gray-200">
-                          {destination.region}
-                        </span>
-                      )}
-                    </div>
-                    <Link 
-                      href={`/destination/${destination.id}`}
-                      className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
-                    >
-                      View details
-                    </Link>
-                  </div>
-                </div>
-              ))}
+              {displayedDestinations.map((destination) => {
+  const imgUrl = destination.images?.[0]?.url // ✅ берём из relation Image
+
+  return (
+    <div
+      key={destination.id}
+      className="group border border-gray-200 dark:border-gray-700 rounded-md p-6 hover:shadow-md transition-shadow bg-white dark:bg-gray-800"
+    >
+      <div className="relative h-64 mb-4 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-700">
+        {imgUrl ? (
+          <img
+            src={imgUrl}
+            alt={destination.name}
+            className="w-full h-full object-cover"
+          />
+        ) : null}
+      </div>
+
+      <div className="flex justify-between items-start">
+        <h3 className="text-2xl font-medium text-gray-900 dark:text-white">{destination.name}</h3>
+        <LikeButton destinationId={destination.id} destinationName={destination.name} />
+      </div>
+
+      <p className="mt-2 text-gray-600 dark:text-gray-200">{destination.description}</p>
+
+      <div className="mt-4 flex justify-between items-center">
+        <div className="flex gap-2">
+          {destination.category && (
+            <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-xs rounded-full text-gray-700 dark:text-gray-200">
+              {destination.category}
+            </span>
+          )}
+          {destination.region && (
+            <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-xs rounded-full text-gray-700 dark:text-gray-200">
+              {destination.region}
+            </span>
+          )}
+        </div>
+
+        <Link
+          href={`/destination/${destination.id}`}
+          className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+        >
+          View details
+        </Link>
+      </div>
+    </div>
+  )
+})}
+
             </div>
           ) : (
             <div className="text-center py-12">
