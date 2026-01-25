@@ -151,7 +151,7 @@ export default function DestinationPage() {
               <LikeButton destinationId={destination.id} destinationName={destination.name} />
             </div>
 
-            <div className="relative h-96 mb-8 overflow-hidden rounded-md bg-gray-200">
+            <div className="relative h-48 mb-8 overflow-hidden rounded-md bg-gray-200 max-w-xl mx-auto">
               {heroImg ? <img src={heroImg} alt={destination.name} className="w-full h-full object-cover" /> : null}
             </div>
 
