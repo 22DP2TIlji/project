@@ -6,7 +6,7 @@ import { ObjectType } from "@prisma/client"
 function getDestinationFilter(destinationId: number) {
   return {
     objectId: destinationId,
-    objectType: ObjectType.destination, // ✅ enum, НЕ строка
+    objectType: ObjectType.attraction, // ✅ enum, НЕ строка
   } as const
 }
 
