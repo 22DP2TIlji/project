@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { Cloud, Wind, Thermometer, Droplets, Calendar } from 'lucide-react'
+import { useState, useEffect } from "react"
+import { Cloud, Wind, Thermometer, Droplets, Calendar } from "lucide-react"
 
 interface CurrentWeather {
   temp: number
@@ -41,22 +41,20 @@ export default function WeatherPage() {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY
-        if (!API_KEY) throw new Error('API key not configured')
+        setLoading(true)
+        setError(null)
 
-        // Fetch current weather
-        const currentRes = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=Riga,lv&units=metric&appid=${API_KEY}`
-        )
-        if (!currentRes.ok) throw new Error('Failed to fetch current weather')
-        const currentData = await currentRes.json()
+        const res = await fetch("/api/weather", { cache: "no-store" })
+        const data = await res.json()
 
-        // Fetch 5-day forecast
-        const forecastRes = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?q=Riga,lv&units=metric&appid=${API_KEY}`
-        )
-        if (!forecastRes.ok) throw new Error('Failed to fetch forecast')
-        const forecastData = await forecastRes.json()
+        if (!res.ok) {
+          // /api/weather отдаёт body со строкой ответа OpenWeather — покажем её,
+          // чтобы точно видеть причину (401, лимит, etc.)
+          throw new Error(data?.body || data?.error || "Failed to load weather")
+        }
+
+        const currentData = data.current
+        const forecastData = data.forecast
 
         setCurrent({
           temp: currentData.main.temp,
@@ -72,17 +70,18 @@ export default function WeatherPage() {
           item.dt_txt.includes("12:00:00")
         )
         setForecast(daily)
-        setLoading(false)
-      } catch (err) {
-        setError('Failed to load weather data. Please check your API key and try again.')
+      } catch (err: any) {
+        setError(err?.message || "Failed to load weather data.")
+      } finally {
         setLoading(false)
       }
     }
+
     fetchWeather()
   }, [])
 
   const getDayName = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString('en-US', { weekday: 'long' })
+    return new Date(timestamp * 1000).toLocaleDateString("en-US", { weekday: "long" })
   }
 
   if (loading) {
@@ -108,6 +107,7 @@ export default function WeatherPage() {
         <h1 className="text-4xl font-light text-center mb-8 text-gray-900 dark:text-white">
           Weather in Riga
         </h1>
+
         {current && (
           <div className="max-w-3xl mx-auto mb-8">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
@@ -117,11 +117,11 @@ export default function WeatherPage() {
                     Current Weather
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {new Date().toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
+                    {new Date().toLocaleDateString("en-US", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
                     })}
                   </p>
                 </div>
@@ -131,6 +131,7 @@ export default function WeatherPage() {
                   className="w-20 h-20"
                 />
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex items-center space-x-3">
                   <Thermometer className="w-6 h-6 text-blue-500" />
@@ -141,6 +142,7 @@ export default function WeatherPage() {
                     </p>
                   </div>
                 </div>
+
                 <div className="flex items-center space-x-3">
                   <Wind className="w-6 h-6 text-blue-500" />
                   <div>
@@ -150,6 +152,7 @@ export default function WeatherPage() {
                     </p>
                   </div>
                 </div>
+
                 <div className="flex items-center space-x-3">
                   <Droplets className="w-6 h-6 text-blue-500" />
                   <div>
@@ -159,6 +162,7 @@ export default function WeatherPage() {
                     </p>
                   </div>
                 </div>
+
                 <div className="flex items-center space-x-3">
                   <Cloud className="w-6 h-6 text-blue-500" />
                   <div>
@@ -180,6 +184,7 @@ export default function WeatherPage() {
               <Calendar className="w-6 h-6 mr-2" />
               5-Day Forecast
             </h2>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               {forecast.map((day) => (
                 <div
@@ -196,6 +201,7 @@ export default function WeatherPage() {
                       className="w-10 h-10"
                     />
                   </div>
+
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600 dark:text-gray-300">
                       Temp: {Math.round(day.main.temp)}°C
@@ -210,6 +216,7 @@ export default function WeatherPage() {
                 </div>
               ))}
             </div>
+
           </div>
         </div>
       </div>
