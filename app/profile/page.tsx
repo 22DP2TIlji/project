@@ -169,6 +169,17 @@ export default function ProfilePage() {
           </form>
         )}
 
+{/* Admin panel button (only for admin) */}
+{isAdmin() && (
+  <button
+    type="button"
+    onClick={() => router.push("/admin")}
+    className="mb-3 w-full rounded-md bg-gray-900 py-3 px-4 text-white transition-colors hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600"
+  >
+    Admin panel
+  </button>
+)}
+
         {/* Logout */}
         <button
           onClick={logout}
