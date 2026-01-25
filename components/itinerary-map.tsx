@@ -11,6 +11,9 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
   const [map, setMap] = useState<any>(null)
   const [isClient, setIsClient] = useState(false)
 
+  // храним routing control, чтобы удалять/обновлять
+  const [routingControl, setRoutingControl] = useState<any>(null)
+
   useEffect(() => {
     setIsClient(true)
   }, [])
@@ -22,7 +25,7 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
       try {
         const L = (await import("leaflet")).default
 
-        await import("leaflet/dist/leaflet.css")
+        
 
         delete (L.Icon.Default.prototype as any)._getIconUrl
 
@@ -39,7 +42,8 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
           const mapInstance = L.map("map").setView(center, zoom)
 
           L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
           }).addTo(mapInstance)
 
           setMap(mapInstance)
@@ -52,9 +56,7 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
     loadMap()
 
     return () => {
-      if (map) {
-        map.remove()
-      }
+      if (map) map.remove()
     }
   }, [isClient, map])
 
@@ -65,22 +67,34 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
       try {
         const L = (await import("leaflet")).default
 
+        // подключаем routing machine динамически
+        await import("leaflet-routing-machine")
+        
+
+        // 1) Удаляем старые маркеры/линии
         map.eachLayer((layer: any) => {
           if (layer instanceof L.Marker || layer instanceof L.Polyline) {
             map.removeLayer(layer)
           }
         })
 
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        }).addTo(map)
+        // 2) Удаляем старый routing control (если был)
+        if (routingControl) {
+          map.removeControl(routingControl)
+          setRoutingControl(null)
+        }
 
+        // 3) (опционально) Не добавляй tileLayer повторно — он уже есть при создании карты
+        // Если хочешь оставить - будет дублироваться, поэтому убираем повторное добавление.
+
+        // 4) Маркеры точек (популярные места)
         destinations.forEach((destination) => {
           L.marker(destination.coordinates as [number, number])
             .addTo(map)
             .bindPopup(destination.name)
         })
 
+        // 5) Маршрут по дороге (если выбраны start/end)
         if (route && route.startCoords && route.endCoords) {
           L.marker(route.startCoords as [number, number])
             .addTo(map)
@@ -90,15 +104,24 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
             .addTo(map)
             .bindPopup(`End: ${route.endPoint}`)
 
-          L.polyline([route.startCoords, route.endCoords], {
-            color: "blue",
-            weight: 4,
-            opacity: 0.7,
+          const control = (L as any).Routing.control({
+            waypoints: [
+              L.latLng(route.startCoords[0], route.startCoords[1]),
+              L.latLng(route.endCoords[0], route.endCoords[1]),
+            ],
+            router: (L as any).Routing.osrmv1({
+              serviceUrl: "https://router.project-osrm.org/route/v1",
+            }),
+            lineOptions: {
+              styles: [{ weight: 5, opacity: 0.8 }],
+            },
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            show: false, // скрыть панель
           }).addTo(map)
 
-          map.fitBounds([route.startCoords, route.endCoords], {
-            padding: [50, 50],
-          })
+          setRoutingControl(control)
         }
       } catch (error) {
         console.error("Error updating map:", error)
@@ -106,6 +129,7 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
     }
 
     updateMap()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, destinations, route, isClient])
 
   if (!isClient) {

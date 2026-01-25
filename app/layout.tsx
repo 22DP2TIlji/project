@@ -1,4 +1,9 @@
 ﻿import type React from "react"
+import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+import "leaflet/dist/leaflet.css";
+import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+
+
 
 import "./globals.css"
 import { AuthProvider } from '@/lib/auth-context'
