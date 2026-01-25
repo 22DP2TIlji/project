@@ -1,3 +1,4 @@
+// app/itinerary/page.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -24,27 +25,59 @@ const popularDestinations = [
   { id: "ventspils", name: "Ventspils", coordinates: [57.3894, 21.5606] },
 ]
 
+function getUserIdFromLocalStorage(): string | null {
+  try {
+    const raw = localStorage.getItem("user")
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return parsed?.id ? String(parsed.id) : null
+  } catch {
+    return null
+  }
+}
+
 export default function ItineraryPage() {
   const [startPoint, setStartPoint] = useState("")
   const [endPoint, setEndPoint] = useState("")
   const [customStartPoint, setCustomStartPoint] = useState("")
   const [customEndPoint, setCustomEndPoint] = useState("")
   const [route, setRoute] = useState<any>(null)
+
   const [savedItineraries, setSavedItineraries] = useState<any[]>([])
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
     setIsClient(true)
-
-    try {
-      const saved = localStorage.getItem("savedItineraries")
-      if (saved) {
-        setSavedItineraries(JSON.parse(saved))
-      }
-    } catch (error) {
-      console.error("Error loading saved itineraries:", error)
-    }
   }, [])
+
+  // ✅ Load itineraries for logged in user from DB
+  const loadSavedItineraries = async () => {
+    const userId = getUserIdFromLocalStorage()
+    if (!userId) {
+      setSavedItineraries([])
+      return
+    }
+
+    const res = await fetch(`/api/itineraries?id=${encodeURIComponent(userId)}`, {
+      method: "GET",
+      cache: "no-store",
+    })
+
+    const data = await res.json()
+    if (!res.ok || !data.success) {
+      console.error("Failed to load itineraries:", data)
+      setSavedItineraries([])
+      return
+    }
+
+    setSavedItineraries(data.itineraries ?? [])
+  }
+
+  useEffect(() => {
+    if (!isClient) return
+    loadSavedItineraries()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isClient])
 
   const getCoordinates = (pointId: string) => {
     const destination = popularDestinations.find((dest) => dest.id === pointId)
@@ -58,16 +91,12 @@ export default function ItineraryPage() {
 
       if (startPoint === "custom" && customStartPoint) {
         const [lat, lng] = customStartPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
-        if (!isNaN(lat) && !isNaN(lng)) {
-          start = [lat, lng]
-        }
+        if (!isNaN(lat) && !isNaN(lng)) start = [lat, lng]
       }
 
       if (endPoint === "custom" && customEndPoint) {
         const [lat, lng] = customEndPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
-        if (!isNaN(lat) && !isNaN(lng)) {
-          end = [lat, lng]
-        }
+        if (!isNaN(lat) && !isNaN(lng)) end = [lat, lng]
       }
 
       if (!start || !end) {
@@ -75,14 +104,15 @@ export default function ItineraryPage() {
         return
       }
 
+      const dist = calculateDistance(start[0], start[1], end[0], end[1])
+
       const newRoute = {
-        startPoint:
-          startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
+        startPoint: startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
         endPoint: endPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === endPoint)?.name,
         startCoords: start,
         endCoords: end,
-        distance: calculateDistance(start[0], start[1], end[0], end[1]),
-        time: calculateDistance(start[0], start[1], end[0], end[1]) / 60,
+        distance: dist,
+        time: dist / 60,
       }
 
       setRoute(newRoute)
@@ -100,44 +130,78 @@ export default function ItineraryPage() {
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    const distance = R * c
-    return Math.round(distance * 10) / 10
+    return Math.round(R * c * 10) / 10
   }
 
-  const deg2rad = (deg: number) => {
-    return deg * (Math.PI / 180)
-  }
+  const deg2rad = (deg: number) => deg * (Math.PI / 180)
 
-  const saveItinerary = () => {
+  const saveItinerary = async () => {
     try {
       if (!route) return
 
-      const newItinerary = {
-        id: Date.now().toString(),
-        ...route,
-        date: new Date().toISOString(),
+      const userId = getUserIdFromLocalStorage()
+      if (!userId) {
+        alert("Please log in first.")
+        return
       }
 
-      const updatedItineraries = [...savedItineraries, newItinerary]
-      setSavedItineraries(updatedItineraries)
-      localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
-      alert("Itinerary saved successfully!")
+      const res = await fetch("/api/itineraries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: userId,
+          route: {
+            startPoint: route.startPoint,
+            endPoint: route.endPoint,
+            startCoords: route.startCoords,
+            endCoords: route.endCoords,
+            distance: route.distance,
+            time: route.time,
+          },
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        alert(data?.message || "Failed to save itinerary")
+        return
+      }
+
+      alert("Itinerary saved to your account ✅")
+      await loadSavedItineraries()
     } catch (error) {
       console.error("Error saving itinerary:", error)
-      alert("An error occurred while saving the itinerary. Please try again.")
+      alert("An error occurred while saving the itinerary.")
     }
   }
 
-  const deleteItinerary = (id: string) => {
-    try {
-      const updatedItineraries = savedItineraries.filter((itinerary) => itinerary.id !== id)
-      setSavedItineraries(updatedItineraries)
-      localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
-    } catch (error) {
-      console.error("Error deleting itinerary:", error)
-      alert("An error occurred while deleting the itinerary. Please try again.")
+  const deleteItinerary = async (itineraryId: string) => {
+  try {
+    const userId = getUserIdFromLocalStorage()
+    if (!userId) {
+      alert("Please log in first.")
+      return
     }
+
+    const res = await fetch(`/api/itineraries/${encodeURIComponent(itineraryId)}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: userId }), // ваш стиль
+    })
+
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || !data.success) {
+      alert(data?.message || "Failed to delete itinerary")
+      return
+    }
+
+    await loadSavedItineraries()
+  } catch (error) {
+    console.error("Error deleting itinerary:", error)
+    alert("An error occurred while deleting the itinerary.")
   }
+}
+
 
   return (
     <>
@@ -255,8 +319,7 @@ export default function ItineraryPage() {
                     <div className="flex items-center text-sm mb-3">
                       <Clock className="w-4 h-4 mr-1" />
                       <span>
-                        <strong>Est. Time:</strong> {Math.floor(route.time)} hours {Math.round((route.time % 1) * 60)}{" "}
-                        minutes
+                        <strong>Est. Time:</strong> {Math.floor(route.time)} hours {Math.round((route.time % 1) * 60)} minutes
                       </span>
                     </div>
                     <button
@@ -279,14 +342,15 @@ export default function ItineraryPage() {
                           <h4 className="font-medium text-gray-800">
                             {itinerary.startPoint} to {itinerary.endPoint}
                           </h4>
-                          <button onClick={() => deleteItinerary(itinerary.id)} className="text-red-500 text-sm">
+                          <button onClick={() => deleteItinerary(String(itinerary.id))} className="text-red-500 text-sm">
                             Delete
                           </button>
                         </div>
-                        <p className="text-sm text-gray-600">{new Date(itinerary.date).toLocaleDateString()}</p>
+                        <p className="text-sm text-gray-600">
+                          {itinerary.createdAt ? new Date(itinerary.createdAt).toLocaleDateString() : ""}
+                        </p>
                         <p className="text-sm">
-                          {itinerary.distance} km • {Math.floor(itinerary.time)} hours{" "}
-                          {Math.round((itinerary.time % 1) * 60)} minutes
+                          {Number(itinerary.distanceKm ?? 0)} km • {itinerary.timeMin ?? 0} minutes
                         </p>
                       </div>
                     ))}
@@ -295,9 +359,7 @@ export default function ItineraryPage() {
               )}
             </div>
 
-            <div className="md:col-span-2">
-              {isClient && <ItineraryMap route={route} destinations={popularDestinations} />}
-            </div>
+            <div className="md:col-span-2">{isClient && <ItineraryMap route={route} destinations={popularDestinations} />}</div>
           </div>
         </div>
       </section>

@@ -1,51 +1,61 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useAuth } from '@/lib/auth-context'
-import { useRouter } from 'next/navigation'
+import { useState } from "react"
+import Link from "next/link"
+import { useAuth } from "@/lib/auth-context"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
   const { login, isAuthenticated } = useAuth()
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    router.push('/profile')
+    router.push("/profile")
     return null
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
+    setError("")
 
     if (!email || !password) {
-      setError('Please fill in all fields')
+      setError("Please fill in all fields")
       return
     }
 
-    const success = await login(email, password)
+    const result = await login(email, password)
 
-    if (success.success) {
-      router.push('/profile') 
+    if (result?.success) {
+      // ✅ Persist user identity for pages that need it (itinerary save, likes, etc.)
+      const user = result.user
+      if (user?.id) {
+        localStorage.setItem("userId", String(user.id))
+        localStorage.setItem("role", String(user.role || "user"))
+        localStorage.setItem("user", JSON.stringify(user))
+      }
+
+      router.push("/profile")
     } else {
-      setError('Invalid email or password')
+      // clear stale data if any
+      localStorage.removeItem("userId")
+      localStorage.removeItem("role")
+      localStorage.removeItem("user")
+      setError("Invalid email or password")
     }
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
       <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-8 shadow-lg">
-        <h2 className="mb-6 text-center text-2xl font-light text-gray-900 dark:text-white">Log in to your account</h2>
+        <h2 className="mb-6 text-center text-2xl font-light text-gray-900 dark:text-white">
+          Log in to your account
+        </h2>
 
-        {error && (
-          <div className="mb-4 rounded-md bg-red-100 p-3 text-sm text-red-700">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-4 rounded-md bg-red-100 p-3 text-sm text-red-700">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -87,7 +97,7 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-700 dark:text-gray-300">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{" "}
           <Link href="/signup" className="underline hover:text-blue-600 dark:hover:text-blue-400">
             Sign up
           </Link>
@@ -95,4 +105,4 @@ export default function LoginPage() {
       </div>
     </div>
   )
-} 
+}
