@@ -24,13 +24,17 @@ interface AuthContextType {
   removeSavedItinerary: (itineraryId: string) => Promise<void>
   refreshUser: () => Promise<void>
   updateUserRole: (userId: string | number, role: "user" | "admin") => void
+  updateProfile: (payload: { name?: string; email?: string; currentPassword: string; newPassword?: string }) => Promise<{
+    success: boolean
+    message?: string
+  }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 function persistUser(user: User) {
   localStorage.setItem("user", JSON.stringify(user))
-  localStorage.setItem("userId", String(user.id)) // ✅ this is what itinerary saving needs
+  localStorage.setItem("userId", String(user.id)) // ✅ itinerary saving uses this
   localStorage.setItem("role", String(user.role || "user"))
 }
 
@@ -52,7 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (storedUser) {
           const userData = JSON.parse(storedUser) as User
 
-          // Refresh user data from server
           const response = await fetch("/api/auth/me", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -63,13 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const result = await response.json()
             if (result.success && result.user) {
               setUser(result.user)
-              persistUser(result.user) // ✅ keep userId/role in sync too
+              persistUser(result.user)
             } else {
               clearPersistedUser()
               setUser(null)
             }
           } else {
-            // if /me fails, drop local user
             clearPersistedUser()
             setUser(null)
           }
@@ -98,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (result.success && result.user) {
         setUser(result.user)
-        persistUser(result.user) // ✅ FIX
+        persistUser(result.user)
         return { success: true, user: result.user }
       } else {
         return { success: false, message: result.message || "Login failed" }
@@ -120,7 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await response.json()
 
       if (result.success && result.user) {
-        // Auto login after successful signup
         const userWithDefaults: User = {
           ...result.user,
           savedDestinations: result.user.savedDestinations ?? [],
@@ -128,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         setUser(userWithDefaults)
-        persistUser(userWithDefaults) // ✅ FIX
+        persistUser(userWithDefaults)
         return { success: true, user: userWithDefaults }
       } else {
         return { success: false, message: result.message || "Signup failed" }
@@ -141,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null)
-    clearPersistedUser() // ✅ FIX
+    clearPersistedUser()
   }
 
   const saveDestination = async (destinationId: number) => {
@@ -194,7 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const removeSavedItinerary = async (itineraryId: string) => {
-    // you can implement DB delete later: /api/itineraries/[id]?userId=...
+    // Implement DB delete later: /api/itineraries/[id]?userId=...
     console.log("Remove itinerary:", itineraryId)
   }
 
@@ -217,6 +218,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error("Error refreshing user:", error)
+    }
+  }
+
+  // ✅ IMPORTANT: updateProfile MUST be inside AuthProvider so it can access user/setUser
+  const updateProfile = async (payload: { name?: string; email?: string; currentPassword: string; newPassword?: string }) => {
+    if (!user) return { success: false, message: "Not authenticated" }
+
+    try {
+      const res = await fetch("/api/users/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: user.id,
+          ...payload,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        return { success: false, message: data?.message || "Failed to update profile" }
+      }
+
+      // refresh user via /api/auth/me to keep liked/saved consistent
+      const me = await fetch("/api/auth/me", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: user.id }),
+      })
+
+      if (me.ok) {
+        const meData = await me.json()
+        if (meData.success && meData.user) {
+          setUser(meData.user)
+          persistUser(meData.user)
+        }
+      }
+
+      return { success: true }
+    } catch (err) {
+      console.error("updateProfile error:", err)
+      return { success: false, message: "Server error" }
     }
   }
 
@@ -244,6 +287,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     removeSavedItinerary,
     refreshUser,
     updateUserRole,
+    updateProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
