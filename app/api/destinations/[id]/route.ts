@@ -9,9 +9,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 
   const destination = await prisma.destination.findUnique({
     where: { id: destinationId },
-    include: {
-      images: true, // ✅ Prisma model Image должен быть связан с Destination
-    },
+    include: { images: true },
   })
 
   if (!destination) {

@@ -215,4 +215,5 @@ enum ObjectType {
   attraction
   event
   accommodation
+  destination
 }

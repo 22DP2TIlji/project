@@ -31,10 +31,13 @@ export default function DestinationPage() {
   const fetchAll = async () => {
     if (!id) return
     setLoading(true)
+
     try {
       // 1) destination
       const dRes = await fetch(`/api/destinations/${id}`)
       const dData = await dRes.json()
+
+      console.log("Destination API:", dData)
 
       if (!dRes.ok || !dData?.success) {
         setDestination(null)
@@ -46,6 +49,9 @@ export default function DestinationPage() {
       // 2) reviews
       const rRes = await fetch(`/api/destinations/${id}/reviews`)
       const rData = await rRes.json()
+
+      console.log("Reviews API:", rData)
+
       setReviews(rData?.reviews || [])
     } catch (e) {
       console.error(e)
@@ -218,8 +224,6 @@ export default function DestinationPage() {
                 </div>
               )}
             </div>
-
-            {/* Explore more — позже сделаем через API */}
           </div>
         </div>
       </section>
