@@ -7,79 +7,88 @@ import { useAuth } from "@/lib/auth-context"
 interface LikeButtonProps {
   destinationId: string
   destinationName: string
+  onLikeChange?: (isLiked: boolean) => void
 }
 
-export default function LikeButton({ destinationId, destinationName }: LikeButtonProps) {
-  const { user } = useAuth()
+export default function LikeButton({ destinationId, destinationName, onLikeChange }: LikeButtonProps) {
+  const { user, saveDestination, removeSavedDestination, refreshUser } = useAuth()
   const [isLiked, setIsLiked] = useState(false)
+  const [updating, setUpdating] = useState(false)
+
+  const idNum = parseInt(destinationId, 10)
+  const isValidId = !isNaN(idNum)
 
   useEffect(() => {
-    checkIfLiked()
-  }, [user, destinationId])
-
-  const checkIfLiked = () => {
-    if (user) {
-      const users = JSON.parse(localStorage.getItem("users") || "[]")
-      const currentUser = users.find((u: any) => u.id === user.id)
-
-      if (currentUser && currentUser.likes && currentUser.likes[destinationId]) {
-        setIsLiked(true)
-        return
-      }
-    } else {
-      const likedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
-      setIsLiked(!!likedDestinations[destinationId])
+    if (user && user.savedDestinations && isValidId) {
+      const liked = user.savedDestinations.some(
+        (id) => id === idNum || String(id) === destinationId
+      )
+      setIsLiked(liked)
+      return
     }
-
+    if (!user && typeof window !== "undefined") {
+      const raw = localStorage.getItem("likedDestinations") || "{}"
+      const obj = JSON.parse(raw) as Record<string, { id: string | number }>
+      setIsLiked(!!obj[destinationId])
+      return
+    }
     setIsLiked(false)
-  }
+  }, [user, user?.savedDestinations, destinationId, idNum, isValidId])
 
-  const toggleLike = () => {
-    if (user) {
-      const users = JSON.parse(localStorage.getItem("users") || "[]")
-      const userIndex = users.findIndex((u: any) => u.id === user.id)
+  const toggleLike = async () => {
+    if (updating) return
 
-      if (userIndex !== -1) {
-        if (!users[userIndex].likes) {
-          users[userIndex].likes = {}
-        }
-
+    if (user && isValidId) {
+      setUpdating(true)
+      try {
         if (isLiked) {
-          delete users[userIndex].likes[destinationId]
+          await removeSavedDestination(idNum)
+          setIsLiked(false)
+          onLikeChange?.(false)
         } else {
-          users[userIndex].likes[destinationId] = {
-            id: destinationId,
-            name: destinationName,
-          }
+          await saveDestination(idNum)
+          setIsLiked(true)
+          onLikeChange?.(true)
         }
-
-        localStorage.setItem("users", JSON.stringify(users))
+        await refreshUser()
+      } catch (e) {
+        console.error("Like toggle error:", e)
+      } finally {
+        setUpdating(false)
       }
-    } else {
-      const likedDestinations = JSON.parse(localStorage.getItem("likedDestinations") || "{}")
-
-      if (isLiked) {
-        delete likedDestinations[destinationId]
-      } else {
-        likedDestinations[destinationId] = {
-          id: destinationId,
-          name: destinationName,
-        }
-      }
-
-      localStorage.setItem("likedDestinations", JSON.stringify(likedDestinations))
+      return
     }
 
-    setIsLiked(!isLiked)
+    const raw = localStorage.getItem("likedDestinations") || "{}"
+    const likedDestinations = JSON.parse(raw) as Record<string, { id: string; name: string }>
+
+    if (isLiked) {
+      delete likedDestinations[destinationId]
+      setIsLiked(false)
+      onLikeChange?.(false)
+    } else {
+      likedDestinations[destinationId] = { id: destinationId, name: destinationName }
+      setIsLiked(true)
+      onLikeChange?.(true)
+    }
+
+    localStorage.setItem("likedDestinations", JSON.stringify(likedDestinations))
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("likedDestinationsUpdated"))
+    }
   }
 
   return (
     <button
+      type="button"
       onClick={toggleLike}
-      className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+      disabled={updating}
+      className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
       aria-label={isLiked ? "Remove from favorites" : "Add to favorites"}
     >
-      <Heart className={`w-5 h-5 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-400 hover:text-gray-600"}`} />
+      <Heart
+        className={`w-5 h-5 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-400 hover:text-gray-600"}`}
+      />
       <span className="text-gray-600">{isLiked ? "Liked" : "Like"}</span>
     </button>
   )

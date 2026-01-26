@@ -11,6 +11,7 @@ export default function Header() {
   const links: Array<[string, string]> = [
     ["/destinations", "Destinations"],
     ["/itinerary", "Plan Trip"],
+    ["/saved", "Saved"],
     ["/compare", "Compare"],
     ["/checklist", "Checklist"],
     ["/events", "Events"],

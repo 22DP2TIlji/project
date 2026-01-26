@@ -5,14 +5,12 @@ import { useEffect, useState } from "react"
 interface ItineraryMapProps {
   route: any
   destinations: any[]
+  nearbyPlaces?: any[]
 }
 
-export default function ItineraryMap({ route, destinations }: ItineraryMapProps) {
+export default function ItineraryMap({ route, destinations, nearbyPlaces = [] }: ItineraryMapProps) {
   const [map, setMap] = useState<any>(null)
   const [isClient, setIsClient] = useState(false)
-
-  // храним routing control, чтобы удалять/обновлять
-  const [routingControl, setRoutingControl] = useState<any>(null)
 
   useEffect(() => {
     setIsClient(true)
@@ -25,7 +23,8 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
       try {
         const L = (await import("leaflet")).default
 
-        
+        // @ts-expect-error - leaflet CSS has no type declarations
+        await import("leaflet/dist/leaflet.css")
 
         delete (L.Icon.Default.prototype as any)._getIconUrl
 
@@ -39,11 +38,10 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
         const zoom = 7
 
         if (!map) {
-          const mapInstance = L.map("map").setView(center, zoom)
+          const mapInstance = L.map("itinerary-map").setView(center, zoom)
 
           L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution:
-              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
           }).addTo(mapInstance)
 
           setMap(mapInstance)
@@ -56,7 +54,9 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
     loadMap()
 
     return () => {
-      if (map) map.remove()
+      if (map) {
+        map.remove()
+      }
     }
   }, [isClient, map])
 
@@ -67,61 +67,85 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
       try {
         const L = (await import("leaflet")).default
 
-        // подключаем routing machine динамически
-        await import("leaflet-routing-machine")
-        
-
-        // 1) Удаляем старые маркеры/линии
         map.eachLayer((layer: any) => {
-          if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+          if (layer instanceof L.Marker || layer instanceof L.Polyline || layer instanceof L.Circle) {
             map.removeLayer(layer)
           }
         })
 
-        // 2) Удаляем старый routing control (если был)
-        if (routingControl) {
-          map.removeControl(routingControl)
-          setRoutingControl(null)
-        }
-
-        // 3) (опционально) Не добавляй tileLayer повторно — он уже есть при создании карты
-        // Если хочешь оставить - будет дублироваться, поэтому убираем повторное добавление.
-
-        // 4) Маркеры точек (популярные места)
         destinations.forEach((destination) => {
           L.marker(destination.coordinates as [number, number])
             .addTo(map)
             .bindPopup(destination.name)
         })
 
-        // 5) Маршрут по дороге (если выбраны start/end)
         if (route && route.startCoords && route.endCoords) {
-          L.marker(route.startCoords as [number, number])
+          // Start marker
+          L.marker(route.startCoords as [number, number], {
+            icon: L.icon({
+              iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
+              shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+            }),
+          })
             .addTo(map)
             .bindPopup(`Start: ${route.startPoint}`)
 
-          L.marker(route.endCoords as [number, number])
+          // End marker
+          L.marker(route.endCoords as [number, number], {
+            icon: L.icon({
+              iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+              shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+            }),
+          })
             .addTo(map)
             .bindPopup(`End: ${route.endPoint}`)
 
-          const control = (L as any).Routing.control({
-            waypoints: [
-              L.latLng(route.startCoords[0], route.startCoords[1]),
-              L.latLng(route.endCoords[0], route.endCoords[1]),
-            ],
-            router: (L as any).Routing.osrmv1({
-              serviceUrl: "https://router.project-osrm.org/route/v1",
-            }),
-            lineOptions: {
-              styles: [{ weight: 5, opacity: 0.8 }],
-            },
-            addWaypoints: false,
-            draggableWaypoints: false,
-            fitSelectedRoutes: true,
-            show: false, // скрыть панель
+          // Route line
+          L.polyline([route.startCoords, route.endCoords], {
+            color: "blue",
+            weight: 4,
+            opacity: 0.7,
           }).addTo(map)
 
-          setRoutingControl(control)
+          const places = Array.isArray(nearbyPlaces) ? nearbyPlaces : []
+          places.forEach((place) => {
+            const lat = Number(place.latitude)
+            const lng = Number(place.longitude)
+            
+            let iconColor = "blue"
+            if (place.type === "accommodation") iconColor = "orange"
+            if (place.type === "event") iconColor = "violet"
+
+            L.marker([lat, lng], {
+              icon: L.icon({
+                iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${iconColor}.png`,
+                shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+                iconSize: [20, 32],
+                iconAnchor: [10, 32],
+              }),
+            })
+              .addTo(map)
+              .bindPopup(
+                `<strong>${place.name}</strong><br/>${place.type}<br/>${place.distance?.toFixed(1) || 0} km away`
+              )
+          })
+
+          const bounds = [route.startCoords, route.endCoords, ...places.map((p: any) => [Number(p.latitude), Number(p.longitude)])]
+          map.fitBounds(bounds as any, {
+            padding: [50, 50],
+          })
+        } else {
+          // Если нет маршрута, показываем все destinations
+          if (destinations.length > 0) {
+            const bounds = destinations.map((d) => d.coordinates)
+            map.fitBounds(bounds as any, {
+              padding: [50, 50],
+            })
+          }
         }
       } catch (error) {
         console.error("Error updating map:", error)
@@ -129,8 +153,7 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
     }
 
     updateMap()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, destinations, route, isClient])
+  }, [map, destinations, route, nearbyPlaces, isClient])
 
   if (!isClient) {
     return (
@@ -142,7 +165,7 @@ export default function ItineraryMap({ route, destinations }: ItineraryMapProps)
 
   return (
     <div
-      id="map"
+      id="itinerary-map"
       className="h-[600px] w-full rounded-md overflow-hidden border border-gray-200 shadow-sm bg-gray-100"
     ></div>
   )

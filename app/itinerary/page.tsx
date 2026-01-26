@@ -225,6 +225,9 @@ export default function ItineraryPage() {
       const updatedItineraries = [...savedItineraries, newItinerary]
       setSavedItineraries(updatedItineraries)
       localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
+      }
       alert("Itinerary saved successfully!")
     } catch (error) {
       console.error("Error saving itinerary:", error)
@@ -368,6 +371,9 @@ export default function ItineraryPage() {
       const updatedItineraries = savedItineraries.filter((itinerary) => itinerary.id !== id)
       setSavedItineraries(updatedItineraries)
       localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
+      }
     } catch (error) {
       console.error("Error deleting itinerary:", error)
       alert("An error occurred while deleting the itinerary. Please try again.")
@@ -633,7 +639,13 @@ export default function ItineraryPage() {
             </div>
 
             <div className="md:col-span-2">
-              {isClient && <ItineraryMap route={route} destinations={popularDestinations} nearbyPlaces={nearbyPlaces} />}
+              {isClient && (
+                <ItineraryMap
+                  route={route}
+                  destinations={popularDestinations}
+                  nearbyPlaces={Array.isArray(nearbyPlaces) ? nearbyPlaces : []}
+                />
+              )}
               
               {route && showNearby && (
                 <div className="mt-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">

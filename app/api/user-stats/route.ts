@@ -44,18 +44,17 @@ export async function GET(request: NextRequest) {
     // Категории сохраненных направлений
     const likedDestinations = await prisma.userLikedDestination.findMany({
       where: { userId: userIdNum },
-      include: { destination: { select: { category: true } } },
+      include: { destination: { select: { category: true, region: true } } },
     })
     const categoryCounts: Record<string, number> = {}
     likedDestinations.forEach((ld) => {
-      const cat = ld.destination.category || 'Uncategorized'
+      const cat = ld.destination.category ?? 'Uncategorized'
       categoryCounts[cat] = (categoryCounts[cat] || 0) + 1
     })
 
-    // Регионы сохраненных направлений
     const regionCounts: Record<string, number> = {}
     likedDestinations.forEach((ld) => {
-      const reg = ld.destination.region || 'Unknown'
+      const reg = ld.destination.region ?? 'Unknown'
       regionCounts[reg] = (regionCounts[reg] || 0) + 1
     })
 

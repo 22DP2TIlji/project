@@ -3,14 +3,24 @@
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { MapPin, Route, Star, LogOut, TrendingUp } from 'lucide-react'
+import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
+import LikeButton from '@/components/like-button'
+
+type SavedDestination = { id: number | string; name: string; description?: string; image_url?: string }
 
 export default function ProfilePage() {
   const { user, isAuthenticated, logout, isAdmin } = useAuth()
   const router = useRouter()
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [savedPlaces, setSavedPlaces] = useState<SavedDestination[]>([])
+  const [savedItineraries, setSavedItineraries] = useState<any[]>([])
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -33,6 +43,48 @@ export default function ProfilePage() {
         })
     }
   }, [user])
+
+  useEffect(() => {
+    if (!mounted || !user) return
+
+    const loadSavedPlaces = async () => {
+      const ids: (string | number)[] = user.savedDestinations?.length
+        ? user.savedDestinations
+        : []
+      if (!ids.length) {
+        setSavedPlaces([])
+        return
+      }
+      try {
+        const res = await fetch('/api/destinations')
+        const data = await res.json()
+        const all: SavedDestination[] = data?.destinations || []
+        const filtered = all.filter((d) =>
+          ids.some((id) => id === d.id || String(id) === String(d.id))
+        )
+        setSavedPlaces(filtered)
+      } catch {
+        setSavedPlaces([])
+      }
+    }
+
+    loadSavedPlaces()
+  }, [mounted, user, user?.savedDestinations])
+
+  useEffect(() => {
+    if (!mounted) return
+    const load = () => {
+      try {
+        const raw = localStorage.getItem('savedItineraries')
+        setSavedItineraries(raw ? JSON.parse(raw) : [])
+      } catch {
+        setSavedItineraries([])
+      }
+    }
+    load()
+    window.addEventListener('savedItinerariesUpdated', load)
+    return () => window.removeEventListener('savedItinerariesUpdated', load)
+  }, [mounted])
 
   if (!user) return null
 
@@ -123,6 +175,109 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <p className="text-gray-600">No statistics available</p>
+                )}
+              </div>
+
+              <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
+                <h3 className="text-xl font-light mb-4 text-gray-800 flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Saved places
+                </h3>
+                {savedPlaces.length > 0 ? (
+                  <div className="space-y-3">
+                    {savedPlaces.slice(0, 5).map((d) => (
+                      <div
+                        key={d.id}
+                        className="flex items-center gap-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50"
+                      >
+                        <div className="w-12 h-12 rounded bg-gray-200 overflow-hidden shrink-0">
+                          {d.image_url && (
+                            <img src={d.image_url} alt="" className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 truncate">{d.name}</p>
+                          {d.description && (
+                            <p className="text-sm text-gray-600 truncate">{d.description}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <LikeButton
+                            destinationId={String(d.id)}
+                            destinationName={d.name}
+                            onLikeChange={() => {
+                              setSavedPlaces((prev) => prev.filter((x) => String(x.id) !== String(d.id)))
+                            }}
+                          />
+                          <Link
+                            href={`/destination/${d.id}`}
+                            className="text-blue-600 hover:underline text-sm flex items-center gap-1"
+                          >
+                            View
+                            <ChevronRight className="h-4 w-4" />
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                    {savedPlaces.length > 5 && (
+                      <Link
+                        href="/saved"
+                        className="block text-center text-blue-600 hover:underline text-sm py-2"
+                      >
+                        View all {savedPlaces.length} saved places
+                      </Link>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-gray-600">No saved places yet. Like destinations to see them here.</p>
+                    <Link href="/destinations" className="inline-block mt-2 text-blue-600 hover:underline text-sm">
+                      Explore destinations
+                    </Link>
+                  </>
+                )}
+              </div>
+
+              <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
+                <h3 className="text-xl font-light mb-4 text-gray-800 flex items-center gap-2">
+                  <Route className="h-5 w-5" />
+                  Saved itineraries
+                </h3>
+                {savedItineraries.length > 0 ? (
+                  <div className="space-y-3">
+                    {savedItineraries.slice(0, 5).map((it: any) => (
+                      <Link
+                        key={it.id}
+                        href="/itinerary"
+                        className="block p-3 border border-gray-200 rounded-md hover:bg-gray-50"
+                      >
+                        <p className="font-medium text-gray-900">
+                          {it.startPoint} → {it.endPoint}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {it.distance} km · {Math.floor(it.time || 0)} h {Math.round(((it.time || 0) % 1) * 60)} min
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {it.date ? new Date(it.date).toLocaleDateString() : ''}
+                        </p>
+                      </Link>
+                    ))}
+                    {savedItineraries.length > 5 && (
+                      <Link
+                        href="/itinerary"
+                        className="block text-center text-blue-600 hover:underline text-sm py-2"
+                      >
+                        View all {savedItineraries.length} in Plan Trip
+                      </Link>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-gray-600">No saved itineraries. Create routes on the Plan Trip page.</p>
+                    <Link href="/itinerary" className="inline-block mt-2 text-blue-600 hover:underline text-sm">
+                      Plan a trip
+                    </Link>
+                  </>
                 )}
               </div>
 
