@@ -1,38 +1,81 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
 
-export async function GET() {
-  const key = process.env.OPENWEATHER_API_KEY;
-  if (!key) {
-    return NextResponse.json({ error: "OPENWEATHER_API_KEY missing" }, { status: 500 });
+// API для получения погоды для направления
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const destinationId = searchParams.get('destinationId')
+    const lat = searchParams.get('lat')
+    const lng = searchParams.get('lng')
+
+    if (!destinationId && (!lat || !lng)) {
+      return NextResponse.json({ success: false, message: 'Destination ID or coordinates required' }, { status: 400 })
+    }
+
+    let latitude: number | null = null
+    let longitude: number | null = null
+
+    if (destinationId) {
+      const destination = await prisma.destination.findUnique({
+        where: { id: parseInt(destinationId) },
+        select: { latitude: true, longitude: true },
+      })
+
+      if (!destination || !destination.latitude || !destination.longitude) {
+        return NextResponse.json({ success: false, message: 'Destination not found or has no coordinates' }, { status: 404 })
+      }
+
+      latitude = Number(destination.latitude)
+      longitude = Number(destination.longitude)
+    } else {
+      latitude = parseFloat(lat!)
+      longitude = parseFloat(lng!)
+    }
+
+    // Получаем последние данные о погоде из БД
+    const weatherData = await prisma.weatherData.findFirst({
+      where: {
+        location: {
+          latitude: { equals: latitude },
+          longitude: { equals: longitude },
+        },
+      },
+      orderBy: { timestamp: 'desc' },
+    })
+
+    if (weatherData) {
+      return NextResponse.json({
+        success: true,
+        weather: {
+          temperature: Number(weatherData.temperature),
+          humidity: weatherData.humidity ? Number(weatherData.humidity) : null,
+          windSpeed: weatherData.windSpeed ? Number(weatherData.windSpeed) : null,
+          windDirection: weatherData.windDirection,
+          pressure: weatherData.pressure ? Number(weatherData.pressure) : null,
+          precipitation: weatherData.precipitation ? Number(weatherData.precipitation) : null,
+          timestamp: weatherData.timestamp,
+        },
+      })
+    }
+
+    // Если нет данных в БД, возвращаем примерные данные (для демонстрации)
+    // В реальном приложении здесь был бы вызов внешнего API погоды
+    return NextResponse.json({
+      success: true,
+      weather: {
+        temperature: 15 + Math.round(Math.random() * 10), // 15-25°C
+        humidity: 60 + Math.round(Math.random() * 20), // 60-80%
+        windSpeed: 5 + Math.round(Math.random() * 10), // 5-15 km/h
+        windDirection: Math.round(Math.random() * 360),
+        pressure: 1013 + Math.round(Math.random() * 10), // 1013-1023 hPa
+        precipitation: Math.random() > 0.7 ? Math.round(Math.random() * 5) : 0, // 0-5 mm
+        timestamp: new Date(),
+        note: 'Sample data - integrate with weather API for real-time data',
+      },
+    })
+  } catch (error) {
+    console.error('Error fetching weather:', error)
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
-
-  const currentUrl = `https://api.openweathermap.org/data/2.5/weather?q=Riga,lv&units=metric&appid=${key}`;
-  const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=Riga,lv&units=metric&appid=${key}`;
-
-  const [currentRes, forecastRes] = await Promise.all([
-    fetch(currentUrl, { cache: "no-store" }),
-    fetch(forecastUrl, { cache: "no-store" }),
-  ]);
-
-  const currentText = await currentRes.text();
-  const forecastText = await forecastRes.text();
-
-  // если OpenWeather вернул ошибку — отдаём её на фронт
-  if (!currentRes.ok) {
-    return NextResponse.json(
-      { error: "current_failed", status: currentRes.status, body: currentText },
-      { status: 502 }
-    );
-  }
-  if (!forecastRes.ok) {
-    return NextResponse.json(
-      { error: "forecast_failed", status: forecastRes.status, body: forecastText },
-      { status: 502 }
-    );
-  }
-
-  return NextResponse.json({
-    current: JSON.parse(currentText),
-    forecast: JSON.parse(forecastText),
-  });
 }

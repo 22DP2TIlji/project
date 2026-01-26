@@ -1,9 +1,9 @@
-// app/itinerary/page.tsx
 "use client"
 
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
-import { Search, Clock, Navigation } from "lucide-react"
+import Link from "next/link"
+import { Search, Clock, Navigation, MapPin, Download, Hotel, Calendar, X, Calendar as CalendarIcon, Printer, Share2, FileText } from "lucide-react"
 
 const ItineraryMap = dynamic(() => import("@/components/itinerary-map"), {
   ssr: false,
@@ -25,15 +25,19 @@ const popularDestinations = [
   { id: "ventspils", name: "Ventspils", coordinates: [57.3894, 21.5606] },
 ]
 
-function getUserIdFromLocalStorage(): string | null {
-  try {
-    const raw = localStorage.getItem("user")
-    if (!raw) return null
-    const parsed = JSON.parse(raw)
-    return parsed?.id ? String(parsed.id) : null
-  } catch {
-    return null
-  }
+interface NearbyPlace {
+  id: number
+  name: string
+  description?: string
+  distance: number
+  latitude: number | string
+  longitude: number | string
+  category?: string
+  address?: string
+  priceRange?: string
+  startDate?: string
+  endDate?: string
+  type: 'destination' | 'accommodation' | 'event'
 }
 
 export default function ItineraryPage() {
@@ -42,42 +46,108 @@ export default function ItineraryPage() {
   const [customStartPoint, setCustomStartPoint] = useState("")
   const [customEndPoint, setCustomEndPoint] = useState("")
   const [route, setRoute] = useState<any>(null)
-
   const [savedItineraries, setSavedItineraries] = useState<any[]>([])
   const [isClient, setIsClient] = useState(false)
+  const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([])
+  const [loadingNearby, setLoadingNearby] = useState(false)
+  const [searchRadius, setSearchRadius] = useState("50") // радиус в км
+  const [showNearby, setShowNearby] = useState(false)
+  const [notes, setNotes] = useState("")
+  const [startDate, setStartDate] = useState("")
 
   useEffect(() => {
     setIsClient(true)
+
+    try {
+      const saved = localStorage.getItem("savedItineraries")
+      if (saved) {
+        setSavedItineraries(JSON.parse(saved))
+      }
+    } catch (error) {
+      console.error("Error loading saved itineraries:", error)
+    }
   }, [])
 
-  // ✅ Load itineraries for logged in user from DB
-  const loadSavedItineraries = async () => {
-    const userId = getUserIdFromLocalStorage()
-    if (!userId) {
-      setSavedItineraries([])
-      return
-    }
-
-    const res = await fetch(`/api/itineraries?id=${encodeURIComponent(userId)}`, {
-      method: "GET",
-      cache: "no-store",
-    })
-
-    const data = await res.json()
-    if (!res.ok || !data.success) {
-      console.error("Failed to load itineraries:", data)
-      setSavedItineraries([])
-      return
-    }
-
-    setSavedItineraries(data.itineraries ?? [])
-  }
-
   useEffect(() => {
-    if (!isClient) return
-    loadSavedItineraries()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClient])
+    if (route && route.startCoords && route.endCoords) {
+      loadNearbyPlaces()
+    } else {
+      setNearbyPlaces([])
+      setShowNearby(false)
+    }
+  }, [route, searchRadius])
+
+  const loadNearbyPlaces = async () => {
+    if (!route || !route.startCoords || !route.endCoords) return
+
+    setLoadingNearby(true)
+    try {
+      const params = new URLSearchParams({
+        routeStartLat: route.startCoords[0].toString(),
+        routeStartLng: route.startCoords[1].toString(),
+        routeEndLat: route.endCoords[0].toString(),
+        routeEndLng: route.endCoords[1].toString(),
+        radius: searchRadius,
+        type: 'all',
+      })
+
+      const res = await fetch(`/api/nearby?${params}`)
+      const data = await res.json()
+
+      if (data.success) {
+        const places: NearbyPlace[] = []
+        
+        if (data.destinations) {
+          places.push(...data.destinations.map((d: any) => ({
+            id: d.id,
+            name: d.name,
+            description: d.description,
+            distance: d.distance,
+            latitude: d.latitude,
+            longitude: d.longitude,
+            category: d.category,
+            type: 'destination' as const,
+          })))
+        }
+
+        if (data.accommodations) {
+          places.push(...data.accommodations.map((a: any) => ({
+            id: a.id,
+            name: a.name,
+            description: a.description,
+            distance: a.distance,
+            latitude: a.latitude,
+            longitude: a.longitude,
+            address: a.address,
+            priceRange: a.priceRange,
+            category: a.category,
+            type: 'accommodation' as const,
+          })))
+        }
+
+        if (data.events) {
+          places.push(...data.events.map((e: any) => ({
+            id: e.id,
+            name: e.name,
+            description: e.description,
+            distance: e.distance,
+            latitude: e.latitude,
+            longitude: e.longitude,
+            startDate: e.startDate,
+            endDate: e.endDate,
+            category: e.category,
+            type: 'event' as const,
+          })))
+        }
+
+        setNearbyPlaces(places.sort((a, b) => a.distance - b.distance))
+      }
+    } catch (error) {
+      console.error("Error loading nearby places:", error)
+    } finally {
+      setLoadingNearby(false)
+    }
+  }
 
   const getCoordinates = (pointId: string) => {
     const destination = popularDestinations.find((dest) => dest.id === pointId)
@@ -91,12 +161,16 @@ export default function ItineraryPage() {
 
       if (startPoint === "custom" && customStartPoint) {
         const [lat, lng] = customStartPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
-        if (!isNaN(lat) && !isNaN(lng)) start = [lat, lng]
+        if (!isNaN(lat) && !isNaN(lng)) {
+          start = [lat, lng]
+        }
       }
 
       if (endPoint === "custom" && customEndPoint) {
         const [lat, lng] = customEndPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
-        if (!isNaN(lat) && !isNaN(lng)) end = [lat, lng]
+        if (!isNaN(lat) && !isNaN(lng)) {
+          end = [lat, lng]
+        }
       }
 
       if (!start || !end) {
@@ -104,18 +178,18 @@ export default function ItineraryPage() {
         return
       }
 
-      const dist = calculateDistance(start[0], start[1], end[0], end[1])
-
       const newRoute = {
-        startPoint: startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
+        startPoint:
+          startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
         endPoint: endPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === endPoint)?.name,
         startCoords: start,
         endCoords: end,
-        distance: dist,
-        time: dist / 60,
+        distance: calculateDistance(start[0], start[1], end[0], end[1]),
+        time: calculateDistance(start[0], start[1], end[0], end[1]) / 60,
       }
 
       setRoute(newRoute)
+      setShowNearby(true)
     } catch (error) {
       console.error("Error calculating route:", error)
       alert("An error occurred while calculating the route. Please try again.")
@@ -130,78 +204,201 @@ export default function ItineraryPage() {
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    return Math.round(R * c * 10) / 10
+    const distance = R * c
+    return Math.round(distance * 10) / 10
   }
 
-  const deg2rad = (deg: number) => deg * (Math.PI / 180)
+  const deg2rad = (deg: number) => {
+    return deg * (Math.PI / 180)
+  }
 
-  const saveItinerary = async () => {
+  const saveItinerary = () => {
     try {
       if (!route) return
 
-      const userId = getUserIdFromLocalStorage()
-      if (!userId) {
-        alert("Please log in first.")
-        return
+      const newItinerary = {
+        id: Date.now().toString(),
+        ...route,
+        date: new Date().toISOString(),
       }
 
-      const res = await fetch("/api/itineraries", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const updatedItineraries = [...savedItineraries, newItinerary]
+      setSavedItineraries(updatedItineraries)
+      localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
+      alert("Itinerary saved successfully!")
+    } catch (error) {
+      console.error("Error saving itinerary:", error)
+      alert("An error occurred while saving the itinerary. Please try again.")
+    }
+  }
+
+  const exportItinerary = () => {
+    if (!route) return
+
+    const exportData = {
+      route: {
+        start: route.startPoint,
+        end: route.endPoint,
+        startCoords: route.startCoords,
+        endCoords: route.endCoords,
+        distance: route.distance,
+        estimatedTime: route.time,
+      },
+      nearbyPlaces: nearbyPlaces,
+      notes: notes,
+      exportedAt: new Date().toISOString(),
+    }
+
+    const dataStr = JSON.stringify(exportData, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `itinerary-${route.startPoint}-${route.endPoint}-${Date.now()}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const exportToICal = async () => {
+    if (!route) return
+
+    try {
+      const response = await fetch('/api/export/ical', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: userId,
-          route: {
-            startPoint: route.startPoint,
-            endPoint: route.endPoint,
-            startCoords: route.startCoords,
-            endCoords: route.endCoords,
-            distance: route.distance,
-            time: route.time,
-          },
+          route,
+          places: nearbyPlaces,
+          startDate: startDate || new Date().toISOString(),
         }),
       })
 
-      const data = await res.json()
-      if (!res.ok || !data.success) {
-        alert(data?.message || "Failed to save itinerary")
-        return
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `route-${route.startPoint}-${route.endPoint}.ics`
+        link.click()
+        URL.revokeObjectURL(url)
+      } else {
+        alert('Failed to export to iCal format')
       }
-
-      alert("Itinerary saved to your account ✅")
-      await loadSavedItineraries()
     } catch (error) {
-      console.error("Error saving itinerary:", error)
-      alert("An error occurred while saving the itinerary.")
+      console.error('Error exporting to iCal:', error)
+      alert('An error occurred while exporting')
     }
   }
 
-  const deleteItinerary = async (itineraryId: string) => {
-  try {
-    const userId = getUserIdFromLocalStorage()
-    if (!userId) {
-      alert("Please log in first.")
-      return
+  const printRoute = () => {
+    if (!route) return
+
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) return
+
+    const content = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Route: ${route.startPoint} to ${route.endPoint}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: #333; }
+            .route-info { margin: 20px 0; }
+            .place { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+          </style>
+        </head>
+        <body>
+          <h1>Route: ${route.startPoint} to ${route.endPoint}</h1>
+          <div class="route-info">
+            <p><strong>Distance:</strong> ${route.distance} km</p>
+            <p><strong>Estimated Time:</strong> ${Math.floor(route.time)} hours ${Math.round((route.time % 1) * 60)} minutes</p>
+            ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ''}
+          </div>
+          ${nearbyPlaces.length > 0 ? `
+            <h2>Places Near Route (${nearbyPlaces.length})</h2>
+            ${nearbyPlaces.map((p: any) => `
+              <div class="place">
+                <h3>${p.name} (${p.type})</h3>
+                <p>${p.description || ''}</p>
+                <p>Distance: ${p.distance?.toFixed(1) || 0} km</p>
+              </div>
+            `).join('')}
+          ` : ''}
+          <p style="margin-top: 40px; color: #666; font-size: 12px;">
+            Generated by TravelLatvia on ${new Date().toLocaleString()}
+          </p>
+        </body>
+      </html>
+    `
+    printWindow.document.write(content)
+    printWindow.document.close()
+    printWindow.print()
+  }
+
+  const shareRoute = () => {
+    if (!route) return
+
+    const shareData = {
+      title: `Route: ${route.startPoint} to ${route.endPoint}`,
+      text: `Check out this route: ${route.startPoint} to ${route.endPoint}. Distance: ${route.distance} km, Time: ${Math.floor(route.time)} hours`,
+      url: window.location.href,
     }
 
-    const res = await fetch(`/api/itineraries/${encodeURIComponent(itineraryId)}`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: userId }), // ваш стиль
+    if (navigator.share) {
+      navigator.share(shareData).catch(() => {
+        copyToClipboard()
+      })
+    } else {
+      copyToClipboard()
+    }
+  }
+
+  const copyToClipboard = () => {
+    if (!route) return
+
+    const text = `Route: ${route.startPoint} to ${route.endPoint}\nDistance: ${route.distance} km\nTime: ${Math.floor(route.time)} hours\n\nView on TravelLatvia: ${window.location.href}`
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Route link copied to clipboard!')
     })
-
-    const data = await res.json().catch(() => ({}))
-    if (!res.ok || !data.success) {
-      alert(data?.message || "Failed to delete itinerary")
-      return
-    }
-
-    await loadSavedItineraries()
-  } catch (error) {
-    console.error("Error deleting itinerary:", error)
-    alert("An error occurred while deleting the itinerary.")
   }
-}
 
+  const deleteItinerary = (id: string) => {
+    try {
+      const updatedItineraries = savedItineraries.filter((itinerary) => itinerary.id !== id)
+      setSavedItineraries(updatedItineraries)
+      localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
+    } catch (error) {
+      console.error("Error deleting itinerary:", error)
+      alert("An error occurred while deleting the itinerary. Please try again.")
+    }
+  }
+
+  const getPlaceIcon = (type: string) => {
+    switch (type) {
+      case 'destination':
+        return <MapPin className="h-4 w-4" />
+      case 'accommodation':
+        return <Hotel className="h-4 w-4" />
+      case 'event':
+        return <Calendar className="h-4 w-4" />
+      default:
+        return <MapPin className="h-4 w-4" />
+    }
+  }
+
+  const getPlaceTypeLabel = (type: string) => {
+    switch (type) {
+      case 'destination':
+        return 'Destination'
+      case 'accommodation':
+        return 'Accommodation'
+      case 'event':
+        return 'Event'
+      default:
+        return 'Place'
+    }
+  }
 
   return (
     <>
@@ -319,15 +516,92 @@ export default function ItineraryPage() {
                     <div className="flex items-center text-sm mb-3">
                       <Clock className="w-4 h-4 mr-1" />
                       <span>
-                        <strong>Est. Time:</strong> {Math.floor(route.time)} hours {Math.round((route.time % 1) * 60)} minutes
+                        <strong>Est. Time:</strong> {Math.floor(route.time)} hours {Math.round((route.time % 1) * 60)}{" "}
+                        minutes
                       </span>
                     </div>
-                    <button
-                      onClick={saveItinerary}
-                      className="w-full py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                    >
-                      Save Itinerary
-                    </button>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={saveItinerary}
+                          className="flex-1 py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={exportItinerary}
+                          className="flex-1 py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Download className="h-4 w-4" />
+                          JSON
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={exportToICal}
+                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                        >
+                          <CalendarIcon className="h-4 w-4" />
+                          iCal
+                        </button>
+                        <button
+                          onClick={printRoute}
+                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Printer className="h-4 w-4" />
+                          Print
+                        </button>
+                      </div>
+                      <button
+                        onClick={shareRoute}
+                        className="w-full py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Share2 className="h-4 w-4" />
+                        Share Route
+                      </button>
+                    </div>
+                    <div className="mt-4">
+                      <label className="block mb-2 text-sm font-medium text-gray-800">
+                        Start Date (for calendar export)
+                      </label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+                      />
+                    </div>
+                    <div className="mt-4">
+                      <label className="block mb-2 text-sm font-medium text-gray-800">
+                        Notes
+                      </label>
+                      <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Add notes about this route..."
+                        rows={3}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 resize-none"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {route && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-md border border-blue-200">
+                    <label className="block mb-2 text-sm font-medium text-gray-800">
+                      Search radius for nearby places (km)
+                    </label>
+                    <input
+                      type="number"
+                      min="10"
+                      max="200"
+                      value={searchRadius}
+                      onChange={(e) => setSearchRadius(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-600 mt-1">
+                      Places within {searchRadius} km from your route will be shown
+                    </p>
                   </div>
                 )}
               </div>
@@ -342,15 +616,14 @@ export default function ItineraryPage() {
                           <h4 className="font-medium text-gray-800">
                             {itinerary.startPoint} to {itinerary.endPoint}
                           </h4>
-                          <button onClick={() => deleteItinerary(String(itinerary.id))} className="text-red-500 text-sm">
+                          <button onClick={() => deleteItinerary(itinerary.id)} className="text-red-500 text-sm">
                             Delete
                           </button>
                         </div>
-                        <p className="text-sm text-gray-600">
-                          {itinerary.createdAt ? new Date(itinerary.createdAt).toLocaleDateString() : ""}
-                        </p>
+                        <p className="text-sm text-gray-600">{new Date(itinerary.date).toLocaleDateString()}</p>
                         <p className="text-sm">
-                          {Number(itinerary.distanceKm ?? 0)} km • {itinerary.timeMin ?? 0} minutes
+                          {itinerary.distance} km • {Math.floor(itinerary.time)} hours{" "}
+                          {Math.round((itinerary.time % 1) * 60)} minutes
                         </p>
                       </div>
                     ))}
@@ -359,7 +632,79 @@ export default function ItineraryPage() {
               )}
             </div>
 
-            <div className="md:col-span-2">{isClient && <ItineraryMap route={route} destinations={popularDestinations} />}</div>
+            <div className="md:col-span-2">
+              {isClient && <ItineraryMap route={route} destinations={popularDestinations} nearbyPlaces={nearbyPlaces} />}
+              
+              {route && showNearby && (
+                <div className="mt-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-light text-gray-800">
+                      Places Near Your Route ({nearbyPlaces.length})
+                    </h2>
+                    <button
+                      onClick={() => setShowNearby(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  {loadingNearby ? (
+                    <p className="text-gray-600">Loading nearby places...</p>
+                  ) : nearbyPlaces.length > 0 ? (
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                      {nearbyPlaces.map((place) => (
+                        <div
+                          key={`${place.type}-${place.id}`}
+                          className="p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                {getPlaceIcon(place.type)}
+                                <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                                  {getPlaceTypeLabel(place.type)}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {place.distance.toFixed(1)} km away
+                                </span>
+                              </div>
+                              <h3 className="font-semibold text-gray-800">{place.name}</h3>
+                              {place.description && (
+                                <p className="text-sm text-gray-600 mt-1 line-clamp-2">{place.description}</p>
+                              )}
+                              {place.category && (
+                                <span className="inline-block mt-2 text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                                  {place.category}
+                                </span>
+                              )}
+                              {place.type === 'accommodation' && place.priceRange && (
+                                <p className="text-sm text-gray-600 mt-1">Price: {place.priceRange}</p>
+                              )}
+                              {place.type === 'event' && place.startDate && (
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {new Date(place.startDate).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                            {place.type === 'destination' && (
+                              <Link
+                                href={`/destination/${place.id}`}
+                                className="ml-4 text-sm text-blue-600 hover:underline"
+                              >
+                                View →
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-600">No places found within {searchRadius} km of your route.</p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
