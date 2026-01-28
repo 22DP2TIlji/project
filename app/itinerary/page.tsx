@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
+import { useAuth } from "@/lib/auth-context"
 import { Search, Clock, Navigation, MapPin, Download, Hotel, Calendar, X, Calendar as CalendarIcon, Printer, Share2, FileText } from "lucide-react"
 
 const ItineraryMap = dynamic(() => import("@/components/itinerary-map"), {
@@ -41,6 +42,7 @@ interface NearbyPlace {
 }
 
 export default function ItineraryPage() {
+  const { user } = useAuth()
   const [startPoint, setStartPoint] = useState("")
   const [endPoint, setEndPoint] = useState("")
   const [customStartPoint, setCustomStartPoint] = useState("")
@@ -57,16 +59,39 @@ export default function ItineraryPage() {
 
   useEffect(() => {
     setIsClient(true)
-
-    try {
-      const saved = localStorage.getItem("savedItineraries")
-      if (saved) {
-        setSavedItineraries(JSON.parse(saved))
-      }
-    } catch (error) {
-      console.error("Error loading saved itineraries:", error)
-    }
   }, [])
+
+  useEffect(() => {
+    if (!isClient) return
+
+    const loadSavedItineraries = async () => {
+      // Если пользователь авторизован — грузим маршруты из БД для конкретного аккаунта
+      if (user && user.id) {
+        try {
+          const res = await fetch(`/api/itineraries?userId=${user.id}`)
+          const data = await res.json()
+
+          if (data.success && Array.isArray(data.itineraries)) {
+            setSavedItineraries(data.itineraries)
+            return
+          }
+        } catch (error) {
+          console.error("Error loading user itineraries:", error)
+        }
+      }
+
+      // Гостевой режим или запасной вариант — читаем из localStorage
+      try {
+        const saved = localStorage.getItem("savedItineraries")
+        setSavedItineraries(saved ? JSON.parse(saved) : [])
+      } catch (error) {
+        console.error("Error loading saved itineraries from localStorage:", error)
+        setSavedItineraries([])
+      }
+    }
+
+    loadSavedItineraries()
+  }, [user, isClient])
 
   useEffect(() => {
     if (route && route.startCoords && route.endCoords) {
@@ -155,75 +180,75 @@ export default function ItineraryPage() {
   }
 
   const calculateRoute = async () => {
-  try {
-    let start = getCoordinates(startPoint)
-    let end = getCoordinates(endPoint)
-
-    if (startPoint === "custom" && customStartPoint) {
-      const [lat, lng] = customStartPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
-      if (!isNaN(lat) && !isNaN(lng)) start = [lat, lng]
-    }
-
-    if (endPoint === "custom" && customEndPoint) {
-      const [lat, lng] = customEndPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
-      if (!isNaN(lat) && !isNaN(lng)) end = [lat, lng]
-    }
-
-    if (!start || !end) {
-      alert("Please select valid start and end points")
-      return
-    }
-
-    // ✅ ДОБАВИЛИ: получаем маршрут по дорогам (geometry)
-    let geometry = null
-    let distanceRoad = null
-    let timeMinutesRoad = null
-
     try {
-      const params = new URLSearchParams({
-        startLat: String(start[0]),
-        startLng: String(start[1]),
-        endLat: String(end[0]),
-        endLng: String(end[1]),
-      })
-
-      const rr = await fetch(`/api/route?${params}`)
-      const rdata = await rr.json()
-
-      if (rdata?.success) {
-        geometry = rdata.geometry
-        distanceRoad = rdata.distanceKm
-        timeMinutesRoad = rdata.timeMinutes
+      let start = getCoordinates(startPoint)
+      let end = getCoordinates(endPoint)
+  
+      if (startPoint === "custom" && customStartPoint) {
+        const [lat, lng] = customStartPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
+        if (!isNaN(lat) && !isNaN(lng)) start = [lat, lng]
       }
-    } catch (e) {
-      console.error("Road routing failed, fallback to straight line:", e)
+  
+      if (endPoint === "custom" && customEndPoint) {
+        const [lat, lng] = customEndPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
+        if (!isNaN(lat) && !isNaN(lng)) end = [lat, lng]
+      }
+  
+      if (!start || !end) {
+        alert("Please select valid start and end points")
+        return
+      }
+  
+      // ✅ ДОБАВИЛИ: получаем маршрут по дорогам (geometry)
+      let geometry = null
+      let distanceRoad = null
+      let timeMinutesRoad = null
+  
+      try {
+        const params = new URLSearchParams({
+          startLat: String(start[0]),
+          startLng: String(start[1]),
+          endLat: String(end[0]),
+          endLng: String(end[1]),
+        })
+  
+        const rr = await fetch(`/api/route?${params}`)
+        const rdata = await rr.json()
+  
+        if (rdata?.success) {
+          geometry = rdata.geometry
+          distanceRoad = rdata.distanceKm
+          timeMinutesRoad = rdata.timeMinutes
+        }
+      } catch (e) {
+        console.error("Road routing failed, fallback to straight line:", e)
+      }
+  
+      const newRoute = {
+        startPoint:
+          startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
+        endPoint:
+          endPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === endPoint)?.name,
+        startCoords: start,
+        endCoords: end,
+  
+        // ✅ если есть данные по дорогам — используем их, иначе оставляем твою старую формулу
+        distance: distanceRoad ?? calculateDistance(start[0], start[1], end[0], end[1]),
+        timeMinutes: timeMinutesRoad ?? null,
+        time: timeMinutesRoad != null ? timeMinutesRoad / 60 : calculateDistance(start[0], start[1], end[0], end[1]) / 60,
+  
+        // ✅ добавили geometry, остальное не ломаем
+        geometry,
+      }
+  
+      setRoute(newRoute)
+      setShowNearby(true)
+    } catch (error) {
+      console.error("Error calculating route:", error)
+      alert("An error occurred while calculating the route. Please try again.")
     }
-
-    const newRoute = {
-      startPoint:
-        startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
-      endPoint:
-        endPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === endPoint)?.name,
-      startCoords: start,
-      endCoords: end,
-
-      // ✅ если есть данные по дорогам — используем их, иначе оставляем твою старую формулу
-      distance: distanceRoad ?? calculateDistance(start[0], start[1], end[0], end[1]),
-      timeMinutes: timeMinutesRoad ?? null,
-      time: timeMinutesRoad != null ? timeMinutesRoad / 60 : calculateDistance(start[0], start[1], end[0], end[1]) / 60,
-
-      // ✅ добавили geometry, остальное не ломаем
-      geometry,
-    }
-
-    setRoute(newRoute)
-    setShowNearby(true)
-  } catch (error) {
-    console.error("Error calculating route:", error)
-    alert("An error occurred while calculating the route. Please try again.")
   }
-}
-
+  
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371
@@ -241,22 +266,63 @@ export default function ItineraryPage() {
     return deg * (Math.PI / 180)
   }
 
-  const saveItinerary = () => {
+  const saveItinerary = async () => {
     try {
       if (!route) return
 
-      const newItinerary = {
+      const baseItinerary = {
         id: Date.now().toString(),
         ...route,
         date: new Date().toISOString(),
       }
 
-      const updatedItineraries = [...savedItineraries, newItinerary]
-      setSavedItineraries(updatedItineraries)
-      localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
+      let savedForState = baseItinerary
+
+      // Если пользователь авторизован (и не admin) — сохраняем маршрут в БД, привязав к userId
+      if (user && user.id && user.id !== "admin") {
+        try {
+          const response = await fetch("/api/itineraries", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              itinerary: baseItinerary,
+            }),
+          })
+
+          const data = await response.json()
+          if (response.ok && data.success && data.routeId) {
+            // используем id маршрута из БД как основной идентификатор
+            savedForState = {
+              ...baseItinerary,
+              id: data.routeId.toString(),
+            }
+
+            // уведомляем профиль/другие страницы, что список маршрутов обновился
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
+            }
+          }
+        } catch (error) {
+          console.error("Error saving itinerary to database:", error)
+        }
+      } else {
+        // Гостевой режим или admin — сохраняем только в localStorage (без привязки к аккаунту)
+        try {
+          const updatedGuestItineraries = [...savedItineraries, baseItinerary]
+          localStorage.setItem("savedItineraries", JSON.stringify(updatedGuestItineraries))
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
+          }
+        } catch (error) {
+          console.error("Error saving itinerary to localStorage:", error)
+        }
       }
+
+      const updatedItineraries = [...savedItineraries, savedForState]
+      setSavedItineraries(updatedItineraries)
       alert("Itinerary saved successfully!")
     } catch (error) {
       console.error("Error saving itinerary:", error)
@@ -395,13 +461,37 @@ export default function ItineraryPage() {
     })
   }
 
-  const deleteItinerary = (id: string) => {
+  const deleteItinerary = async (id: string) => {
     try {
       const updatedItineraries = savedItineraries.filter((itinerary) => itinerary.id !== id)
       setSavedItineraries(updatedItineraries)
-      localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
+
+      // Если пользователь не залогинен — поддерживаем старое поведение через localStorage
+      if (!user) {
+        try {
+          localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
+          }
+        } catch (error) {
+          console.error("Error updating saved itineraries in localStorage:", error)
+        }
+      } else {
+        // Авторизованный пользователь — удаляем маршрут в БД
+        try {
+          await fetch("/api/itineraries", {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              routeId: id,
+            }),
+          })
+        } catch (error) {
+          console.error("Error deleting itinerary from database:", error)
+        }
       }
     } catch (error) {
       console.error("Error deleting itinerary:", error)

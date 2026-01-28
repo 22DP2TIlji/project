@@ -1,84 +1,174 @@
-// app/api/itineraries/route.ts
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+import { getUserFromId } from "@/lib/auth-utils"
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-
-    const userIdRaw = body?.id ?? body?.userId; // поддержим оба формата
-    const route = body?.route ?? body;          // поддержим оба формата
-
-    if (!userIdRaw) {
-      return NextResponse.json({ success: false, message: "User ID is required" }, { status: 400 });
-    }
-
-    // admin — не пишем в БД
-    if (userIdRaw === "admin") {
-      return NextResponse.json({ success: true, itinerary: null, message: "Admin itinerary not stored" });
-    }
-
-    const userId = Number.parseInt(String(userIdRaw), 10);
-    if (Number.isNaN(userId)) {
-      return NextResponse.json({ success: false, message: "Invalid userId" }, { status: 400 });
-    }
-
-    const { startPoint, endPoint, startCoords, endCoords, distance, time, timeMinutes } = route ?? {};
-
-    if (!startPoint || !endPoint || !startCoords || !endCoords) {
-      return NextResponse.json(
-        { success: false, message: "Missing route data (startPoint/endPoint/startCoords/endCoords)" },
-        { status: 400 }
-      );
-    }
-
-    const created = await prisma.savedItinerary.create({
-      data: {
-        userId,
-        startPoint,
-        endPoint,
-        startLat: startCoords[0],
-        startLng: startCoords[1],
-        endLat: endCoords[0],
-        endLng: endCoords[1],
-        distanceKm: distance ?? null,
-        timeMin: timeMinutes ?? (time != null ? Math.round(time * 60) : null),
-      },
-    });
-
-    return NextResponse.json({ success: true, itinerary: created });
-  } catch (error) {
-    console.error("Error saving itinerary:", error);
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
-  }
+type ItineraryPayload = {
+  id?: string
+  startPoint?: string
+  endPoint?: string
+  distance?: number
+  time?: number
+  date?: string
+  // любые дополнительные поля маршрута
+  [key: string]: any
 }
 
-export async function GET(request: Request) {
+// GET /api/itineraries?userId=123 - получить сохранённые маршруты конкретного пользователя
+export async function GET(request: NextRequest) {
   try {
-    const url = new URL(request.url);
-    const userIdRaw = url.searchParams.get("id");
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get("userId")
 
-    if (!userIdRaw) {
-      return NextResponse.json({ success: false, message: "User ID is required" }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json({ success: false, message: "User ID is required" }, { status: 400 })
     }
 
-    if (userIdRaw === "admin") {
-      return NextResponse.json({ success: true, itineraries: [] });
+    // Для админа пока не храним персональные маршруты
+    if (userId === "admin") {
+      return NextResponse.json({ success: true, itineraries: [] })
     }
 
-    const userId = Number.parseInt(String(userIdRaw), 10);
-    if (Number.isNaN(userId)) {
-      return NextResponse.json({ success: false, message: "Invalid userId" }, { status: 400 });
+    const user = await getUserFromId(userId)
+    if (!user || !user.id || user.id === "admin") {
+      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 })
     }
 
-    const itineraries = await prisma.savedItinerary.findMany({
-      where: { userId },
+    const numericUserId = parseInt(user.id)
+    if (isNaN(numericUserId)) {
+      return NextResponse.json({ success: false, message: "Invalid user ID" }, { status: 400 })
+    }
+
+    const routes = await prisma.route.findMany({
+      where: { userId: numericUserId },
       orderBy: { createdAt: "desc" },
-    });
+    })
 
-    return NextResponse.json({ success: true, itineraries });
+    const itineraries: ItineraryPayload[] = routes.map((route) => {
+      let parsed: ItineraryPayload = {}
+      if (route.description) {
+        try {
+          parsed = JSON.parse(route.description) as ItineraryPayload
+        } catch {
+          // если не получилось распарсить, просто игнорируем
+        }
+      }
+
+      return {
+        id: route.id.toString(),
+        startPoint: parsed.startPoint ?? route.name,
+        endPoint: parsed.endPoint ?? "",
+        distance: parsed.distance ?? 0,
+        time: parsed.time ?? 0,
+        date: parsed.date ?? route.createdAt.toISOString(),
+        ...parsed,
+      }
+    })
+
+    return NextResponse.json({ success: true, itineraries })
   } catch (error) {
-    console.error("Error loading itineraries:", error);
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+    console.error("Error fetching itineraries:", error)
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }
+
+// POST /api/itineraries - сохранить маршрут за конкретным пользователем
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { userId, itinerary } = body as {
+      userId?: string
+      itinerary?: ItineraryPayload
+    }
+
+    if (!userId || !itinerary) {
+      return NextResponse.json({ success: false, message: "User ID and itinerary are required" }, { status: 400 })
+    }
+
+    if (userId === "admin") {
+      return NextResponse.json(
+        { success: false, message: "Admin user cannot save itineraries" },
+        { status: 403 }
+      )
+    }
+
+    const user = await getUserFromId(userId)
+    if (!user || !user.id || user.id === "admin") {
+      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 })
+    }
+
+    const numericUserId = parseInt(user.id)
+    if (isNaN(numericUserId)) {
+      return NextResponse.json({ success: false, message: "Invalid user ID" }, { status: 400 })
+    }
+
+    const name =
+      itinerary.startPoint && itinerary.endPoint
+        ? `${itinerary.startPoint} → ${itinerary.endPoint}`
+        : "Saved route"
+
+    const description = JSON.stringify(itinerary)
+
+    // Притушим TS-ошибку на data (типизация Prisma иногда глючит в редакторе)
+    // @ts-ignore
+    const created = await prisma.route.create({
+      data: {
+        userId: numericUserId,
+        name,
+        description,
+      },
+    })
+
+    return NextResponse.json({ success: true, routeId: created.id })
+  } catch (error) {
+    console.error("Error saving itinerary:", error)
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+  }
+}
+
+// DELETE /api/itineraries - удалить маршрут пользователя
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { userId, routeId } = body as { userId?: string; routeId?: string | number }
+
+    if (!userId || routeId === undefined || routeId === null) {
+      return NextResponse.json(
+        { success: false, message: "User ID and route ID are required" },
+        { status: 400 }
+      )
+    }
+
+    if (userId === "admin") {
+      return NextResponse.json(
+        { success: false, message: "Admin user cannot delete itineraries" },
+        { status: 403 }
+      )
+    }
+
+    const user = await getUserFromId(userId)
+    if (!user || !user.id || user.id === "admin") {
+      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 })
+    }
+
+    const numericUserId = parseInt(user.id)
+    const numericRouteId =
+      typeof routeId === "string" ? parseInt(routeId, 10) : Number(routeId)
+
+    if (isNaN(numericUserId) || isNaN(numericRouteId)) {
+      return NextResponse.json({ success: false, message: "Invalid IDs" }, { status: 400 })
+    }
+
+    await prisma.route.deleteMany({
+      where: {
+        id: numericRouteId,
+        userId: numericUserId,
+      },
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting itinerary:", error)
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+  }
+}
+

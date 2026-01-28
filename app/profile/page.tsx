@@ -73,7 +73,23 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!mounted) return
-    const load = () => {
+    const load = async () => {
+      // Если пользователь залогинен (не admin) — получаем его маршруты из БД
+      if (user && user.id && user.id !== 'admin') {
+        try {
+          const res = await fetch(`/api/itineraries?userId=${user.id}`)
+          const data = await res.json()
+
+          if (data.success && Array.isArray(data.itineraries)) {
+            setSavedItineraries(data.itineraries)
+            return
+          }
+        } catch (e) {
+          // если не удалось — просто упадём в гостевой режим ниже
+        }
+      }
+
+      // Гостевой режим или фоллбек — читаем маршруты из localStorage
       try {
         const raw = localStorage.getItem('savedItineraries')
         setSavedItineraries(raw ? JSON.parse(raw) : [])
@@ -84,7 +100,7 @@ export default function ProfilePage() {
     load()
     window.addEventListener('savedItinerariesUpdated', load)
     return () => window.removeEventListener('savedItinerariesUpdated', load)
-  }, [mounted])
+  }, [mounted, user])
 
   if (!user) return null
 

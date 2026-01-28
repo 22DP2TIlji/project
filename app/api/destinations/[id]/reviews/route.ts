@@ -2,19 +2,27 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { ObjectType } from "@prisma/client"
 
-// ✅ единый фильтр для отзывов по destination
+type RouteParams = {
+  params: {
+    id: string
+  }
+}
+
 function getDestinationFilter(destinationId: number) {
   return {
     objectId: destinationId,
-    objectType: ObjectType.attraction, // ✅ enum, НЕ строка
+    objectType: ObjectType.attraction,
   } as const
 }
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, { params }: RouteParams) {
   const destinationId = Number(params.id)
 
   if (!Number.isFinite(destinationId)) {
-    return NextResponse.json({ success: false, message: "Invalid destination id" }, { status: 400 })
+    return NextResponse.json(
+      { success: false, message: "Invalid destination id" },
+      { status: 400 },
+    )
   }
 
   try {
@@ -27,53 +35,78 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     })
 
     return NextResponse.json({ success: true, reviews })
-  } catch (err) {
-    console.error("❌ GET reviews error:", err)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+  } catch (error) {
+    console.error("GET /reviews error:", error)
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 },
+    )
   }
 }
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: RouteParams) {
   const destinationId = Number(params.id)
 
   if (!Number.isFinite(destinationId)) {
-    return NextResponse.json({ success: false, message: "Invalid destination id" }, { status: 400 })
+    return NextResponse.json(
+      { success: false, message: "Invalid destination id" },
+      { status: 400 },
+    )
   }
 
   try {
-    const body = await request.json()
-
-    const userIdRaw = body?.userId
-    const comment = typeof body?.comment === "string" ? body.comment.trim() : ""
-    const rating = Number(body?.rating)
-
-    if (!userIdRaw) {
-      return NextResponse.json({ success: false, message: "Not authenticated" }, { status: 401 })
-    }
-    if (!comment) {
-      return NextResponse.json({ success: false, message: "Comment is required" }, { status: 400 })
-    }
-    if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
-      return NextResponse.json({ success: false, message: "Rating must be 1..5" }, { status: 400 })
+    const { userId, rating, comment } = (await request.json()) as {
+      userId?: string
+      rating?: number | string
+      comment?: string
     }
 
-    // userId в БД int
-    const userId = userIdRaw === "admin" ? null : Number(userIdRaw)
-    if (userIdRaw !== "admin" && !Number.isFinite(userId)) {
-      return NextResponse.json({ success: false, message: "Invalid userId" }, { status: 400 })
+    const trimmedComment = typeof comment === "string" ? comment.trim() : ""
+    const numericRating = Number(rating)
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: "Not authenticated" },
+        { status: 401 },
+      )
     }
 
-    // ⚠️ если ты НЕ хочешь разрешать admin оставлять отзывы — лучше запретить:
-    // if (userIdRaw === "admin") {
-    //   return NextResponse.json({ success: false, message: "Admin cannot leave reviews" }, { status: 403 })
-    // }
+    // Не даём админ-аккаунту оставлять отзывы
+    if (userId === "admin") {
+      return NextResponse.json(
+        { success: false, message: "Admin cannot leave reviews" },
+        { status: 403 },
+      )
+    }
+
+    if (!trimmedComment) {
+      return NextResponse.json(
+        { success: false, message: "Comment is required" },
+        { status: 400 },
+      )
+    }
+
+    if (!Number.isFinite(numericRating) || numericRating < 1 || numericRating > 5) {
+      return NextResponse.json(
+        { success: false, message: "Rating must be between 1 and 5" },
+        { status: 400 },
+      )
+    }
+
+    const numericUserId = Number(userId)
+    if (!Number.isFinite(numericUserId)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid user id" },
+        { status: 400 },
+      )
+    }
 
     const created = await prisma.review.create({
       data: {
         ...getDestinationFilter(destinationId),
-        userId: userId ?? 0,
-        rating,
-        comment,
+        userId: numericUserId,
+        rating: numericRating,
+        comment: trimmedComment,
       },
       include: {
         user: { select: { id: true, name: true } },
@@ -81,8 +114,11 @@ export async function POST(request: Request, { params }: { params: { id: string 
     })
 
     return NextResponse.json({ success: true, review: created })
-  } catch (err) {
-    console.error("❌ POST reviews error:", err)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+  } catch (error) {
+    console.error("POST /reviews error:", error)
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 },
+    )
   }
 }
