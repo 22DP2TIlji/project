@@ -9,8 +9,16 @@ interface WeatherWidgetProps {
   lng?: number
 }
 
+type WidgetWeather = {
+  temperature: number
+  humidity: number | null
+  windSpeed: number | null
+  precipitation: number | null
+  note?: string | null
+}
+
 export default function WeatherWidget({ destinationId, lat, lng }: WeatherWidgetProps) {
-  const [weather, setWeather] = useState<any>(null)
+  const [weather, setWeather] = useState<WidgetWeather | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -18,23 +26,45 @@ export default function WeatherWidget({ destinationId, lat, lng }: WeatherWidget
       setLoading(true)
       try {
         let url = "/api/weather?"
-        if (destinationId) {
+        if (typeof destinationId === "number") {
           url += `destinationId=${destinationId}`
-        } else if (lat && lng) {
+        } else if (lat != null && lng != null) {
           url += `lat=${lat}&lng=${lng}`
         } else {
+          setWeather(null)
           setLoading(false)
           return
         }
 
-        const res = await fetch(url)
+        const res = await fetch(url, { cache: "no-store" })
         const data = await res.json()
 
-        if (data.success) {
+        // ✅ формат 1: твой виджетовый { success, weather }
+        if (data?.success && data?.weather) {
           setWeather(data.weather)
+          return
         }
+
+        // ✅ формат 2: страничный (OpenWeather-like) { current, forecast }
+        // current.main.temp, current.wind.speed
+        if (data?.current?.main?.temp != null) {
+          const w: WidgetWeather = {
+            temperature: Math.round(data.current.main.temp),
+            humidity: data.current.main.humidity ?? null,
+            // на странице ты показываешь m/s, а в виджете km/h — приводим:
+            windSpeed: data.current.wind?.speed != null ? Math.round(data.current.wind.speed * 3.6) : null,
+            precipitation: null,
+            note: null,
+          }
+          setWeather(w)
+          return
+        }
+
+        // если ничего не распознали
+        setWeather(null)
       } catch (error) {
         console.error("Error fetching weather:", error)
+        setWeather(null)
       } finally {
         setLoading(false)
       }
@@ -51,9 +81,7 @@ export default function WeatherWidget({ destinationId, lat, lng }: WeatherWidget
     )
   }
 
-  if (!weather) {
-    return null
-  }
+  if (!weather) return null
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-md p-6">
@@ -61,6 +89,7 @@ export default function WeatherWidget({ destinationId, lat, lng }: WeatherWidget
         <Cloud className="h-5 w-5" />
         Weather
       </h3>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="flex items-center gap-2">
           <Thermometer className="h-5 w-5 text-red-500" />
@@ -69,6 +98,7 @@ export default function WeatherWidget({ destinationId, lat, lng }: WeatherWidget
             <p className="text-2xl font-light">{weather.temperature}°C</p>
           </div>
         </div>
+
         {weather.humidity !== null && (
           <div className="flex items-center gap-2">
             <Droplet className="h-5 w-5 text-blue-500" />
@@ -78,6 +108,7 @@ export default function WeatherWidget({ destinationId, lat, lng }: WeatherWidget
             </div>
           </div>
         )}
+
         {weather.windSpeed !== null && (
           <div className="flex items-center gap-2">
             <Wind className="h-5 w-5 text-gray-500" />
@@ -87,6 +118,7 @@ export default function WeatherWidget({ destinationId, lat, lng }: WeatherWidget
             </div>
           </div>
         )}
+
         {weather.precipitation !== null && weather.precipitation > 0 && (
           <div className="flex items-center gap-2">
             <Droplet className="h-5 w-5 text-blue-600" />
@@ -97,9 +129,8 @@ export default function WeatherWidget({ destinationId, lat, lng }: WeatherWidget
           </div>
         )}
       </div>
-      {weather.note && (
-        <p className="text-xs text-gray-600 mt-4 italic">{weather.note}</p>
-      )}
+
+      {weather.note && <p className="text-xs text-gray-600 mt-4 italic">{weather.note}</p>}
     </div>
   )
 }

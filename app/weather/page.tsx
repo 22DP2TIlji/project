@@ -30,6 +30,7 @@ interface ForecastDay {
   wind: {
     speed: number
   }
+  dt_txt?: string
 }
 
 export default function WeatherPage() {
@@ -44,32 +45,59 @@ export default function WeatherPage() {
         setLoading(true)
         setError(null)
 
-        const res = await fetch("/api/weather", { cache: "no-store" })
+        // ✅ всегда запрашиваем Ригу (иначе твой /api/weather может вернуть другой формат или ошибку)
+        const lat = 56.9496
+        const lng = 24.1052
+        const res = await fetch(`/api/weather?lat=${lat}&lng=${lng}`, { cache: "no-store" })
         const data = await res.json()
 
         if (!res.ok) {
-          // /api/weather отдаёт body со строкой ответа OpenWeather — покажем её,
-          // чтобы точно видеть причину (401, лимит, etc.)
           throw new Error(data?.body || data?.error || "Failed to load weather")
         }
 
-        const currentData = data.current
-        const forecastData = data.forecast
+        // ✅ формат 1: OpenWeather-like { current, forecast }
+        if (data?.current && data?.forecast?.list) {
+          const currentData = data.current
+          const forecastData = data.forecast
 
-        setCurrent({
-          temp: currentData.main.temp,
-          feels_like: currentData.main.feels_like,
-          humidity: currentData.main.humidity,
-          pressure: currentData.main.pressure,
-          weather: currentData.weather,
-          wind_speed: currentData.wind.speed,
-        })
+          setCurrent({
+            temp: currentData.main.temp,
+            feels_like: currentData.main.feels_like,
+            humidity: currentData.main.humidity,
+            pressure: currentData.main.pressure,
+            weather: currentData.weather,
+            wind_speed: currentData.wind.speed,
+          })
 
-        // Get one forecast per day (at 12:00)
-        const daily = forecastData.list.filter((item: any) =>
-          item.dt_txt.includes("12:00:00")
-        )
-        setForecast(daily)
+          const daily = forecastData.list.filter((item: any) => String(item.dt_txt || "").includes("12:00:00"))
+          setForecast(daily)
+          return
+        }
+
+        // ✅ формат 2: виджетовый { success, weather }
+        // В нём нет прогноза и иконок, поэтому показываем только "Current"
+        if (data?.success && data?.weather) {
+          const w = data.weather
+          setCurrent({
+            temp: w.temperature,
+            feels_like: w.temperature,
+            humidity: w.humidity ?? 0,
+            pressure: 0,
+            weather: [
+              {
+                main: "Weather",
+                description: w.note || "Current conditions",
+                icon: "01d", // fallback
+              },
+            ],
+            // виджет хранит km/h, а страница показывает m/s -> переводим обратно:
+            wind_speed: w.windSpeed != null ? +(w.windSpeed / 3.6).toFixed(1) : 0,
+          })
+          setForecast([])
+          return
+        }
+
+        throw new Error("Unknown /api/weather response format")
       } catch (err: any) {
         setError(err?.message || "Failed to load weather data.")
       } finally {
@@ -125,6 +153,7 @@ export default function WeatherPage() {
                     })}
                   </p>
                 </div>
+
                 <img
                   src={`https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png`}
                   alt={current.weather[0].description}
@@ -185,37 +214,41 @@ export default function WeatherPage() {
               5-Day Forecast
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-              {forecast.map((day) => (
-                <div
-                  key={day.dt}
-                  className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                      {getDayName(day.dt)}
-                    </h3>
-                    <img
-                      src={`https://openweathermap.org/img/wn/${day.weather[0].icon}.png`}
-                      alt={day.weather[0].description}
-                      className="w-10 h-10"
-                    />
-                  </div>
+            {forecast.length === 0 ? (
+              <p className="text-gray-600 dark:text-gray-300">Forecast is not available for this data source.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                {forecast.map((day) => (
+                  <div
+                    key={day.dt}
+                    className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                        {getDayName(day.dt)}
+                      </h3>
+                      <img
+                        src={`https://openweathermap.org/img/wn/${day.weather[0].icon}.png`}
+                        alt={day.weather[0].description}
+                        className="w-10 h-10"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Temp: {Math.round(day.main.temp)}°C
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 capitalize">
-                      {day.weather[0].description}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Wind: {day.wind.speed} m/s
-                    </p>
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Temp: {Math.round(day.main.temp)}°C
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 capitalize">
+                        {day.weather[0].description}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Wind: {day.wind.speed} m/s
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
           </div>
         </div>
