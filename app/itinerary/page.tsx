@@ -154,47 +154,76 @@ export default function ItineraryPage() {
     return destination ? destination.coordinates : null
   }
 
-  const calculateRoute = () => {
-    try {
-      let start = getCoordinates(startPoint)
-      let end = getCoordinates(endPoint)
+  const calculateRoute = async () => {
+  try {
+    let start = getCoordinates(startPoint)
+    let end = getCoordinates(endPoint)
 
-      if (startPoint === "custom" && customStartPoint) {
-        const [lat, lng] = customStartPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
-        if (!isNaN(lat) && !isNaN(lng)) {
-          start = [lat, lng]
-        }
-      }
-
-      if (endPoint === "custom" && customEndPoint) {
-        const [lat, lng] = customEndPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
-        if (!isNaN(lat) && !isNaN(lng)) {
-          end = [lat, lng]
-        }
-      }
-
-      if (!start || !end) {
-        alert("Please select valid start and end points")
-        return
-      }
-
-      const newRoute = {
-        startPoint:
-          startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
-        endPoint: endPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === endPoint)?.name,
-        startCoords: start,
-        endCoords: end,
-        distance: calculateDistance(start[0], start[1], end[0], end[1]),
-        time: calculateDistance(start[0], start[1], end[0], end[1]) / 60,
-      }
-
-      setRoute(newRoute)
-      setShowNearby(true)
-    } catch (error) {
-      console.error("Error calculating route:", error)
-      alert("An error occurred while calculating the route. Please try again.")
+    if (startPoint === "custom" && customStartPoint) {
+      const [lat, lng] = customStartPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
+      if (!isNaN(lat) && !isNaN(lng)) start = [lat, lng]
     }
+
+    if (endPoint === "custom" && customEndPoint) {
+      const [lat, lng] = customEndPoint.split(",").map((coord) => Number.parseFloat(coord.trim()))
+      if (!isNaN(lat) && !isNaN(lng)) end = [lat, lng]
+    }
+
+    if (!start || !end) {
+      alert("Please select valid start and end points")
+      return
+    }
+
+    // ✅ ДОБАВИЛИ: получаем маршрут по дорогам (geometry)
+    let geometry = null
+    let distanceRoad = null
+    let timeMinutesRoad = null
+
+    try {
+      const params = new URLSearchParams({
+        startLat: String(start[0]),
+        startLng: String(start[1]),
+        endLat: String(end[0]),
+        endLng: String(end[1]),
+      })
+
+      const rr = await fetch(`/api/route?${params}`)
+      const rdata = await rr.json()
+
+      if (rdata?.success) {
+        geometry = rdata.geometry
+        distanceRoad = rdata.distanceKm
+        timeMinutesRoad = rdata.timeMinutes
+      }
+    } catch (e) {
+      console.error("Road routing failed, fallback to straight line:", e)
+    }
+
+    const newRoute = {
+      startPoint:
+        startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
+      endPoint:
+        endPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === endPoint)?.name,
+      startCoords: start,
+      endCoords: end,
+
+      // ✅ если есть данные по дорогам — используем их, иначе оставляем твою старую формулу
+      distance: distanceRoad ?? calculateDistance(start[0], start[1], end[0], end[1]),
+      timeMinutes: timeMinutesRoad ?? null,
+      time: timeMinutesRoad != null ? timeMinutesRoad / 60 : calculateDistance(start[0], start[1], end[0], end[1]) / 60,
+
+      // ✅ добавили geometry, остальное не ломаем
+      geometry,
+    }
+
+    setRoute(newRoute)
+    setShowNearby(true)
+  } catch (error) {
+    console.error("Error calculating route:", error)
+    alert("An error occurred while calculating the route. Please try again.")
   }
+}
+
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371

@@ -104,12 +104,24 @@ export default function ItineraryMap({ route, destinations, nearbyPlaces = [] }:
             .addTo(map)
             .bindPopup(`End: ${route.endPoint}`)
 
-          // Route line
-          L.polyline([route.startCoords, route.endCoords], {
-            color: "blue",
-            weight: 4,
-            opacity: 0.7,
-          }).addTo(map)
+          // Route line (roads if available)
+let linePoints: [number, number][] | null = null
+
+if (route?.geometry?.type === "LineString" && Array.isArray(route.geometry.coordinates)) {
+  // OSRM geojson: [lng, lat] -> Leaflet: [lat, lng]
+  linePoints = route.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]])
+} else if (route?.startCoords && route?.endCoords) {
+  // fallback: straight line (your old behavior)
+  linePoints = [route.startCoords, route.endCoords]
+}
+
+if (linePoints) {
+  L.polyline(linePoints, {
+    color: "blue",
+    weight: 4,
+    opacity: 0.7,
+  }).addTo(map)
+}
 
           const places = Array.isArray(nearbyPlaces) ? nearbyPlaces : []
           places.forEach((place) => {
