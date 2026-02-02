@@ -207,7 +207,7 @@ export default function DestinationPage() {
         setLoadingReviews(true)
         setReviewError(null)
 
-        const res = await fetch(`/api/destinations/${id}/reviews`)
+        const res = await fetch(`/api/reviews?destinationId=${encodeURIComponent(id)}`)
         const data = await res.json().catch(() => ({}))
 
         if (res.ok && data.success) {
@@ -241,12 +241,13 @@ export default function DestinationPage() {
       setSubmitting(true)
       setReviewError(null)
 
-      const res = await fetch(`/api/destinations/${id}/reviews`, {
+      const res = await fetch("/api/reviews", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          destinationId: Number(id),
           userId: user.id,
           rating: newRating,
           comment: newComment.trim(),

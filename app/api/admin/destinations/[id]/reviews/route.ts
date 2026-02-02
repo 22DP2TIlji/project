@@ -10,9 +10,30 @@ function getDestinationFilter(destinationId: number) {
   } as const
 }
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
-  const destinationId = Number(params.id)
+function getIdFromRequest(request: Request): string | null {
+  try {
+    const url = new URL(request.url)
+    const parts = url.pathname.split("/").filter(Boolean)
+    const idx = parts.indexOf("destinations")
+    if (idx !== -1 && parts[idx + 1] && parts[idx + 2] === "reviews") {
+      return parts[idx + 1]
+    }
+  } catch {
+    // ignore
+  }
+  return null
+}
 
+export async function GET(request: Request, context: { params?: { id?: string } | Promise<{ id?: string }> }) {
+  const resolved: { id?: string } =
+    context.params != null && typeof (context.params as Promise<unknown>).then === "function"
+      ? await (context.params as Promise<{ id?: string }>)
+      : (context.params ?? {}) as { id?: string }
+  const idRaw = resolved.id ?? getIdFromRequest(request)
+  if (idRaw == null || idRaw === "") {
+    return NextResponse.json({ success: false, message: "Invalid destination id" }, { status: 400 })
+  }
+  const destinationId = Number(idRaw)
   if (!Number.isFinite(destinationId)) {
     return NextResponse.json({ success: false, message: "Invalid destination id" }, { status: 400 })
   }
@@ -33,8 +54,16 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   }
 }
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const destinationId = Number(params.id)
+export async function POST(request: Request, context: { params?: { id?: string } | Promise<{ id?: string }> }) {
+  const resolved: { id?: string } =
+    context.params != null && typeof (context.params as Promise<unknown>).then === "function"
+      ? await (context.params as Promise<{ id?: string }>)
+      : (context.params ?? {}) as { id?: string }
+  const idRaw = resolved.id ?? getIdFromRequest(request)
+  if (idRaw == null || idRaw === "") {
+    return NextResponse.json({ success: false, message: "Invalid destination id" }, { status: 400 })
+  }
+  const destinationId = Number(idRaw)
 
   if (!Number.isFinite(destinationId)) {
     return NextResponse.json({ success: false, message: "Invalid destination id" }, { status: 400 })
