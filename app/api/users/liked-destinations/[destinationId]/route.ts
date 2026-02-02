@@ -15,6 +15,11 @@ export async function GET(request: Request, { params }: { params: { destinationI
       return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
     }
 
+    // Handle admin user (admin has no liked destinations)
+    if (user.id === 'admin') {
+      return NextResponse.json({ success: true, isLiked: false });
+    }
+
     const existing = await prisma.userLikedDestination.findUnique({
       where: {
         userId_destinationId: {
@@ -48,6 +53,11 @@ export async function POST(request: Request, { params }: { params: { destination
     if (!destinationId) {
       console.log('POST liked destination: Destination ID is missing');
       return NextResponse.json({ success: false, message: 'Destination ID is required' }, { status: 400 });
+    }
+
+    // Handle admin user (admin can't like destinations)
+    if (user.id === 'admin') {
+      return NextResponse.json({ success: false, message: 'Admin user cannot like destinations' }, { status: 403 });
     }
 
     // Check if already liked
@@ -99,9 +109,14 @@ export async function DELETE(request: Request, { params }: { params: { destinati
      }
 
      const { destinationId } = params;
-     if (!destinationId) {
-        console.log('DELETE liked destination: Destination ID is missing');
-       return NextResponse.json({ success: false, message: 'Destination ID is required' }, { status: 400 });
+     const destIdNum = destinationId != null ? parseInt(String(destinationId), 10) : NaN;
+     if (!Number.isFinite(destIdNum)) {
+       return NextResponse.json({ success: false, message: 'Invalid destination ID' }, { status: 400 });
+     }
+
+     // Handle admin user (admin has no liked destinations)
+     if (user.id === 'admin') {
+       return NextResponse.json({ success: false, message: 'Admin user has no liked destinations' }, { status: 404 });
      }
 
      console.log('Deleting liked destination...');
@@ -109,7 +124,7 @@ export async function DELETE(request: Request, { params }: { params: { destinati
        where: {
          userId_destinationId: {
            userId: parseInt(user.id),
-           destinationId: parseInt(destinationId),
+           destinationId: destIdNum,
          },
        },
      });

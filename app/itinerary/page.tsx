@@ -292,21 +292,24 @@ export default function ItineraryPage() {
             }),
           })
 
-          const data = await response.json()
+          const data = await response.json().catch(() => ({}))
           if (response.ok && data.success && data.routeId) {
-            // используем id маршрута из БД как основной идентификатор
             savedForState = {
               ...baseItinerary,
               id: data.routeId.toString(),
             }
-
-            // уведомляем профиль/другие страницы, что список маршрутов обновился
             if (typeof window !== "undefined") {
               window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
             }
+          } else {
+            const msg = data?.message || `Failed to save route (${response.status})`
+            alert(msg)
+            return
           }
         } catch (error) {
           console.error("Error saving itinerary to database:", error)
+          alert("Could not save route. Check your connection.")
+          return
         }
       } else {
         // Гостевой режим или admin — сохраняем только в localStorage (без привязки к аккаунту)
