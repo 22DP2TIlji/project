@@ -20,6 +20,18 @@ interface User {
   savedItineraries?: any[];
 }
 
+interface ReviewRow {
+  id: number;
+  userId: number;
+  userName: string;
+  userEmail: string;
+  objectId: number;
+  destinationName: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+}
+
 interface Destination {
   id: number;
   name: string;
@@ -53,6 +65,11 @@ export default function AdminDashboard() {
   const [destImageFile, setDestImageFile] = useState<File | null>(null)
   const [editImageFile, setEditImageFile] = useState<File | null>(null)
   const [destMsg, setDestMsg] = useState('')
+  const [reviews, setReviews] = useState<ReviewRow[]>([])
+  const [editingReview, setEditingReview] = useState<ReviewRow | null>(null)
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' })
+  const [userForm, setUserForm] = useState({ name: '', email: '', password: '' })
+  const [userMsg, setUserMsg] = useState('')
 
   useEffect(() => {
     if (!isAdmin()) {
@@ -63,16 +80,19 @@ export default function AdminDashboard() {
     // Load admin data
     const loadAdminData = async () => {
       try {
-        const [usersRes, destinationsRes] = await Promise.all([
+        const [usersRes, destinationsRes, reviewsRes] = await Promise.all([
           fetch('/api/admin/users'),
-          fetch('/api/destinations')
+          fetch('/api/destinations'),
+          fetch('/api/admin/reviews')
         ])
         
         const usersData = await usersRes.json()
         const destinationsData = await destinationsRes.json()
+        const reviewsData = await reviewsRes.json()
         
         setUsers(usersData.users || [])
         setDestinations(destinationsData.destinations || [])
+        setReviews(reviewsData.reviews || [])
         
         setStats((prevStats: UserStats) => ({
           ...prevStats,
@@ -201,6 +221,107 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!confirm('Delete this review?')) return
+    try {
+      const res = await fetch(`/api/admin/reviews/${reviewId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (data.success) {
+        setReviews((prev) => prev.filter((r) => r.id !== reviewId))
+      } else {
+        alert(data.message || 'Failed to delete review')
+      }
+    } catch (error) {
+      console.error('Error deleting review:', error)
+      alert('Failed to delete review')
+    }
+  }
+
+  const handleEditReviewClick = (r: ReviewRow) => {
+    setEditingReview(r)
+    setReviewForm({ rating: r.rating, comment: r.comment ?? '' })
+  }
+
+  const handleEditReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingReview) return
+    try {
+      const res = await fetch(`/api/admin/reviews/${editingReview.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: reviewForm.rating, comment: reviewForm.comment || null }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setReviews((prev) =>
+          prev.map((r) =>
+            r.id === editingReview.id
+              ? { ...r, rating: reviewForm.rating, comment: reviewForm.comment || null }
+              : r
+          )
+        )
+        setEditingReview(null)
+      } else {
+        alert(data.message || 'Failed to update review')
+      }
+    } catch (error) {
+      console.error('Error updating review:', error)
+      alert('Failed to update review')
+    }
+  }
+
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setUserMsg('')
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: userForm.name.trim(),
+          email: userForm.email.trim(),
+          password: userForm.password,
+        }),
+      })
+      const data = await res.json()
+      if (data.success && data.user) {
+        setUsers((prev) => [...prev, { id: data.user.id, name: data.user.name, email: data.user.email, role: 'user' }])
+        setStats((prev) => ({ ...prev, totalUsers: (prev.totalUsers || 0) + 1 }))
+        setUserForm({ name: '', email: '', password: '' })
+        setUserMsg('User added successfully')
+      } else {
+        setUserMsg(data.message || 'Error adding user')
+      }
+    } catch (error: any) {
+      setUserMsg(error?.message || 'Failed to add user')
+    }
+  }
+
+  const handleDeleteUser = async (userId: string | number) => {
+    if (userId === 'admin') {
+      alert('Cannot delete the admin account')
+      return
+    }
+    if (user && String(user.id) === String(userId)) {
+      alert('You cannot delete your own account')
+      return
+    }
+    if (!confirm('Delete this user? All their reviews, routes and saved places will be removed.')) return
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (data.success) {
+        setUsers((prev) => prev.filter((u) => String(u.id) !== String(userId)))
+        setStats((prev) => ({ ...prev, totalUsers: Math.max(0, (prev.totalUsers || 1) - 1) }))
+      } else {
+        alert(data.message || 'Failed to delete user')
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      alert('Failed to delete user')
+    }
+  }
+
   const handleAddDestination = async (e: React.FormEvent) => {
     e.preventDefault()
     setDestMsg('')
@@ -272,6 +393,49 @@ export default function AdminDashboard() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
         <div className="p-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">User Management</h2>
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add User</h3>
+            <form onSubmit={handleAddUser} className="flex flex-wrap items-end gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Name</label>
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={userForm.name}
+                  onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
+                  className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Email</label>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={userForm.email}
+                  onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                  className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Password (min 6)</label>
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={userForm.password}
+                  onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                  className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  minLength={6}
+                  required
+                />
+              </div>
+              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                Add User
+              </button>
+              {userMsg && <span className="text-sm text-green-600 dark:text-green-400">{userMsg}</span>}
+            </form>
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead>
@@ -290,18 +454,73 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.role}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                       <button
                         onClick={() => handleToggleRole(u.id, u.role)}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                       >
                         {u.role === 'admin' ? 'Demote to User' : 'Promote to Admin'}
                       </button>
+                      {u.id !== 'admin' && user && String(user.id) !== String(u.id) && (
+                        <button
+                          onClick={() => handleDeleteUser(u.id)}
+                          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Reviews Management */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
+        <div className="p-6">
+          <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Reviews (edit / delete)</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead>
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Destination</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rating</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Comment</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {reviews.map((r) => (
+                  <tr key={r.id}>
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{r.destinationName}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{r.userName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{r.rating}/5</td>
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate">{r.comment ?? '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                      <button
+                        onClick={() => handleEditReviewClick(r)}
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteReview(r.id)}
+                        className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {reviews.length === 0 && (
+              <p className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">No reviews yet.</p>
+            )}
           </div>
         </div>
       </div>
@@ -392,6 +611,53 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Edit Review Modal */}
+      {editingReview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Edit Review</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+              {editingReview.destinationName} — {editingReview.userName}
+            </p>
+            <form onSubmit={handleEditReviewSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rating (1–5)</label>
+                <select
+                  value={reviewForm.rating}
+                  onChange={(e) => setReviewForm({ ...reviewForm, rating: Number(e.target.value) })}
+                  className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Comment</label>
+                <textarea
+                  value={reviewForm.comment}
+                  onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                  className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingReview(null)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded">
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Edit Destination Modal */}
       {editingDestination && (
