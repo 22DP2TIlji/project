@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import type { Prisma } from "@prisma/client"
 import { getUserFromId } from "@/lib/auth-utils"
 
 type ItineraryPayload = {
@@ -108,14 +109,12 @@ export async function POST(request: NextRequest) {
 
     const description = JSON.stringify(itinerary)
 
-    // Притушим TS-ошибку на data (типизация Prisma иногда глючит в редакторе)
-    // @ts-ignore
     const created = await prisma.route.create({
       data: {
         userId: numericUserId,
         name,
         description,
-      },
+      } as Prisma.RouteUncheckedCreateInput,
     })
 
     return NextResponse.json({ success: true, routeId: created.id })
