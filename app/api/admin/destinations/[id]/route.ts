@@ -1,41 +1,128 @@
-import { NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+import { ObjectType } from "@prisma/client"
 
-// Update a single destination by id
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  const { id } = params
-  const body = await request.json()
-  const { name, description, category, region, imageUrl } = body
-
-  try {
-    await prisma.destination.update({
-      where: { id: parseInt(id) },
-      data: {
-        name,
-        description,
-        category,
-        region
-      },
-    })
-
-    return NextResponse.json({ success: true })
-  } catch (err) {
-    console.error('Error in PUT destination:', err)
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+type RouteParams = {
+  params: {
+    id: string
   }
 }
 
-// Delete a single destination by id
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  const { id } = params
+function getDestinationFilter(destinationId: number) {
+  return {
+    objectId: destinationId,
+    objectType: ObjectType.attraction,
+  } as const
+}
+
+export async function GET(_: Request, { params }: RouteParams) {
+  const destinationId = Number(params.id)
+
+  if (!Number.isFinite(destinationId)) {
+    return NextResponse.json(
+      { success: false, message: "Invalid destination id" },
+      { status: 400 },
+    )
+  }
+
   try {
-    await prisma.destination.delete({
-      where: { id: parseInt(id) },
+    const reviews = await prisma.review.findMany({
+      where: getDestinationFilter(destinationId),
+      orderBy: { id: "desc" },
+      include: {
+        user: { select: { id: true, name: true } },
+      },
     })
 
-    return NextResponse.json({ success: true })
-  } catch (err) {
-    console.error('Error in DELETE destination:', err)
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ success: true, reviews })
+  } catch (error) {
+    console.error("GET /reviews error:", error)
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 },
+    )
+  }
+}
+
+export async function POST(request: Request, { params }: RouteParams) {
+  const destinationId = Number(params.id)
+
+  if (!Number.isFinite(destinationId)) {
+    return NextResponse.json(
+      { success: false, message: "Invalid destination id" },
+      { status: 400 },
+    )
+  }
+
+  try {
+    const { userId, rating, comment } = (await request.json()) as {
+      userId?: string
+      rating?: number | string
+      comment?: string
+    }
+
+    const trimmedComment = typeof comment === "string" ? comment.trim() : ""
+    const numericRating = Number(rating)
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: "Not authenticated" },
+        { status: 401 },
+      )
+    }
+
+    // Не даём админ-аккаунту оставлять отзывы
+    if (userId === "admin") {
+      return NextResponse.json(
+        { success: false, message: "Admin cannot leave reviews" },
+        { status: 403 },
+      )
+    }
+
+    if (!trimmedComment) {
+      return NextResponse.json(
+        { success: false, message: "Comment is required" },
+        { status: 400 },
+      )
+    }
+
+    if (!Number.isFinite(numericRating) || numericRating < 1 || numericRating > 5) {
+      return NextResponse.json(
+        { success: false, message: "Rating must be between 1 and 5" },
+        { status: 400 },
+      )
+    }
+
+    const numericUserId = Number(userId)
+    if (!Number.isFinite(numericUserId)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid user id" },
+        { status: 400 },
+      )
+    }
+
+    const created = await prisma.review.create({
+      data: {
+        ...getDestinationFilter(destinationId),
+        userId: numericUserId,
+        rating: numericRating,
+        comment: trimmedComment,
+      },
+      include: {
+        user: { select: { id: true, name: true } },
+      },
+    })
+
+    return NextResponse.json({ success: true, review: created })
+  } catch (error: unknown) {
+    console.error("POST /reviews error:", error)
+    const message =
+      error && typeof error === "object" && "message" in error
+        ? String((error as { message: unknown }).message)
+        : "Internal server error"
+    return NextResponse.json(
+      { success: false, message },
+      { status: 500 },
+    )
   }
 }

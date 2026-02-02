@@ -14,7 +14,11 @@
     "db:studio": "prisma studio",
     "db:test": "node scripts/test-db-connection.js",
     "db:create": "node scripts/create-database.js",
+    "db:seed": "node scripts/seed-latvia-places.js",
     "create-admin": "node scripts/create-admin.js"
+  },
+  "prisma": {
+    "seed": "node scripts/seed-latvia-places.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
@@ -23,7 +27,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
-    "leaflet-routing-machine": "^3.2.12",
     "lucide-react": "^0.294.0",
     "next": "14.0.4",
     "next-auth": "^4.24.13",
@@ -35,8 +38,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.14",
-    "@types/leaflet": "^1.9.21",
-    "@types/leaflet-routing-machine": "^3.2.9",
+    "@types/leaflet": "^1.9.8",
     "@types/node": "^20",
     "@types/react": "18.3.24",
     "@types/react-dom": "18.3.7",

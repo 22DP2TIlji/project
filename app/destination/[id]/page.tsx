@@ -207,7 +207,7 @@ export default function DestinationPage() {
         setLoadingReviews(true)
         setReviewError(null)
 
-        const res = await fetch(`/api/admin/destinations/${id}/reviews`)
+        const res = await fetch(`/api/destinations/${id}/reviews`)
         const data = await res.json().catch(() => ({}))
 
         if (res.ok && data.success) {
@@ -241,7 +241,7 @@ export default function DestinationPage() {
       setSubmitting(true)
       setReviewError(null)
 
-      const res = await fetch(`/api/admin/destinations/${id}/reviews`, {
+      const res = await fetch(`/api/destinations/${id}/reviews`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -256,11 +256,12 @@ export default function DestinationPage() {
       const data = await res.json().catch(() => ({}))
 
       if (!res.ok || !data.success) {
-        setReviewError(data.message || "Failed to submit review")
+        const msg = data.message || `Failed to submit review (${res.status})`
+        setReviewError(msg)
+        if (typeof window !== "undefined") alert(msg)
         return
       }
 
-      // Добавляем новый отзыв в начало списка
       if (data.review) {
         setReviews((prev) => [data.review, ...prev])
       }
@@ -268,7 +269,9 @@ export default function DestinationPage() {
       setNewRating(5)
     } catch (e) {
       console.error("Error submitting review:", e)
-      setReviewError("Failed to submit review")
+      const msg = "Could not submit review. Check your connection."
+      setReviewError(msg)
+      if (typeof window !== "undefined") alert(msg)
     } finally {
       setSubmitting(false)
     }
