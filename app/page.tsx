@@ -75,7 +75,7 @@ export default function Home() {
             TravelLatvia
           </h1>
           <p className="text-xl md:text-2xl font-light mb-8" suppressHydrationWarning translate="no">
-            Choose your next adventure
+            Izvēlieties savu nākamo piedzīvojumu
           </p>
         </div>
       </section>
@@ -84,13 +84,13 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="border border-gray-200 p-8 md:p-12 rounded-md text-center">
             <h2 className="text-3xl font-light mb-4">
-              We will help you to organize your adventure in Latvia
+              Mēs palīdzēsim Jums organizēt Jūsu piedzīvojumu Latvijā
             </h2>
             <Link
               href="/destinations"
               className="inline-block mt-6 px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
             >
-              Explore Destinations
+              Izpēti galamērķus
             </Link>
           </div>
         </div>
@@ -98,11 +98,11 @@ export default function Home() {
 
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light mb-4 text-center">Featured Destinations</h2>
+          <h2 className="text-3xl font-light mb-4 text-center">Ieteicamie galamērķi</h2>
 
           {loadingSaved ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">Loading...</p>
+              <p className="text-gray-500">Ielādē...</p>
             </div>
           ) : saved.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
@@ -127,7 +127,7 @@ export default function Home() {
                       href={`/destination/${d.id}`}
                       className="text-sm text-blue-600 hover:underline"
                     >
-                      View details
+                      Skatīt detalizētu informāciju
                     </Link>
                     <LikeButton
                       destinationId={String(d.id)}
@@ -143,11 +143,11 @@ export default function Home() {
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-500">
-                You haven&apos;t liked any destinations yet. Visit our{" "}
+                Jūs vēl neesat iezīmējis nevienu galamērķi. Apmeklējiet mūsu{" "}
                 <Link href="/destinations" className="text-gray-800 underline">
-                  Destinations
+                  Galamērķi
                 </Link>{" "}
-                page to discover and like destinations.
+                lapu, lai atklātu un iepatiktos galamērķus.
               </p>
             </div>
           )}
