@@ -533,8 +533,8 @@ export default function ItineraryPage() {
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Plan Your Itinerary</h1>
-          <p className="mt-4 text-xl">Create your perfect route through Latvia</p>
+          <h1 className="text-5xl md:text-6xl font-light">Plānojiet Savu Maršrutu</h1>
+          <p className="mt-4 text-xl">Izveidojiet savu ideālo maršrutu pa Latviju</p>
         </div>
       </section>
 
@@ -543,11 +543,11 @@ export default function ItineraryPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-1">
               <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                <h2 className="text-2xl font-light mb-6 text-gray-800">Route Planner</h2>
+                <h2 className="text-2xl font-light mb-6 text-gray-800">Maršruta plānotājs</h2>
 
                 <div className="mb-4">
                   <label htmlFor="startPoint" className="block mb-2 text-sm font-medium">
-                    Starting Point
+                    Sākumpunkts
                   </label>
                   <select
                     id="startPoint"
@@ -555,13 +555,13 @@ export default function ItineraryPage() {
                     onChange={(e) => setStartPoint(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                   >
-                    <option value="">Select starting point</option>
+                    <option value="">Izvēlieties sākuma punktu</option>
                     {popularDestinations.map((dest) => (
                       <option key={`start-${dest.id}`} value={dest.id}>
                         {dest.name}
                       </option>
                     ))}
-                    <option value="custom">Custom location</option>
+                    <option value="custom">Pielāgota atrašanās vieta</option>
                   </select>
                 </div>
 
@@ -583,7 +583,7 @@ export default function ItineraryPage() {
 
                 <div className="mb-4">
                   <label htmlFor="endPoint" className="block mb-2 text-sm font-medium">
-                    Destination
+                    Galapunkts
                   </label>
                   <select
                     id="endPoint"
@@ -591,13 +591,13 @@ export default function ItineraryPage() {
                     onChange={(e) => setEndPoint(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                   >
-                    <option value="">Select destination</option>
+                    <option value="">Izvēlieties galamērķi</option>
                     {popularDestinations.map((dest) => (
                       <option key={`end-${dest.id}`} value={dest.id}>
                         {dest.name}
                       </option>
                     ))}
-                    <option value="custom">Custom location</option>
+                    <option value="custom">Pielāgota atrašanās vieta</option>
                   </select>
                 </div>
 
@@ -623,29 +623,29 @@ export default function ItineraryPage() {
                   disabled={!startPoint || !endPoint}
                 >
                   <Search className="w-4 h-4 mr-2" />
-                  Calculate Route
+                  Aprēķināt maršrutu
                 </button>
 
                 {route && (
                   <div className="mt-6 p-4 bg-gray-50 rounded-md border border-gray-200">
-                    <h3 className="font-medium mb-2 text-gray-800">Route Details</h3>
+                    <h3 className="font-medium mb-2 text-gray-800">Maršruta Detaļas</h3>
                     <p className="text-sm mb-1">
-                      <strong>From:</strong> {route.startPoint}
+                      <strong>No:</strong> {route.startPoint}
                     </p>
                     <p className="text-sm mb-1">
-                      <strong>To:</strong> {route.endPoint}
+                      <strong>Uz:</strong> {route.endPoint}
                     </p>
                     <div className="flex items-center text-sm mb-1">
                       <Navigation className="w-4 h-4 mr-1" />
                       <span>
-                        <strong>Distance:</strong> {route.distance} km
+                        <strong>Attālums:</strong> {route.distance} km
                       </span>
                     </div>
                     <div className="flex items-center text-sm mb-3">
                       <Clock className="w-4 h-4 mr-1" />
                       <span>
-                        <strong>Est. Time:</strong> {Math.floor(route.time)} hours {Math.round((route.time % 1) * 60)}{" "}
-                        minutes
+                        <strong>Aptuvenais laiks:</strong> {Math.floor(route.time)} stundas {Math.round((route.time % 1) * 60)}{" "}
+                        minūtes
                       </span>
                     </div>
                     <div className="space-y-2">
@@ -654,43 +654,22 @@ export default function ItineraryPage() {
                           onClick={saveItinerary}
                           className="flex-1 py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                         >
-                          Save
+                          Saglabāt
                         </button>
-                        <button
-                          onClick={exportItinerary}
-                          className="flex-1 py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <Download className="h-4 w-4" />
-                          JSON
-                        </button>
+                        
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={exportToICal}
-                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <CalendarIcon className="h-4 w-4" />
-                          iCal
-                        </button>
-                        <button
-                          onClick={printRoute}
-                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <Printer className="h-4 w-4" />
-                          Print
-                        </button>
-                      </div>
+                      
                       <button
                         onClick={shareRoute}
                         className="w-full py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
                       >
                         <Share2 className="h-4 w-4" />
-                        Share Route
+                        Dalīties ar maršrutu
                       </button>
                     </div>
                     <div className="mt-4">
                       <label className="block mb-2 text-sm font-medium text-gray-800">
-                        Start Date (for calendar export)
+                        Sākuma datums (kalendāra eksportam)
                       </label>
                       <input
                         type="date"
@@ -701,7 +680,7 @@ export default function ItineraryPage() {
                     </div>
                     <div className="mt-4">
                       <label className="block mb-2 text-sm font-medium text-gray-800">
-                        Notes
+                        Piezīmes
                       </label>
                       <textarea
                         value={notes}
@@ -717,7 +696,7 @@ export default function ItineraryPage() {
                 {route && (
                   <div className="mt-4 p-4 bg-blue-50 rounded-md border border-blue-200">
                     <label className="block mb-2 text-sm font-medium text-gray-800">
-                      Search radius for nearby places (km)
+                      Meklēšanas rādiuss tuvējām vietām (km)
                     </label>
                     <input
                       type="number"
@@ -728,7 +707,7 @@ export default function ItineraryPage() {
                       className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <p className="text-xs text-gray-600 mt-1">
-                      Places within {searchRadius} km from your route will be shown
+                      Tiks parādītas vietas, kas atrodas  {searchRadius} km attālumā no jūsu maršruta
                     </p>
                   </div>
                 )}
@@ -736,7 +715,7 @@ export default function ItineraryPage() {
 
               {isClient && savedItineraries.length > 0 && (
                 <div className="mt-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                  <h2 className="text-2xl font-light mb-4 text-gray-800">Saved Itineraries</h2>
+                  <h2 className="text-2xl font-light mb-4 text-gray-800">Saglabātie maršruti</h2>
                   <div className="space-y-3">
                     {savedItineraries.map((itinerary) => (
                       <div key={itinerary.id} className="p-3 border border-gray-200 rounded-md bg-gray-50">
@@ -745,13 +724,13 @@ export default function ItineraryPage() {
                             {itinerary.startPoint} to {itinerary.endPoint}
                           </h4>
                           <button onClick={() => deleteItinerary(itinerary.id)} className="text-red-500 text-sm">
-                            Delete
+                            Dzēst
                           </button>
                         </div>
                         <p className="text-sm text-gray-600">{new Date(itinerary.date).toLocaleDateString()}</p>
                         <p className="text-sm">
-                          {itinerary.distance} km • {Math.floor(itinerary.time)} hours{" "}
-                          {Math.round((itinerary.time % 1) * 60)} minutes
+                          {itinerary.distance} km • {Math.floor(itinerary.time)} stundas{" "}
+                          {Math.round((itinerary.time % 1) * 60)} minūtes
                         </p>
                       </div>
                     ))}
@@ -773,7 +752,7 @@ export default function ItineraryPage() {
                 <div className="mt-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-light text-gray-800">
-                      Places Near Your Route ({nearbyPlaces.length})
+                      Vietas netālu no jūsu maršruta ({nearbyPlaces.length})
                     </h2>
                     <button
                       onClick={() => setShowNearby(false)}
@@ -784,7 +763,7 @@ export default function ItineraryPage() {
                   </div>
 
                   {loadingNearby ? (
-                    <p className="text-gray-600">Loading nearby places...</p>
+                    <p className="text-gray-600">Ielādē tuvējās vietas...</p>
                   ) : nearbyPlaces.length > 0 ? (
                     <div className="space-y-3 max-h-[400px] overflow-y-auto">
                       {nearbyPlaces.map((place) => (
@@ -826,7 +805,7 @@ export default function ItineraryPage() {
                                 href={`/destination/${place.id}`}
                                 className="ml-4 text-sm text-blue-600 hover:underline"
                               >
-                                View →
+                                Skatīt →
                               </Link>
                             )}
                           </div>
@@ -834,7 +813,7 @@ export default function ItineraryPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-600">No places found within {searchRadius} km of your route.</p>
+                    <p className="text-gray-600">Nav atrastas vietas, kas atrodas {searchRadius} km attālumā no jūsu maršruta.</p>
                   )}
                 </div>
               )}
