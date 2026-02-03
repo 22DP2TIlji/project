@@ -11,14 +11,14 @@ interface ChecklistItem {
 }
 
 const defaultItems: ChecklistItem[] = [
-  { id: "1", text: "Book accommodation", completed: false, category: "Accommodation" },
-  { id: "2", text: "Check weather forecast", completed: false, category: "Planning" },
-  { id: "3", text: "Pack passport/ID", completed: false, category: "Documents" },
-  { id: "4", text: "Book transportation", completed: false, category: "Transportation" },
-  { id: "5", text: "Download offline maps", completed: false, category: "Planning" },
-  { id: "6", text: "Inform family/friends", completed: false, category: "Safety" },
-  { id: "7", text: "Pack charger and adapter", completed: false, category: "Electronics" },
-  { id: "8", text: "Get travel insurance", completed: false, category: "Documents" },
+  { id: "1", text: "Rezervēt naktsmītni", completed: false, category: "Naktmītnes" },
+  { id: "2", text: "Pārbaudīt laikapstākļu prognozi", completed: false, category: "Plānošana" },
+  { id: "3", text: "Iepakot pasi / ID karti", completed: false, category: "Dokumenti" },
+  { id: "4", text: "Rezervēt transportu", completed: false, category: "Transports" },
+  { id: "5", text: "Lejupielādēt bezsaistes kartes", completed: false, category: "Plānošana" },
+  { id: "6", text: "Informēt ģimeni / draugus", completed: false, category: "Drošība" },
+  { id: "7", text: "Iepakot lādētāju un adapteri", completed: false, category: "Elektronika" },
+  { id: "8", text: "Noformēt ceļojuma apdrošināšanu", completed: false, category: "Dokumenti" },
 ]
 
 export default function ChecklistPage() {

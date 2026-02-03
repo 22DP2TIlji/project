@@ -35,7 +35,7 @@ export async function GET() {
     return NextResponse.json({ success: true, users: usersWithStringIds })
   } catch (error) {
     console.error('GET /api/admin/users error:', error)
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ success: false, message: 'Iekšēja servera kļūda' }, { status: 500 })
   }
 }
 
@@ -43,12 +43,12 @@ export async function GET() {
 export async function PUT(request: Request) {
   const { id, role } = await request.json()
   if (!id || !role) {
-    return NextResponse.json({ success: false, message: 'User ID and role are required' }, { status: 400 })
+    return NextResponse.json({ success: false, message: 'Nepieciešams lietotāja ID un loma' }, { status: 400 })
   }
 
   // Cannot update admin user role
   if (id === 'admin') {
-    return NextResponse.json({ success: false, message: 'Cannot modify admin user' }, { status: 403 })
+    return NextResponse.json({ success: false, message: 'Nevar mainīt administratora lietotāju' }, { status: 403 })
   }
 
   try {
@@ -61,8 +61,8 @@ export async function PUT(request: Request) {
   } catch (error: any) {
     console.error('Error updating user role:', error)
     if (error.code === 'P2025') {
-      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
+      return NextResponse.json({ success: false, message: 'Lietotājs nav atrasts' }, { status: 404 })
     }
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ success: false, message: 'Iekšēja servera kļūda' }, { status: 500 })
   }
 } 
