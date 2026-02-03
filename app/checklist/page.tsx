@@ -11,7 +11,7 @@ interface ChecklistItem {
 }
 
 const defaultItems: ChecklistItem[] = [
-  { id: "1", text: "Rezervēt naktsmītni", completed: false, category: "Naktmītnes" },
+  { id: "1", text: "Rezervēt naktsmītni", completed: false, category: "Naktsmītnes" },
   { id: "2", text: "Pārbaudīt laikapstākļu prognozi", completed: false, category: "Plānošana" },
   { id: "3", text: "Iepakot pasi / ID karti", completed: false, category: "Dokumenti" },
   { id: "4", text: "Rezervēt transportu", completed: false, category: "Transports" },
@@ -20,6 +20,7 @@ const defaultItems: ChecklistItem[] = [
   { id: "7", text: "Iepakot lādētāju un adapteri", completed: false, category: "Elektronika" },
   { id: "8", text: "Noformēt ceļojuma apdrošināšanu", completed: false, category: "Dokumenti" },
 ]
+
 
 export default function ChecklistPage() {
   const [items, setItems] = useState<ChecklistItem[]>([])
@@ -83,8 +84,8 @@ export default function ChecklistPage() {
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Travel Checklist</h1>
-          <p className="mt-4 text-xl">Prepare for your trip</p>
+          <h1 className="text-5xl md:text-6xl font-light">Ceļojuma pārbaudes saraksts</h1>
+          <p className="mt-4 text-xl">Sagatavojieties ceļojumam</p>
         </div>
       </section>
 
@@ -104,19 +105,19 @@ export default function ChecklistPage() {
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
-            <p className="text-sm text-gray-600 mt-2">{progress}% complete</p>
+            <p className="text-sm text-gray-600 mt-2">{progress}% pabeigts</p>
           </div>
 
           {/* Add new item */}
           <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
-            <h2 className="text-xl font-light mb-4">Add New Item</h2>
+            <h2 className="text-xl font-light mb-4">Pievieno jaunu punktu sarakstam</h2>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={newItemText}
                 onChange={(e) => setNewItemText(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && addItem()}
-                placeholder="Enter checklist item..."
+                onKeyPress={(e) => e.key === "Ievādiet" && addItem()}
+                placeholder="Ievadiet pārbaudes saraksta punktu..."
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <select
@@ -124,7 +125,7 @@ export default function ChecklistPage() {
                 onChange={(e) => setNewItemCategory(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="Custom">Custom</option>
+                <option value="Custom">Pielāgot</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
@@ -136,7 +137,7 @@ export default function ChecklistPage() {
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
               >
                 <Plus className="h-5 w-5" />
-                Add
+                Pievienot
               </button>
             </div>
           </div>
@@ -152,7 +153,7 @@ export default function ChecklistPage() {
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >
-                All
+                Viss
               </button>
               {categories.map((cat) => (
                 <button
@@ -172,7 +173,7 @@ export default function ChecklistPage() {
 
           {/* Checklist items */}
           <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-            <h2 className="text-xl font-light mb-4">Checklist Items</h2>
+            <h2 className="text-xl font-light mb-4">Pārbaudes punktu saraksts</h2>
             {filteredItems.length > 0 ? (
               <div className="space-y-2">
                 {filteredItems.map((item) => (
@@ -214,7 +215,7 @@ export default function ChecklistPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-600 text-center py-8">No items in this category</p>
+              <p className="text-gray-600 text-center py-8">Šajā kategorijā nav pārbaudes punktu</p>
             )}
           </div>
         </div>
