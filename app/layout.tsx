@@ -1,9 +1,4 @@
 ﻿import type React from "react"
-import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
-import "leaflet/dist/leaflet.css";
-import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
-
-
 
 import "./globals.css"
 import { AuthProvider } from '@/lib/auth-context'
@@ -15,8 +10,8 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "Weather App",
-  description: "Get accurate weather forecasts for any location",
+  title: "TravelLatvia – ceļojumi pa Latviju",
+  description: "Plānojiet ceļojumu pa Latviju – galamērķi, maršruti, laika apstākļi.",
 }
 
 export default function RootLayout({
@@ -25,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning translate="no">
+    <html lang="lv" suppressHydrationWarning translate="no">
       <body className={inter.className} suppressHydrationWarning translate="no">
         <AuthProvider>
           <ThemeProvider>

@@ -23,7 +23,7 @@ export default function LoginPage() {
     setError("")
 
     if (!email || !password) {
-      setError("Please fill in all fields")
+      setError("Lūdzu, aizpildiet visus laukus")
       return
     }
 
@@ -44,7 +44,7 @@ export default function LoginPage() {
       localStorage.removeItem("userId")
       localStorage.removeItem("role")
       localStorage.removeItem("user")
-      setError("Invalid email or password")
+      setError("Nepareizs e-pasts vai parole")
     }
   }
 
@@ -52,7 +52,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
       <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-8 shadow-lg">
         <h2 className="mb-6 text-center text-2xl font-light text-gray-900 dark:text-white">
-          Log in to your account
+          Piesakieties savā kontā
         </h2>
 
         {error && <div className="mb-4 rounded-md bg-red-100 p-3 text-sm text-red-700">{error}</div>}
@@ -60,7 +60,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Email
+              E-pasts
             </label>
             <input
               type="email"
@@ -68,14 +68,14 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-md border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-              placeholder="your@email.com"
+              placeholder="Jusu.epasts@gmail.com"
               required
             />
           </div>
 
           <div className="mb-6">
             <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Password
+              Parole
             </label>
             <input
               type="password"
@@ -92,14 +92,14 @@ export default function LoginPage() {
             type="submit"
             className="w-full rounded-md bg-blue-600 py-3 px-4 text-white transition-colors hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
           >
-            Log in
+            Pieslēgties
           </button>
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-700 dark:text-gray-300">
-          Don&apos;t have an account?{" "}
+          Vēl neesi Reģistrēties?{" "}
           <Link href="/signup" className="underline hover:text-blue-600 dark:hover:text-blue-400">
-            Sign up
+            Reģistrēties
           </Link>
         </div>
       </div>

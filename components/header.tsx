@@ -9,28 +9,28 @@ export default function Header() {
   const pathname = usePathname()
 
   const links: Array<[string, string]> = [
-    ["/destinations", "Destinations"],
-    ["/itinerary", "Plan Trip"],
-    ["/saved", "Saved"],
-    ["/compare", "Compare"],
-    ["/checklist", "Checklist"],
-    ["/events", "Events"],
-    ["/cuisine", "Cuisine"],
-    ["/weather", "Weather"],
-    ["/contact", "Contact"],
+    ["/destinations", "Galamērķi"],
+    ["/itinerary", "Plānot ceļojumu"],
+    ["/saved", "Saglabātie"],
+    ["/compare", "Salīdzināt"],
+    ["/checklist", "Ceļojumu saraksts"],
+    ["/events", "Pasākumi"],
+    ["/cuisine", "Virtuve"],
+    ["/weather", "Laiks"],
+    ["/contact", "Kontakti"],
   ]
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/70 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/60 border-b border-gray-200/70 dark:border-gray-800 notranslate" translate="no">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
+        <div className="flex justify-between items-center h-16 gap-4">
+          <div className="flex items-center flex-shrink-0">
             <Link href="/" className="flex items-center">
               <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">TravelLatvia</span>
             </Link>
           </div>
 
-          <nav className="hidden md:flex items-center flex-wrap gap-x-2 gap-y-2">
+          <nav className="hidden md:flex items-center flex-1 min-w-0 justify-center flex-nowrap gap-x-1 overflow-x-auto py-1">
             {links.map(([href, label]) => (
               <Link
                 key={href}
@@ -46,13 +46,13 @@ export default function Header() {
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3 flex-shrink-0">
             {user && (
               <Link
                 href="/profile"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               >
-                Account
+                Konts
               </Link>
             )}
 
@@ -73,15 +73,15 @@ export default function Header() {
               <>
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                  className="text-sm font-medium px-4 py-2 rounded-md border-2 border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
                 >
-                  Sign in
+                  Pieslēgties
                 </Link>
                 <Link
                   href="/signup"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium border-2 border-transparent transition-colors"
                 >
-                  Sign up
+                  Reģistrēties
                 </Link>
               </>
             )}

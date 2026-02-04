@@ -60,8 +60,8 @@ export default function EventsPage() {
       <section className="relative h-[40vh] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200 dark:bg-gray-700">{/* Placeholder for background image */}</div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white">Events & Festivals</h1>
-          <p className="mt-4 text-xl text-gray-700 dark:text-gray-200">Discover cultural events and festivals in Latvia</p>
+          <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white">Pasākumi un festivāli</h1>
+          <p className="mt-4 text-xl text-gray-700 dark:text-gray-200">Atklājiet kultūras pasākumus un festivālus Latvijā</p>
         </div>
       </section>
 
@@ -99,7 +99,7 @@ export default function EventsPage() {
                 <div className="p-6">
                   <p className="text-gray-600 dark:text-gray-300 mb-4">{event.description}</p>
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">Highlights</h4>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">Galvenie notikumi</h4>
                     <ul className="list-disc list-inside text-gray-600 dark:text-gray-300">
                       {event.highlights.map((highlight, index) => (
                         <li key={index}>{highlight}</li>

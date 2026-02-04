@@ -52,7 +52,7 @@ export default function WeatherPage() {
         const data = await res.json()
 
         if (!res.ok) {
-          throw new Error(data?.body || data?.error || "Failed to load weather")
+          throw new Error(data?.body || data?.error || "Neparedzēta kļūda, ielādējot laika prognozi")
         }
 
         // ✅ формат 1: OpenWeather-like { current, forecast }
@@ -113,7 +113,7 @@ export default function WeatherPage() {
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+    return <div className="min-h-screen flex items-center justify-center">Iekraušana...</div>
   }
 
   if (error) {
@@ -121,7 +121,7 @@ export default function WeatherPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
           <h1 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">
-            Weather Information Unavailable
+            Laika informācija nav pieejama
           </h1>
           <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         </div>
@@ -133,7 +133,7 @@ export default function WeatherPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="container mx-auto px-4">
         <h1 className="text-4xl font-light text-center mb-8 text-gray-900 dark:text-white">
-          Weather in Riga
+          Laika apstākļi Rīgā
         </h1>
 
         {current && (
@@ -142,10 +142,10 @@ export default function WeatherPage() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-2">
-                    Current Weather
+                    Pašreizējais laiks
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {new Date().toLocaleDateString("en-US", {
+                    {new Date().toLocaleDateString("lv", {
                       weekday: "long",
                       year: "numeric",
                       month: "long",
@@ -165,7 +165,7 @@ export default function WeatherPage() {
                 <div className="flex items-center space-x-3">
                   <Thermometer className="w-6 h-6 text-blue-500" />
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Temperature</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Temperatūra</p>
                     <p className="text-2xl font-medium text-gray-900 dark:text-white">
                       {Math.round(current.temp)}°C
                     </p>
@@ -175,7 +175,7 @@ export default function WeatherPage() {
                 <div className="flex items-center space-x-3">
                   <Wind className="w-6 h-6 text-blue-500" />
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Wind Speed</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Vēja ātrums</p>
                     <p className="text-2xl font-medium text-gray-900 dark:text-white">
                       {current.wind_speed} m/s
                     </p>
@@ -185,7 +185,7 @@ export default function WeatherPage() {
                 <div className="flex items-center space-x-3">
                   <Droplets className="w-6 h-6 text-blue-500" />
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Humidity</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Mitrums</p>
                     <p className="text-2xl font-medium text-gray-900 dark:text-white">
                       {current.humidity}%
                     </p>
@@ -195,7 +195,7 @@ export default function WeatherPage() {
                 <div className="flex items-center space-x-3">
                   <Cloud className="w-6 h-6 text-blue-500" />
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Conditions</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Nosacījumi</p>
                     <p className="text-2xl font-medium text-gray-900 dark:text-white capitalize">
                       {current.weather[0].description}
                     </p>
@@ -211,11 +211,11 @@ export default function WeatherPage() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6 flex items-center">
               <Calendar className="w-6 h-6 mr-2" />
-              5-Day Forecast
+              5 dienu prognoze
             </h2>
 
             {forecast.length === 0 ? (
-              <p className="text-gray-600 dark:text-gray-300">Forecast is not available for this data source.</p>
+              <p className="text-gray-600 dark:text-gray-300">Prognoze šim datu avotam nav pieejama.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 {forecast.map((day) => (
@@ -236,13 +236,13 @@ export default function WeatherPage() {
 
                     <div className="space-y-2">
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Temp: {Math.round(day.main.temp)}°C
+                        Temperatūra: {Math.round(day.main.temp)}°C
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-300 capitalize">
                         {day.weather[0].description}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Wind: {day.wind.speed} m/s
+                        Vējš: {day.wind.speed} m/s
                       </p>
                     </div>
                   </div>

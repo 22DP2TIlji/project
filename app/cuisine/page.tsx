@@ -76,8 +76,8 @@ export default function CuisinePage() {
       <section className="relative h-[40vh] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200 dark:bg-gray-700">{/* Placeholder for background image */}</div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white">Local Cuisine</h1>
-          <p className="mt-4 text-xl text-gray-700 dark:text-gray-200">Discover traditional Latvian dishes</p>
+          <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white">Vietējā virtuve</h1>
+          <p className="mt-4 text-xl text-gray-700 dark:text-gray-200">Atklājiet tradicionālos latviešu ēdienus</p>
         </div>
       </section>
 
@@ -87,7 +87,7 @@ export default function CuisinePage() {
           <div className="max-w-2xl mx-auto">
             <input
               type="text"
-              placeholder="Search dishes..."
+              placeholder="Meklēt ēdienus..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
@@ -114,7 +114,7 @@ export default function CuisinePage() {
                 <div className="p-6">
                   <p className="text-gray-600 dark:text-gray-300 mb-4">{dish.description}</p>
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">Details</h4>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">Detaļas</h4>
                     <ul className="list-disc list-inside text-gray-600 dark:text-gray-300">
                       {dish.details.map((detail, index) => (
                         <li key={index}>{detail}</li>
@@ -131,7 +131,7 @@ export default function CuisinePage() {
       {/* Where to Try Section */}
       <section className="py-16 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light mb-8 text-center text-gray-900 dark:text-white">Where to Try</h2>
+          <h2 className="text-3xl font-light mb-8 text-center text-gray-900 dark:text-white">Kur pagaršot?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {places.map((place) => (
               <div
