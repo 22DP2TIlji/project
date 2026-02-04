@@ -441,8 +441,8 @@ export default function ItineraryPage() {
     if (!route) return
 
     const shareData = {
-      title: `Route: ${route.startPoint} to ${route.endPoint}`,
-      text: `Check out this route: ${route.startPoint} to ${route.endPoint}. Distance: ${route.distance} km, Time: ${Math.floor(route.time)} hours`,
+      title: `Maršruts: no ${route.startPoint} līdz ${route.endPoint}`,
+      text: `Apskatiet šo maršrutu: no${route.startPoint} līdz ${route.endPoint}. Attālums: ${route.distance} km, Laiks: ${Math.floor(route.time)} stundas`,
       url: window.location.href,
     }
 
@@ -458,9 +458,9 @@ export default function ItineraryPage() {
   const copyToClipboard = () => {
     if (!route) return
 
-    const text = `Route: ${route.startPoint} to ${route.endPoint}\nDistance: ${route.distance} km\nTime: ${Math.floor(route.time)} hours\n\nView on TravelLatvia: ${window.location.href}`
+    const text = `Maršruts: ${route.startPoint} līdz ${route.endPoint}\nDistance: ${route.distance} km\nTime: ${Math.floor(route.time)} stundas\n\nSkatīt TravelLatvia: ${window.location.href}`
     navigator.clipboard.writeText(text).then(() => {
-      alert('Route link copied to clipboard!')
+      alert('Maršruta saite kopēta uz starpliktuvi!')
     })
   }
 
@@ -477,7 +477,7 @@ export default function ItineraryPage() {
             window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
           }
         } catch (error) {
-          console.error("Error updating saved itineraries in localStorage:", error)
+          console.error("Kļūda, atjauninot saglabātos maršrutus vietējā krātuvē:", error)
         }
       } else {
         // Авторизованный пользователь — удаляем маршрут в БД
@@ -493,12 +493,12 @@ export default function ItineraryPage() {
             }),
           })
         } catch (error) {
-          console.error("Error deleting itinerary from database:", error)
+          console.error("Kļūda, dzēšot maršrutu no datu bāzes:", error)
         }
       }
     } catch (error) {
-      console.error("Error deleting itinerary:", error)
-      alert("An error occurred while deleting the itinerary. Please try again.")
+      console.error("Kļūda, dzēšot maršrutu:", error)
+      alert("Notika kļūda, dzēšot maršrutu. Lūdzu, mēģiniet vēlreiz.")
     }
   }
 
@@ -533,7 +533,7 @@ export default function ItineraryPage() {
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Plānojiet Savu Maršrutu</h1>
+          <h1 className="text-5xl md:text-6xl font-light">Plānojiet savu ceļojuma maršrutu</h1>
           <p className="mt-4 text-xl">Izveidojiet savu ideālo maršrutu pa Latviju</p>
         </div>
       </section>
@@ -543,11 +543,11 @@ export default function ItineraryPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-1">
               <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                <h2 className="text-2xl font-light mb-6 text-gray-800">Maršruta plānotājs</h2>
+                <h2 className="text-2xl font-light mb-6 text-gray-800">Route Planner</h2>
 
                 <div className="mb-4">
                   <label htmlFor="startPoint" className="block mb-2 text-sm font-medium">
-                    Sākumpunkts
+                    Starting Point
                   </label>
                   <select
                     id="startPoint"
@@ -568,7 +568,7 @@ export default function ItineraryPage() {
                 {startPoint === "custom" && (
                   <div className="mb-4">
                     <label htmlFor="customStartPoint" className="block mb-2 text-sm font-medium">
-                      Custom Starting Point (lat, lng)
+                      Pielāgots sākuma punkts (lat, lng)
                     </label>
                     <input
                       type="text"
@@ -583,7 +583,7 @@ export default function ItineraryPage() {
 
                 <div className="mb-4">
                   <label htmlFor="endPoint" className="block mb-2 text-sm font-medium">
-                    Galapunkts
+                    Galamērķis
                   </label>
                   <select
                     id="endPoint"
@@ -597,14 +597,14 @@ export default function ItineraryPage() {
                         {dest.name}
                       </option>
                     ))}
-                    <option value="custom">Pielāgota atrašanās vieta</option>
+                    <option value="custom">Pielāgots atrašanās vieta</option>
                   </select>
                 </div>
 
                 {endPoint === "custom" && (
                   <div className="mb-4">
                     <label htmlFor="customEndPoint" className="block mb-2 text-sm font-medium">
-                      Custom Destination (lat, lng)
+                      Pielāgota galamērķa vieta (lat, lng)
                     </label>
                     <input
                       type="text"
@@ -628,7 +628,7 @@ export default function ItineraryPage() {
 
                 {route && (
                   <div className="mt-6 p-4 bg-gray-50 rounded-md border border-gray-200">
-                    <h3 className="font-medium mb-2 text-gray-800">Maršruta Detaļas</h3>
+                    <h3 className="font-medium mb-2 text-gray-800">Maršruta informācija</h3>
                     <p className="text-sm mb-1">
                       <strong>No:</strong> {route.startPoint}
                     </p>
@@ -656,9 +656,7 @@ export default function ItineraryPage() {
                         >
                           Saglabāt
                         </button>
-                        
                       </div>
-                      
                       <button
                         onClick={shareRoute}
                         className="w-full py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
@@ -669,7 +667,7 @@ export default function ItineraryPage() {
                     </div>
                     <div className="mt-4">
                       <label className="block mb-2 text-sm font-medium text-gray-800">
-                        Sākuma datums (kalendāra eksportam)
+                        Sākuma datums (for calendar export)
                       </label>
                       <input
                         type="date"
@@ -707,7 +705,7 @@ export default function ItineraryPage() {
                       className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <p className="text-xs text-gray-600 mt-1">
-                      Tiks parādītas vietas, kas atrodas  {searchRadius} km attālumā no jūsu maršruta
+                      Tiks parādītas vietas, kas atrodas {searchRadius} km attālumā no jūsu maršruta.
                     </p>
                   </div>
                 )}
@@ -729,7 +727,7 @@ export default function ItineraryPage() {
                         </div>
                         <p className="text-sm text-gray-600">{new Date(itinerary.date).toLocaleDateString()}</p>
                         <p className="text-sm">
-                          {itinerary.distance} km • {Math.floor(itinerary.time)} stundas{" "}
+                          {itinerary.distance} km • {Math.floor(itinerary.time)} hours{" "}
                           {Math.round((itinerary.time % 1) * 60)} minūtes
                         </p>
                       </div>
@@ -779,7 +777,7 @@ export default function ItineraryPage() {
                                   {getPlaceTypeLabel(place.type)}
                                 </span>
                                 <span className="text-xs text-gray-500">
-                                  {place.distance.toFixed(1)} km away
+                                  {place.distance.toFixed(1)} km attālumā
                                 </span>
                               </div>
                               <h3 className="font-semibold text-gray-800">{place.name}</h3>
@@ -792,7 +790,7 @@ export default function ItineraryPage() {
                                 </span>
                               )}
                               {place.type === 'accommodation' && place.priceRange && (
-                                <p className="text-sm text-gray-600 mt-1">Price: {place.priceRange}</p>
+                                <p className="text-sm text-gray-600 mt-1">Cena: {place.priceRange}</p>
                               )}
                               {place.type === 'event' && place.startDate && (
                                 <p className="text-sm text-gray-600 mt-1">
@@ -813,7 +811,7 @@ export default function ItineraryPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-600">Nav atrastas vietas, kas atrodas {searchRadius} km attālumā no jūsu maršruta.</p>
+                    <p className="text-gray-600">Jūsu maršrutā {searchRadius} km rādiusā nav atrastas vietas.</p>
                   )}
                 </div>
               )}

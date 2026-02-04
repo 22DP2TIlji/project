@@ -84,8 +84,8 @@ export default function SavedPage() {
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200" />
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Saved</h1>
-          <p className="mt-4 text-xl">Your liked destinations and itineraries</p>
+          <h1 className="text-5xl md:text-6xl font-light">Saglabātie</h1>
+          <p className="mt-4 text-xl">Jūsu iecienītās galamērķis un maršruti</p>
         </div>
       </section>
 
@@ -105,10 +105,10 @@ export default function SavedPage() {
               <div>
                 <h2 className="text-2xl font-light mb-2 flex items-center gap-2">
                   <MapPin className="h-6 w-6" />
-                  Saved destinations
+                  Saglabātie galamērķi
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  Places you liked. They also appear on the home page and in your profile.
+                  Vietas, kas jums patika. Tās parādās arī sākumlapā un jūsu profilā.
                 </p>
                 {savedPlaces.length > 0 ? (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -154,9 +154,9 @@ export default function SavedPage() {
                 ) : (
                   <div className="py-12 text-center rounded-xl border-2 border-dashed border-gray-200">
                     <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">No saved destinations yet.</p>
+                    <p className="text-gray-600">Vēl nav saglabātu galamērķu.</p>
                     <Link href="/destinations" className="inline-block mt-4 text-blue-600 hover:underline font-medium">
-                      Explore destinations
+                      Izpēti galamērķus
                     </Link>
                   </div>
                 )}
@@ -165,10 +165,10 @@ export default function SavedPage() {
               <div>
                 <h2 className="text-2xl font-light mb-2 flex items-center gap-2">
                   <Route className="h-6 w-6" />
-                  Saved itineraries
+                  Saglabātie maršruti
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  Routes you saved on the Plan Trip page. Manage them there.
+                  Maršruti, kurus esat saglabājis lapā “Plānojiet ceļojumu”. Pārvaldiet tos tur.
                 </p>
                 {savedItineraries.length > 0 ? (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -191,7 +191,7 @@ export default function SavedPage() {
                           </p>
                         )}
                         <span className="inline-flex items-center gap-1 mt-3 text-blue-600 text-sm font-medium">
-                          Open in Plan Trip
+                          Atvērt plānā Ceļojums
                           <ChevronRight className="h-4 w-4" />
                         </span>
                       </Link>
@@ -200,9 +200,9 @@ export default function SavedPage() {
                 ) : (
                   <div className="py-12 text-center rounded-xl border-2 border-dashed border-gray-200">
                     <Route className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">No saved itineraries yet.</p>
+                    <p className="text-gray-600">Vēl nav saglabātu maršrutu.</p>
                     <Link href="/itinerary" className="inline-block mt-4 text-blue-600 hover:underline font-medium">
-                      Plan a trip
+                      Plānojiet ceļojumu
                     </Link>
                   </div>
                 )}
