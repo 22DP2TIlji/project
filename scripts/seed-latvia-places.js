@@ -31,14 +31,14 @@ function mapPlaceToDestination(place) {
 }
 
 async function main() {
-  console.log('Seeding Latvia places into destinations...')
+  console.log('Latvijas vietu izvietošana galamērķos...')
   const data = latviaPlaces.map(mapPlaceToDestination)
 
   const result = await prisma.destination.createMany({
     data,
   })
 
-  console.log(`Done. Inserted ${result.count} destinations.`)
+  console.log(`Gatavs. Ievietoti ${result.count} galamērķi.`)
 }
 
 main()

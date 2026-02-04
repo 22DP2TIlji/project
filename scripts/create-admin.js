@@ -23,15 +23,15 @@ async function createAdmin() {
     })
 
     if (existingAdmin) {
-      console.log('Admin user already exists!')
-      console.log('Updating to admin role...')
+      console.log('Administrators jau eksistē!')
+      console.log('Atjaunināšana uz administratora lomu...')
       
       await prisma.user.update({
         where: { email: adminEmail },
         data: { role: 'admin' },
       })
       
-      console.log('✅ Admin role updated successfully!')
+      console.log('✅ Administratora loma veiksmīgi atjaunināta!')
       return
     }
 
@@ -48,13 +48,13 @@ async function createAdmin() {
       },
     })
 
-    console.log('✅ Admin user created successfully!')
+    console.log('✅ Administratora lietotājs veiksmīgi izveidots!')
     console.log('Email:', adminEmail)
     console.log('Password:', adminPassword)
     console.log('Role:', admin.role)
     console.log('ID:', admin.id)
   } catch (error) {
-    console.error('❌ Error creating admin user:', error)
+    console.error('❌ Kļūda, izveidojot administratora lietotāju:', error)
     process.exit(1)
   } finally {
     await prisma.$disconnect()

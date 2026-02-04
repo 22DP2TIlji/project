@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { Search, MapPin, Filter, Navigation } from 'lucide-react'
 import LikeButton from "@/components/like-button"
 
-const categories = ["all", "city", "nature", "beach", "palace"]
-const regions = ["all", "central", "western", "southern", "eastern"]
+const categories = ["visi", "pilseta", "daba", "pludmale", "pils"]
+const regions = ["visi", "centrāls", "rietumu", "dienvidu", "austrumu"]
 
 export default function DestinationsPage() {
   const [destinations, setDestinations] = useState<any[]>([])
@@ -23,13 +23,13 @@ export default function DestinationsPage() {
     setLoading(true);
     const queryParams = new URLSearchParams();
     if (searchTerm) {
-      queryParams.append('search', searchTerm);
+      queryParams.append('meklēt', searchTerm);
     }
-    if (selectedCategory !== 'all') {
-      queryParams.append('category', selectedCategory);
+    if (selectedCategory !== 'visi') {
+      queryParams.append('categorija', selectedCategory);
     }
-    if (selectedRegion !== 'all') {
-      queryParams.append('region', selectedRegion);
+    if (selectedRegion !== 'visi') {
+      queryParams.append('reģions', selectedRegion);
     }
     
     // Фильтр по расстоянию
@@ -40,17 +40,17 @@ export default function DestinationsPage() {
     }
 
     const apiUrl = `/api/destinations?${queryParams.toString()}`;
-    console.log('Fetching destinations from:', apiUrl);
+    console.log('Gūstot galamērķus no:', apiUrl);
 
     fetch(apiUrl)
       .then(res => res.json())
       .then(data => {
-        console.log('Received destinations data:', data);
+        console.log('Saņemtie galamērķu dati:', data);
         setDestinations(data.destinations || [])
         setLoading(false)
       })
       .catch((error) => {
-        console.error('Error fetching destinations:', error);
+        console.error('Kļūda, iegūstot galamērķus:', error);
         setLoading(false);
         setDestinations([]);
       })
@@ -65,12 +65,12 @@ export default function DestinationsPage() {
           setUseLocationFilter(true)
         },
         (error) => {
-          alert('Unable to get your location. Please enter coordinates manually.')
-          console.error('Geolocation error:', error)
+          alert('Nav iespējams noteikt jūsu atrašanās vietu. Lūdzu, ievadiet koordinātas manuāli.')
+          console.error('Ģeolokācijas kļūda:', error)
         }
       )
     } else {
-      alert('Geolocation is not supported by your browser.')
+      alert('Jūsu pārlūkprogramma neatbalsta ģeolokāciju.')
     }
   }
 
@@ -81,8 +81,8 @@ export default function DestinationsPage() {
       <section className="relative h-[40vh] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200 dark:bg-gray-700">{/* Placeholder for background image */}</div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white">Destinations</h1>
-          <p className="mt-4 text-xl text-gray-700 dark:text-gray-200">Discover the best places to visit in Latvia</p>
+          <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white">Galamērķi</h1>
+          <p className="mt-4 text-xl text-gray-700 dark:text-gray-200">Atklājiet labākās vietas, kuras apmeklēt Latvijā</p>
         </div>
       </section>
 
@@ -97,7 +97,7 @@ export default function DestinationsPage() {
                 </div>
                 <input
                   type="text"
-                  placeholder="Search destinations..."
+                  placeholder="Meklēt galamērķus..."
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -148,7 +148,7 @@ export default function DestinationsPage() {
                   className="w-4 h-4"
                 />
                 <label htmlFor="useLocationFilter" className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                  Filter by distance from location
+                  Filtrēt pēc attāluma no atrašanās vietas
                 </label>
               </div>
               {useLocationFilter && (
@@ -183,7 +183,7 @@ export default function DestinationsPage() {
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm flex items-center justify-center gap-2 transition-colors"
                   >
                     <Navigation className="h-4 w-4" />
-                    Use My Location
+                    Izmantot manu atrašanās vietu
                   </button>
                 </div>
               )}
@@ -209,10 +209,10 @@ export default function DestinationsPage() {
           {/* Results count */}
           <div className="mb-6">
             <p className="text-gray-600 dark:text-gray-300">
-              {loading ? "Loading count..." : `Showing ${displayedDestinations.length} destinations`}
+              {loading ? "Ielādes skaits..." : `Rāda  ${displayedDestinations.length} galamērķus`}
               {useLocationFilter && filterLat && filterLng && (
                 <span className="ml-2 text-sm">
-                  within {filterRadius} km from ({filterLat}, {filterLng})
+                  {filterRadius} km attālumā no ({filterLat}, {filterLng})
                 </span>
               )}
             </p>
@@ -221,7 +221,7 @@ export default function DestinationsPage() {
           {/* Destinations grid */}
           {loading ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-300">Loading destinations...</p>
+              <p className="text-gray-500 dark:text-gray-300">Ielādē galamērķus...</p>
             </div>
           ) : displayedDestinations.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -261,7 +261,7 @@ export default function DestinationsPage() {
                       href={`/destination/${destination.id}`}
                       className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
                     >
-                      View details
+                      Skatīt detaļas
                     </Link>
                   </div>
                 </div>
@@ -270,7 +270,7 @@ export default function DestinationsPage() {
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-500 dark:text-gray-300">
-                No destinations found matching your criteria. Try adjusting your filters.
+                Nav atrastas galamērķis, kas atbilst jūsu kritērijiem. Mēģiniet pielāgot filtrus.
               </p>
             </div>
           )}
