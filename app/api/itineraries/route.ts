@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
-import type { Prisma } from "@prisma/client"
+// Removed unused import of Prisma
 import { getUserFromId } from "@/lib/auth-utils"
 
 type ItineraryPayload = {
@@ -39,13 +39,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Invalid user ID" }, { status: 400 })
     }
 
-    const routes = await prisma.route.findMany({
+    const routes: { id: number; name: string; description: string | null; createdAt: Date }[] = await prisma.route.findMany({
       where: { userId: numericUserId },
       orderBy: { createdAt: "desc" },
     })
 
     const itineraries: ItineraryPayload[] = routes.map((route) => {
-      let parsed: ItineraryPayload = {}
+      let parsed: ItineraryPayload = {} as ItineraryPayload
       if (route.description) {
         try {
           parsed = JSON.parse(route.description) as ItineraryPayload
@@ -109,12 +109,23 @@ export async function POST(request: NextRequest) {
 
     const description = JSON.stringify(itinerary)
 
+    const startCoords = itinerary.startCoords as [number, number] | undefined
+    const endCoords = itinerary.endCoords as [number, number] | undefined
+    const startLat = startCoords?.[0] ?? 0
+    const startLng = startCoords?.[1] ?? 0
+    const endLat = endCoords?.[0] ?? 0
+    const endLng = endCoords?.[1] ?? 0
+
     const created = await prisma.route.create({
       data: {
         userId: numericUserId,
         name,
         description,
-      } as Prisma.RouteUncheckedCreateInput,
+        startLat,
+        startLng,
+        endLat,
+        endLng,
+      },
     })
 
     return NextResponse.json({ success: true, routeId: created.id })

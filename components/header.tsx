@@ -11,7 +11,6 @@ export default function Header() {
   const links: Array<[string, string]> = [
     ["/destinations", "Galamērķi"],
     ["/itinerary", "Plānot ceļojumu"],
-    ["/saved", "Saglabātie"],
     ["/compare", "Salīdzināt"],
     ["/checklist", "Ceļojumu saraksts"],
     ["/events", "Pasākumi"],

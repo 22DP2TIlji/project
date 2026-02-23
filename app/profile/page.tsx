@@ -201,7 +201,7 @@ export default function ProfilePage() {
                 </h3>
                 {savedPlaces.length > 0 ? (
                   <div className="space-y-3">
-                    {savedPlaces.slice(0, 5).map((d) => (
+                    {savedPlaces.map((d) => (
                       <div
                         key={d.id}
                         className="flex items-center gap-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50"
@@ -235,14 +235,6 @@ export default function ProfilePage() {
                         </div>
                       </div>
                     ))}
-                    {savedPlaces.length > 5 && (
-                      <Link
-                        href="/saved"
-                        className="block text-center text-blue-600 hover:underline text-sm py-2"
-                      >
-                        View all {savedPlaces.length} saved places
-                      </Link>
-                    )}
                   </div>
                 ) : (
                   <>
@@ -336,13 +328,6 @@ export default function ProfilePage() {
                   <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
                     <h3 className="text-xl font-light mb-4 text-gray-800">Quick Actions</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Link
-                        href="/saved"
-                        className="p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
-                      >
-                        <h4 className="font-medium mb-1">View Saved Places</h4>
-                        <p className="text-sm text-gray-600">See all your liked destinations</p>
-                      </Link>
                       <Link
                         href="/itinerary"
                         className="p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
