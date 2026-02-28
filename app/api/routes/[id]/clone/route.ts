@@ -32,7 +32,7 @@ export async function POST(
     if (!original) {
       return NextResponse.json({ success: false, message: 'Route not found' }, { status: 404 })
     }
-    if (!original.isPublic) {
+    if (!(original as { isPublic?: boolean }).isPublic) {
       return NextResponse.json({ success: false, message: 'Route is not public' }, { status: 403 })
     }
 

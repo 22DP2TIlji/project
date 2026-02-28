@@ -29,6 +29,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, place: null })
     }
 
+    type PlaceRow = typeof place & { averageCost?: unknown; averageVisitMinutes?: number | null; rating?: unknown }
+    const row = place as PlaceRow
+
     return NextResponse.json({
       success: true,
       place: {
@@ -40,9 +43,9 @@ export async function GET(request: NextRequest) {
         region: place.region,
         latitude: place.latitude ? Number(place.latitude) : null,
         longitude: place.longitude ? Number(place.longitude) : null,
-        averageCost: place.averageCost ? Number(place.averageCost) : null,
-        averageVisitMinutes: place.averageVisitMinutes,
-        rating: place.rating ? Number(place.rating) : null,
+        averageCost: row.averageCost != null ? Number(row.averageCost) : null,
+        averageVisitMinutes: row.averageVisitMinutes ?? null,
+        rating: row.rating != null ? Number(row.rating) : null,
       },
     })
   } catch (error) {

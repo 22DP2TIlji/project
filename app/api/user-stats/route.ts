@@ -89,17 +89,18 @@ export async function GET(request: NextRequest) {
     const routeIds = routes.map((r) => r.id)
     if (routeIds.length > 0) {
       try {
-        const prismaAny = prisma as unknown
-        const tripBudget = (prismaAny as { tripBudget?: { findMany: (opts: { where: { routeId: { in: number[] } }; select: object }) => Promise<Array<{ transport: unknown; accommodation: unknown; food: unknown; entertainment: unknown }>> } }).tripBudget
-        if (tripBudget) {
-          const budgets = await tripBudget.findMany({
-            where: { routeId: { in: routeIds } },
-            select: { transport: true, accommodation: true, food: true, entertainment: true },
-          })
-          budgets.forEach((b: { transport: unknown; accommodation: unknown; food: unknown; entertainment: unknown }) => {
-            totalSpent += Number(b.transport) + Number(b.accommodation) + Number(b.food) + Number(b.entertainment)
-          })
+        const prismaWithTripBudget = prisma as unknown as {
+          tripBudget: {
+            findMany: (opts: { where: { routeId: { in: number[] } }; select: { transport: true; accommodation: true; food: true; entertainment: true } }) => Promise<Array<{ transport: unknown; accommodation: unknown; food: unknown; entertainment: unknown }>>
+          }
         }
+        const budgets = await prismaWithTripBudget.tripBudget.findMany({
+          where: { routeId: { in: routeIds } },
+          select: { transport: true, accommodation: true, food: true, entertainment: true },
+        })
+        budgets.forEach((b) => {
+          totalSpent += Number(b.transport) + Number(b.accommodation) + Number(b.food) + Number(b.entertainment)
+        })
       } catch {
         // TripBudget table may not exist yet
       }

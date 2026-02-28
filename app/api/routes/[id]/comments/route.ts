@@ -14,7 +14,7 @@ export async function GET(
       return NextResponse.json({ success: false, message: 'Route not found' }, { status: 404 })
     }
 
-    const comments = await prisma.routeComment.findMany({
+    const comments = await (prisma as { routeComment: typeof prisma.route }).routeComment.findMany({
       where: { routeId },
       include: { user: { select: { name: true } } },
       orderBy: { createdAt: 'desc' },
@@ -67,7 +67,7 @@ export async function POST(
       return NextResponse.json({ success: false, message: 'Route not found' }, { status: 404 })
     }
 
-    const comment = await prisma.routeComment.create({
+    const comment = await (prisma as { routeComment: { create: (args: object) => Promise<{ id: number; userId: number; text: string; user: { name: string }; createdAt: Date }> } }).routeComment.create({
       data: { userId: numericUserId, routeId, text: text.trim().slice(0, 2000) },
       include: { user: { select: { name: true } } },
     })
