@@ -659,29 +659,9 @@ export default function ItineraryPage() {
                         >
                           Save
                         </button>
-                        <button
-                          onClick={exportItinerary}
-                          className="flex-1 py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <Download className="h-4 w-4" />
-                          JSON
-                        </button>
+                        
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={exportToICal}
-                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <CalendarIcon className="h-4 w-4" />
-                          iCal
-                        </button>
-                        <button
-                          onClick={printRoute}
-                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <Printer className="h-4 w-4" />
-                          Print
-                        </button>
                       </div>
                       <button
                         onClick={shareRoute}
@@ -741,17 +721,7 @@ export default function ItineraryPage() {
                         placeholder="0"
                       />
                     </div>
-                    <div className="mt-4">
-                      <label className="block mb-2 text-sm font-medium text-gray-800">
-                        Start Date (for calendar export)
-                      </label>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                      />
-                    </div>
+                    
                     <div className="mt-4">
                       <label className="block mb-2 text-sm font-medium text-gray-800">
                         Notes
