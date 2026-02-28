@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     // Категории сохраненных направлений
     const likedDestinations = await prisma.userLikedDestination.findMany({
       where: { userId: userIdNum },
-      include: { destination: { select: { category: true, region: true } } },
+      include: { destination: { select: { category: true, region: true, city: true } } },
     })
     const categoryCounts: Record<string, number> = {}
     likedDestinations.forEach((ld) => {
@@ -53,10 +53,57 @@ export async function GET(request: NextRequest) {
     })
 
     const regionCounts: Record<string, number> = {}
+    const cities = new Set<string>()
     likedDestinations.forEach((ld) => {
       const reg = ld.destination.region ?? 'Unknown'
       regionCounts[reg] = (regionCounts[reg] || 0) + 1
+      if (ld.destination.city) cities.add(ld.destination.city)
     })
+
+    // Маршруты (города, км, бюджет)
+    const routes = await prisma.route.findMany({
+      where: { userId: userIdNum },
+      select: { id: true, description: true },
+    })
+    routes.forEach((r) => {
+      if (!r.description) return
+      try {
+        const p = JSON.parse(r.description) as { startPoint?: string; endPoint?: string }
+        if (p.startPoint) cities.add(p.startPoint)
+        if (p.endPoint) cities.add(p.endPoint)
+      } catch {}
+    })
+
+    // Км из маршрутов
+    let totalKm = 0
+    routes.forEach((r) => {
+      if (!r.description) return
+      try {
+        const p = JSON.parse(r.description) as { distance?: number }
+        if (typeof p.distance === 'number') totalKm += p.distance
+      } catch {}
+    })
+
+    // Потрачено (из TripBudget)
+    let totalSpent = 0
+    const routeIds = routes.map((r) => r.id)
+    if (routeIds.length > 0) {
+      try {
+        const prismaAny = prisma as unknown
+        const tripBudget = (prismaAny as { tripBudget?: { findMany: (opts: { where: { routeId: { in: number[] } }; select: object }) => Promise<Array<{ transport: unknown; accommodation: unknown; food: unknown; entertainment: unknown }>> } }).tripBudget
+        if (tripBudget) {
+          const budgets = await tripBudget.findMany({
+            where: { routeId: { in: routeIds } },
+            select: { transport: true, accommodation: true, food: true, entertainment: true },
+          })
+          budgets.forEach((b: { transport: unknown; accommodation: unknown; food: unknown; entertainment: unknown }) => {
+            totalSpent += Number(b.transport) + Number(b.accommodation) + Number(b.food) + Number(b.entertainment)
+          })
+        }
+      } catch {
+        // TripBudget table may not exist yet
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -69,6 +116,9 @@ export async function GET(request: NextRequest) {
         favoriteRegion: Object.keys(regionCounts).sort((a, b) => regionCounts[b] - regionCounts[a])[0] || null,
         categoryBreakdown: categoryCounts,
         regionBreakdown: regionCounts,
+        citiesVisited: cities.size,
+        totalKm: Math.round(totalKm * 10) / 10,
+        totalSpent: Math.round(totalSpent * 100) / 100,
       },
     })
   } catch (error) {

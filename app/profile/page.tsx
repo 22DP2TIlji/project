@@ -3,7 +3,7 @@
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight } from 'lucide-react'
+import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign } from 'lucide-react'
 import Link from 'next/link'
 import LikeButton from '@/components/like-button'
 
@@ -154,7 +154,7 @@ export default function ProfilePage() {
                 {loading ? (
                   <p className="text-gray-600">Loading statistics...</p>
                 ) : stats ? (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <div className="p-4 bg-blue-50 rounded-md border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
                         <MapPin className="h-5 w-5 text-blue-600" />
@@ -188,6 +188,34 @@ export default function ProfilePage() {
                         {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
                       </p>
                     </div>
+
+                    {stats.citiesVisited !== undefined && (
+                      <div className="p-4 bg-amber-50 rounded-md border border-amber-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <MapPin className="h-5 w-5 text-amber-600" />
+                          <span className="text-sm text-gray-600">Cities</span>
+                        </div>
+                        <p className="text-3xl font-light text-amber-600">{stats.citiesVisited}</p>
+                      </div>
+                    )}
+                    {stats.totalKm !== undefined && stats.totalKm > 0 && (
+                      <div className="p-4 bg-teal-50 rounded-md border border-teal-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Route className="h-5 w-5 text-teal-600" />
+                          <span className="text-sm text-gray-600">km routes</span>
+                        </div>
+                        <p className="text-3xl font-light text-teal-600">{stats.totalKm}</p>
+                      </div>
+                    )}
+                    {stats.totalSpent !== undefined && stats.totalSpent > 0 && (
+                      <div className="p-4 bg-emerald-50 rounded-md border border-emerald-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <DollarSign className="h-5 w-5 text-emerald-600" />
+                          <span className="text-sm text-gray-600">Spent</span>
+                        </div>
+                        <p className="text-3xl font-light text-emerald-600">{stats.totalSpent}€</p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <p className="text-gray-600">No statistics available</p>

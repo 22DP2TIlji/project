@@ -2,14 +2,13 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const itineraryId = Number(params.id)
+    const itineraryId = Number((await params).id)
     if (!Number.isFinite(itineraryId)) {
       return NextResponse.json({ success: false, message: "Invalid itinerary id" }, { status: 400 })
     }
 
-    // ваш стиль: в body приходит { id: userId }
     const body = (await req.json().catch(() => ({}))) as { id?: string }
     const userId = body?.id
 
@@ -17,9 +16,8 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       return NextResponse.json({ success: false, message: "User ID is required" }, { status: 400 })
     }
 
-    // админ может удалять что угодно
     if (userId === "admin") {
-      await prisma.savedItinerary.delete({ where: { id: itineraryId } })
+      await prisma.route.deleteMany({ where: { id: itineraryId } })
       return NextResponse.json({ success: true })
     }
 
@@ -28,7 +26,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       return NextResponse.json({ success: false, message: "Invalid user id" }, { status: 400 })
     }
 
-    const existing = await prisma.savedItinerary.findUnique({
+    const existing = await prisma.route.findUnique({
       where: { id: itineraryId },
       select: { id: true, userId: true },
     })
@@ -41,7 +39,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
     }
 
-    await prisma.savedItinerary.delete({ where: { id: itineraryId } })
+    await prisma.route.delete({ where: { id: itineraryId } })
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("DELETE /api/itineraries/[id] error:", error)

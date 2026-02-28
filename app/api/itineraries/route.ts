@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
-// Removed unused import of Prisma
+import { Prisma } from "@prisma/client"
 import { getUserFromId } from "@/lib/auth-utils"
 
 type ItineraryPayload = {
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Invalid user ID" }, { status: 400 })
     }
 
-    const routes: { id: number; name: string; description: string | null; createdAt: Date }[] = await prisma.route.findMany({
+    const routes = await prisma.route.findMany({
       where: { userId: numericUserId },
       orderBy: { createdAt: "desc" },
     })
@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
         : "Saved route"
 
     const description = JSON.stringify(itinerary)
+    const isPublic = !!itinerary.isPublic
 
     const startCoords = itinerary.startCoords as [number, number] | undefined
     const endCoords = itinerary.endCoords as [number, number] | undefined
@@ -125,7 +126,8 @@ export async function POST(request: NextRequest) {
         startLng,
         endLat,
         endLng,
-      },
+        isPublic,
+      } as Prisma.RouteUncheckedCreateInput,
     })
 
     return NextResponse.json({ success: true, routeId: created.id })

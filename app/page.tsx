@@ -4,6 +4,14 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useAuth } from "@/lib/auth-context"
 import LikeButton from "@/components/like-button"
+import RandomPlace from "@/components/random-place"
+
+const home = {
+  title: "Discover Latvia",
+  subtitle: "Plan your perfect trip through Latvia",
+  helpOrganize: "We help you organize your journey",
+  exploreDestinations: "Explore destinations",
+}
 
 type Destination = {
   id: number | string
@@ -72,37 +80,44 @@ export default function Home() {
         <div className="absolute inset-0 overflow-hidden bg-gray-200" />
         <div className="relative z-10 text-center">
           <h1 className="text-5xl md:text-6xl font-light mb-4" translate="no">
-            TravelLatvia
+            {home.title}
           </h1>
           <p className="text-xl md:text-2xl font-light mb-8" suppressHydrationWarning translate="no">
-            Izvēlieties savu nākamo piedzīvojumu
+            {home.subtitle}
           </p>
         </div>
       </section>
 
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="border border-gray-200 p-8 md:p-12 rounded-md text-center">
-            <h2 className="text-3xl font-light mb-4">
-              Mēs palīdzēsim Jums organizēt Jūsu piedzīvojumu Latvijā
-            </h2>
-            <Link
-              href="/destinations"
-              className="inline-block mt-6 px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              Izpēti galamērķus
-            </Link>
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="md:col-span-2">
+              <div className="border border-gray-200 p-8 md:p-12 rounded-md text-center">
+                <h2 className="text-3xl font-light mb-4">
+                  {home.helpOrganize}
+                </h2>
+                <Link
+                  href="/destinations"
+                  className="inline-block mt-6 px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  {home.exploreDestinations}
+                </Link>
+              </div>
+            </div>
+            <div>
+              <RandomPlace />
+            </div>
           </div>
         </div>
       </section>
 
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light mb-4 text-center">Ieteicamie galamērķi</h2>
+          <h2 className="text-3xl font-light mb-4 text-center">Featured Destinations</h2>
 
           {loadingSaved ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">Ielādē...</p>
+              <p className="text-gray-500">Loading...</p>
             </div>
           ) : saved.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
@@ -127,7 +142,7 @@ export default function Home() {
                       href={`/destination/${d.id}`}
                       className="text-sm text-blue-600 hover:underline"
                     >
-                      Skatīt detalizētu informāciju
+                      View details
                     </Link>
                     <LikeButton
                       destinationId={String(d.id)}
@@ -143,11 +158,11 @@ export default function Home() {
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-500">
-                Jūs vēl neesat iezīmējis nevienu galamērķi. Apmeklējiet mūsu{" "}
+                You haven&apos;t liked any destinations yet. Visit our{" "}
                 <Link href="/destinations" className="text-gray-800 underline">
-                  Galamērķi
+                  Destinations
                 </Link>{" "}
-                lapu, lai atklātu un iepatiktos galamērķus.
+                page to discover and like destinations.
               </p>
             </div>
           )}
