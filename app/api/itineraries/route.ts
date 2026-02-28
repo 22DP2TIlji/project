@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
         time: parsed.time ?? 0,
         date: parsed.date ?? route.createdAt.toISOString(),
         ...parsed,
+        isPublic: route.isPublic,
       }
     })
 

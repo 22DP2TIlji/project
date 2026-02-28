@@ -467,6 +467,45 @@ export default function ItineraryPage() {
     })
   }
 
+  const togglePublish = async (itinerary: { id: string; isPublic?: boolean }) => {
+    if (!user || !user.id || user.id === "admin") return
+    const routeId = parseInt(itinerary.id)
+    if (!Number.isFinite(routeId)) return
+
+    const nextPublic = !itinerary.isPublic
+    setSavedItineraries((prev) =>
+      prev.map((it) =>
+        it.id === itinerary.id ? { ...it, isPublic: nextPublic } : it
+      )
+    )
+    try {
+      const res = await fetch(`/api/itineraries/${routeId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, isPublic: nextPublic }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setSavedItineraries((prev) =>
+          prev.map((it) =>
+            it.id === itinerary.id ? { ...it, isPublic: !!itinerary.isPublic } : it
+          )
+        )
+        alert(data.message || "Failed to update")
+      }
+      if (data.success && typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
+      }
+    } catch (e) {
+      setSavedItineraries((prev) =>
+        prev.map((it) =>
+          it.id === itinerary.id ? { ...it, isPublic: !!itinerary.isPublic } : it
+        )
+      )
+      alert("Failed to update")
+    }
+  }
+
   const deleteItinerary = async (id: string) => {
     try {
       const updatedItineraries = savedItineraries.filter((itinerary) => itinerary.id !== id)
@@ -659,9 +698,29 @@ export default function ItineraryPage() {
                         >
                           Save
                         </button>
-                        
+                        <button
+                          onClick={exportItinerary}
+                          className="flex-1 py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Download className="h-4 w-4" />
+                          JSON
+                        </button>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={exportToICal}
+                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                        >
+                          <CalendarIcon className="h-4 w-4" />
+                          iCal
+                        </button>
+                        <button
+                          onClick={printRoute}
+                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Printer className="h-4 w-4" />
+                          Print
+                        </button>
                       </div>
                       <button
                         onClick={shareRoute}
@@ -721,7 +780,17 @@ export default function ItineraryPage() {
                         placeholder="0"
                       />
                     </div>
-                    
+                    <div className="mt-4">
+                      <label className="block mb-2 text-sm font-medium text-gray-800">
+                        Start Date (for calendar export)
+                      </label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+                      />
+                    </div>
                     <div className="mt-4">
                       <label className="block mb-2 text-sm font-medium text-gray-800">
                         Notes
@@ -767,15 +836,31 @@ export default function ItineraryPage() {
                           <h4 className="font-medium text-gray-800">
                             {itinerary.startPoint} to {itinerary.endPoint}
                           </h4>
-                          <button onClick={() => deleteItinerary(itinerary.id)} className="text-red-500 text-sm">
-                            Delete
-                          </button>
+                          <div className="flex items-center gap-2">
+                            {user && user.id && user.id !== "admin" && Number.isFinite(parseInt(itinerary.id)) && (
+                              <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={!!itinerary.isPublic}
+                                  onChange={() => togglePublish(itinerary)}
+                                  className="rounded border-gray-300"
+                                />
+                                <span className="text-gray-600">Public</span>
+                              </label>
+                            )}
+                            <button onClick={() => deleteItinerary(itinerary.id)} className="text-red-500 text-sm">
+                              Delete
+                            </button>
+                          </div>
                         </div>
                         <p className="text-sm text-gray-600">{new Date(itinerary.date).toLocaleDateString()}</p>
                         <p className="text-sm">
                           {itinerary.distance} km • {Math.floor(itinerary.time)} hours{" "}
                           {Math.round((itinerary.time % 1) * 60)} minutes
                         </p>
+                        {itinerary.isPublic && (
+                          <p className="text-xs text-green-600 mt-1">Published — visible on Public Routes</p>
+                        )}
                       </div>
                     ))}
                   </div>

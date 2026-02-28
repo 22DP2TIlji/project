@@ -106,7 +106,7 @@ export default function QuizPage() {
             <Compass className="h-10 w-10" />
             Where to go?
           </h1>
-          <p className="mt-3 text-lg text-gray-600">Answer a few questions</p>
+          <p className="mt-3 text-lg text-gray-600">Atbildi uz pāri jautajumiem</p>
         </div>
       </section>
 
@@ -135,7 +135,7 @@ export default function QuizPage() {
             </div>
           ) : (
             <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-              <h2 className="text-xl font-light mb-2">We recommend</h2>
+              <h2 className="text-xl font-light mb-2">Mēs rekomendējam</h2>
               <p className="text-2xl font-medium text-blue-600 mb-2">
                 {suggestedCity}
               </p>
@@ -151,9 +151,9 @@ export default function QuizPage() {
               </Link>
               <p className="mt-4 text-sm text-gray-500">
                 <Link href="/trip-planner" className="text-blue-600 hover:underline">
-                  Plan a full route
+                  Plānojiet veselu ceļojumu
                 </Link>{" "}
-                based on your interests
+                pamatojoties uz Jūsu ineresēm!
               </p>
             </div>
           )}
