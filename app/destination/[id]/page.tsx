@@ -145,6 +145,8 @@ export default function DestinationPage() {
   const [newRating, setNewRating] = useState<number>(5)
   const [newComment, setNewComment] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [moreDestinations, setMoreDestinations] = useState<any[]>([])
+  const [loadingMore, setLoadingMore] = useState(true)
   const { user, isAuthenticated } = useAuth()
 
   useEffect(() => {
@@ -225,6 +227,31 @@ export default function DestinationPage() {
 
     fetchReviews()
   }, [id, isNumericDestination])
+
+  useEffect(() => {
+    if (!destination) {
+      setLoadingMore(false)
+      return
+    }
+    setLoadingMore(true)
+    const loadMore = async () => {
+      try {
+        const res = await fetch('/api/destinations?limit=8')
+        const data = await res.json()
+        const list = data?.destinations || []
+        const currentId = destination?.id != null ? String(destination.id) : null
+        const filtered = currentId
+          ? list.filter((d: any) => String(d.id) !== currentId)
+          : list
+        setMoreDestinations(filtered.slice(0, 4))
+      } catch {
+        setMoreDestinations([])
+      } finally {
+        setLoadingMore(false)
+      }
+    }
+    loadMore()
+  }, [destination])
 
   const averageRating =
     reviews.length > 0
@@ -515,16 +542,30 @@ export default function DestinationPage() {
             <div className="mt-12 pt-8 border-t border-gray-200">
               <h2 className="text-2xl font-light mb-6">Explore More Destinations</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.values(destinations)
-                  .filter((d: any) => d.id !== destination.id)
-                  .slice(0, 4)
-                  .map((d: any) => (
-                    <Link key={d.id} href={`/destination/${d.id}`} className="group">
-                      <div className="relative h-32 mb-2 overflow-hidden rounded-md bg-gray-200"></div>
-                      <h3 className="text-sm font-medium group-hover:underline">{d.name}</h3>
-                    </Link>
-                  ))}
+                {moreDestinations.map((d: any) => (
+                  <Link key={d.id} href={`/destination/${d.id}`} className="group">
+                    <div className="relative h-32 mb-2 overflow-hidden rounded-md bg-gray-200">
+                      {d.image_url && (
+                        <img
+                          src={d.image_url}
+                          alt={d.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      )}
+                    </div>
+                    <h3 className="text-sm font-medium group-hover:underline">{d.name}</h3>
+                    {d.city && <p className="text-xs text-gray-500 mt-0.5">{d.city}</p>}
+                  </Link>
+                ))}
               </div>
+              {loadingMore && moreDestinations.length === 0 && (
+                <p className="text-gray-500 text-sm">Loading destinations...</p>
+              )}
+              {!loadingMore && moreDestinations.length === 0 && (
+                <Link href="/destinations" className="text-blue-600 hover:underline text-sm">
+                  Browse all destinations
+                </Link>
+              )}
             </div>
           </div>
         </div>
