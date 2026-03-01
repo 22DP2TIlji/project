@@ -109,7 +109,6 @@ export async function PATCH(
 
     await prisma.route.update({
       where: { id: routeId },
-      // @ts-expect-error - isPublic exists in schema, generated types may be stale
       data: { isPublic: !!isPublic },
     })
     return NextResponse.json({ success: true, isPublic: !!isPublic })

@@ -734,29 +734,8 @@ export default function ItineraryPage() {
                         >
                           Save
                         </button>
-                        <button
-                          onClick={exportItinerary}
-                          className="flex-1 py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <Download className="h-4 w-4" />
-                          Export JSON
-                        </button>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={exportToICal}
-                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <CalendarIcon className="h-4 w-4" />
-                          Export iCal
-                        </button>
-                        <button
-                          onClick={printRoute}
-                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <Printer className="h-4 w-4" />
-                          Print
-                        </button>
                       </div>
                       <button
                         onClick={shareRoute}
