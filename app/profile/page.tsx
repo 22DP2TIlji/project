@@ -3,7 +3,7 @@
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign } from 'lucide-react'
+import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import LikeButton from '@/components/like-button'
 
@@ -17,6 +17,7 @@ export default function ProfilePage() {
   const [savedPlaces, setSavedPlaces] = useState<SavedDestination[]>([])
   const [savedItineraries, setSavedItineraries] = useState<any[]>([])
   const [mounted, setMounted] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -101,6 +102,38 @@ export default function ProfilePage() {
     window.addEventListener('savedItinerariesUpdated', load)
     return () => window.removeEventListener('savedItinerariesUpdated', load)
   }, [mounted, user])
+
+  const deleteItinerary = async (id: string) => {
+    setDeletingId(id)
+    try {
+      const updated = savedItineraries.filter((it) => String(it.id) !== String(id))
+      setSavedItineraries(updated)
+
+      if (user && user.id && user.id !== 'admin') {
+        const res = await fetch('/api/itineraries', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id, routeId: id }),
+        })
+        const data = await res.json()
+        if (!res.ok || !data.success) {
+          setSavedItineraries(savedItineraries)
+          alert(data.message || 'Failed to delete route.')
+          return
+        }
+      } else {
+        localStorage.setItem('savedItineraries', JSON.stringify(updated))
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('savedItinerariesUpdated'))
+      }
+    } catch (e) {
+      setSavedItineraries(savedItineraries)
+      alert('Failed to delete route.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   if (!user) return null
 
@@ -282,21 +315,35 @@ export default function ProfilePage() {
                 {savedItineraries.length > 0 ? (
                   <div className="space-y-3">
                     {savedItineraries.slice(0, 5).map((it: any) => (
-                      <Link
+                      <div
                         key={it.id}
-                        href="/itinerary"
-                        className="block p-3 border border-gray-200 rounded-md hover:bg-gray-50"
+                        className="flex items-center justify-between gap-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50"
                       >
-                        <p className="font-medium text-gray-900">
-                          {it.startPoint} → {it.endPoint}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {it.distance} km · {Math.floor(it.time || 0)} h {Math.round(((it.time || 0) % 1) * 60)} min
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {it.date ? new Date(it.date).toLocaleDateString() : ''}
-                        </p>
-                      </Link>
+                        <Link href="/itinerary" className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900">
+                            {it.startPoint} → {it.endPoint}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {it.distance} km · {Math.floor(it.time || 0)} h {Math.round(((it.time || 0) % 1) * 60)} min
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {it.date ? new Date(it.date).toLocaleDateString() : ''}
+                          </p>
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            deleteItinerary(it.id)
+                          }}
+                          disabled={deletingId === String(it.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                          title="Delete route"
+                          aria-label="Delete route"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     ))}
                     {savedItineraries.length > 5 && (
                       <Link
