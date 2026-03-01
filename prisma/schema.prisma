@@ -166,7 +166,7 @@ model RoutePoint {
   sequence   Int
   createdAt  DateTime     @default(now()) @map("created_at")
 
-  route      Route        @relation(fields: [routeId], references: [id])
+  route      Route        @relation(fields: [routeId], references: [id], onDelete: Cascade)
 
   @@map("route_points")
 }

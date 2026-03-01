@@ -544,11 +544,14 @@ export default function ItineraryPage() {
 
   const deleteItinerary = async (id: string) => {
     try {
-      const updatedItineraries = savedItineraries.filter((itinerary) => itinerary.id !== id)
+      const idStr = String(id)
+      const updatedItineraries = savedItineraries.filter(
+        (itinerary) => String(itinerary.id) !== idStr
+      )
       setSavedItineraries(updatedItineraries)
 
       // Если пользователь не залогинен — поддерживаем старое поведение через localStorage
-      if (!user) {
+      if (!user || user.id === "admin") {
         try {
           localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
           if (typeof window !== "undefined") {
@@ -559,24 +562,25 @@ export default function ItineraryPage() {
         }
       } else {
         // Авторизованный пользователь — удаляем маршрут в БД
-        try {
-          await fetch("/api/itineraries", {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              routeId: id,
-            }),
-          })
-        } catch (error) {
-          console.error("Error deleting itinerary from database:", error)
+        const res = await fetch("/api/itineraries", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user.id, routeId: idStr }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.success) {
+          setSavedItineraries(savedItineraries)
+          alert(data.message || "Failed to delete route.")
+          return
+        }
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
         }
       }
     } catch (error) {
       console.error("Error deleting itinerary:", error)
-      alert("Failed to delete itinerary.")
+      setSavedItineraries(savedItineraries)
+      alert("Failed to delete route.")
     }
   }
 
