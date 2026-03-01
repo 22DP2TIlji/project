@@ -171,32 +171,37 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Invalid IDs" }, { status: 400 })
     }
 
-    const existing = await prisma.route.findFirst({
-      where: { id: numericRouteId, userId: numericUserId },
-      select: { id: true },
+    const existing = await prisma.route.findUnique({
+      where: { id: numericRouteId },
+      select: { id: true, userId: true },
     })
 
     if (!existing) {
       return NextResponse.json(
-        { success: false, message: "Route not found or access denied" },
+        { success: false, message: "Route not found" },
         { status: 404 }
       )
     }
 
-    await prisma.$transaction(async (prismaTx) => {
-      const tx = prismaTx as unknown as {
-        routePoint: { deleteMany: (args: object) => Promise<{ count: number }> }
-        routeComment: { deleteMany: (args: object) => Promise<{ count: number }> }
-        routeLike: { deleteMany: (args: object) => Promise<{ count: number }> }
-        tripBudget: { deleteMany: (args: object) => Promise<{ count: number }> }
-        route: { delete: (args: object) => Promise<unknown> }
-      }
-      await tx.routePoint.deleteMany({ where: { routeId: numericRouteId } })
-      await tx.routeComment.deleteMany({ where: { routeId: numericRouteId } })
-      await tx.routeLike.deleteMany({ where: { routeId: numericRouteId } })
-      await tx.tripBudget.deleteMany({ where: { routeId: numericRouteId } })
-      await tx.route.delete({ where: { id: numericRouteId } })
-    })
+    if (existing.userId !== numericUserId) {
+      return NextResponse.json(
+        { success: false, message: "Access denied" },
+        { status: 403 }
+      )
+    }
+
+    const tx = prisma as unknown as {
+      routePoint: { deleteMany: (args: object) => Promise<{ count: number }> }
+      routeComment: { deleteMany: (args: object) => Promise<{ count: number }> }
+      routeLike: { deleteMany: (args: object) => Promise<{ count: number }> }
+      tripBudget: { deleteMany: (args: object) => Promise<{ count: number }> }
+      route: { delete: (args: object) => Promise<unknown> }
+    }
+    await tx.routePoint.deleteMany({ where: { routeId: numericRouteId } })
+    await tx.routeComment.deleteMany({ where: { routeId: numericRouteId } })
+    await tx.routeLike.deleteMany({ where: { routeId: numericRouteId } })
+    await tx.tripBudget.deleteMany({ where: { routeId: numericRouteId } })
+    await tx.route.delete({ where: { id: numericRouteId } })
 
     return NextResponse.json({ success: true })
   } catch (error) {
