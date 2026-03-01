@@ -15,6 +15,7 @@ interface User {
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
+  isLoading: boolean
   isAdmin: () => boolean
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>
   signup: (name: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>
@@ -38,24 +39,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const storedUser = localStorage.getItem('user')
         if (storedUser) {
-          const userData = JSON.parse(storedUser)
-          // Refresh user data from server
-          const response = await fetch('/api/auth/me', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ id: userData.id })
-          })
-          
-          if (response.ok) {
-            const result = await response.json()
-            if (result.success) {
-              setUser(result.user)
-            } else {
+          const userData = JSON.parse(storedUser) as User
+          setUser(userData)
+          try {
+            const response = await fetch('/api/auth/me', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: userData.id })
+            })
+            if (response.ok) {
+              const result = await response.json()
+              if (result.success && result.user) {
+                setUser(result.user)
+                return
+              }
               localStorage.removeItem('user')
+              setUser(null)
+              return
             }
+          } catch {
+            // network error: use stored user so admin panel can load
+            setUser(userData)
+            return
           }
+          setUser(userData)
         }
       } catch (error) {
         console.error('Error loading user:', error)
@@ -237,6 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     isAuthenticated,
+    isLoading,
     isAdmin,
     login,
     signup,
