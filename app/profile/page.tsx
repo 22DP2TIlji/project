@@ -319,7 +319,7 @@ export default function ProfilePage() {
                         key={it.id}
                         className="flex items-center justify-between gap-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50"
                       >
-                        <Link href="/itinerary" className="flex-1 min-w-0">
+                        <Link href={`/itinerary?route=${it.id}`} className="flex-1 min-w-0">
                           <p className="font-medium text-gray-900">
                             {it.startPoint} → {it.endPoint}
                           </p>

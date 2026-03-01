@@ -100,7 +100,7 @@ export default function Header() {
   const { primaryLinks, planLinks, exploreLinks } = useHeaderLinks()
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/70 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/60 border-b border-gray-200/70 dark:border-gray-800 notranslate" translate="no">
+    <header className="sticky top-0 z-50 blue/700 dark:bg-gray-900/70 backdrop-blur supports-[backdrop-filter]:bg-gray/700 dark:supports-[backdrop-filter]:bg-gray-900/60 border-b border-gray-200/70 dark:border-gray-800 notranslate" translate="no">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-4">

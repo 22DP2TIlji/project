@@ -117,10 +117,10 @@ export default function PublicRoutesPage() {
                     </button>
                     <Link
                       href={`/itinerary?route=${r.id}`}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:underline"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                     >
                       <MapPin className="h-4 w-4" />
-                      View route
+                      View in detail
                     </Link>
                   </div>
                 </li>

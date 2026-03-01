@@ -3,6 +3,71 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { getUserFromId } from "@/lib/auth-utils"
 
+// GET - получить маршрут для детального просмотра (публичные или свои)
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const routeId = parseInt((await params).id)
+    if (!Number.isFinite(routeId)) {
+      return NextResponse.json({ success: false, message: "Invalid route id" }, { status: 400 })
+    }
+
+    const routeRow = await prisma.route.findUnique({
+      where: { id: routeId },
+    })
+
+    if (!routeRow) {
+      return NextResponse.json({ success: false, message: "Route not found" }, { status: 404 })
+    }
+
+    const isPublic = (routeRow as { isPublic?: boolean }).isPublic === true
+    if (!isPublic) {
+      return NextResponse.json({ success: false, message: "Route is not public" }, { status: 403 })
+    }
+
+    let parsed: Record<string, unknown> = {}
+    if (routeRow.description) {
+      try {
+        parsed = JSON.parse(routeRow.description) as Record<string, unknown>
+      } catch {
+        // ignore
+      }
+    }
+
+    const row = routeRow as { startLat?: unknown; startLng?: unknown; endLat?: unknown; endLng?: unknown }
+    const startCoords =
+      (parsed.startCoords as [number, number]) ??
+      (row.startLat != null && row.startLng != null
+        ? [Number(row.startLat), Number(row.startLng)]
+        : undefined)
+    const endCoords =
+      (parsed.endCoords as [number, number]) ??
+      (row.endLat != null && row.endLng != null
+        ? [Number(row.endLat), Number(row.endLng)]
+        : undefined)
+
+    const itinerary = {
+      id: routeRow.id.toString(),
+      startPoint: (parsed.startPoint as string) ?? routeRow.name,
+      endPoint: (parsed.endPoint as string) ?? "",
+      startCoords,
+      endCoords,
+      distance: (parsed.distance as number) ?? 0,
+      time: (parsed.time as number) ?? 0,
+      date: (parsed.date as string) ?? routeRow.createdAt.toISOString(),
+      isPublic: true,
+      ...parsed,
+    }
+
+    return NextResponse.json({ success: true, itinerary })
+  } catch (error) {
+    console.error("GET /api/itineraries/[id] error:", error)
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

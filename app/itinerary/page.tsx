@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { Search, Clock, Navigation, MapPin, Download, Hotel, Calendar, X, Calendar as CalendarIcon, Printer, Share2, FileText } from "lucide-react"
 
@@ -47,12 +48,14 @@ interface NearbyPlace {
 
 export default function ItineraryPage() {
   const { user } = useAuth()
+  const searchParams = useSearchParams()
   const [startPoint, setStartPoint] = useState("")
   const [endPoint, setEndPoint] = useState("")
   const [customStartPoint, setCustomStartPoint] = useState("")
   const [customEndPoint, setCustomEndPoint] = useState("")
   const [route, setRoute] = useState<any>(null)
   const [savedItineraries, setSavedItineraries] = useState<any[]>([])
+  const [savedItinerariesLoaded, setSavedItinerariesLoaded] = useState(false)
   const [isClient, setIsClient] = useState(false)
   const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([])
   const [loadingNearby, setLoadingNearby] = useState(false)
@@ -79,6 +82,7 @@ export default function ItineraryPage() {
 
           if (data.success && Array.isArray(data.itineraries)) {
             setSavedItineraries(data.itineraries)
+            setSavedItinerariesLoaded(true)
             return
           }
         } catch (error) {
@@ -93,11 +97,39 @@ export default function ItineraryPage() {
       } catch (error) {
         console.error("Error loading saved itineraries from localStorage:", error)
         setSavedItineraries([])
+      } finally {
+        setSavedItinerariesLoaded(true)
       }
     }
 
     loadSavedItineraries()
   }, [user, isClient])
+
+  const routeIdFromUrl = searchParams.get("route")
+
+  useEffect(() => {
+    if (!routeIdFromUrl || !savedItinerariesLoaded) return
+    const found = savedItineraries.find(
+      (it: any) => String(it.id) === String(routeIdFromUrl)
+    )
+    if (found && found.startCoords && found.endCoords) {
+      setRoute(found)
+      setShowNearby(true)
+      return
+    }
+    // Маршрут не найден в сохранённых — возможно, это публичный маршрут
+    const numericId = parseInt(routeIdFromUrl, 10)
+    if (!Number.isFinite(numericId)) return
+    fetch(`/api/itineraries/${numericId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.itinerary && data.itinerary.startCoords && data.itinerary.endCoords) {
+          setRoute(data.itinerary)
+          setShowNearby(true)
+        }
+      })
+      .catch(console.error)
+  }, [routeIdFromUrl, savedItineraries, savedItinerariesLoaded])
 
   useEffect(() => {
     if (route && route.startCoords && route.endCoords) {
@@ -702,8 +734,29 @@ export default function ItineraryPage() {
                         >
                           Save
                         </button>
+                        <button
+                          onClick={exportItinerary}
+                          className="flex-1 py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Download className="h-4 w-4" />
+                          Export JSON
+                        </button>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={exportToICal}
+                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                        >
+                          <CalendarIcon className="h-4 w-4" />
+                          Export iCal
+                        </button>
+                        <button
+                          onClick={printRoute}
+                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Printer className="h-4 w-4" />
+                          Print
+                        </button>
                       </div>
                       <button
                         onClick={shareRoute}
