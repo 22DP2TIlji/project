@@ -11,7 +11,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'routeId required' }, { status: 400 })
     }
 
-    const budget = await prisma.tripBudget.findUnique({
+    const ext = prisma as unknown as { tripBudget: { findUnique: (args: object) => Promise<{ transport: unknown; accommodation: unknown; food: unknown; entertainment: unknown } | null>; upsert: (args: object) => Promise<{ transport: unknown; accommodation: unknown; food: unknown; entertainment: unknown }> } }
+    const budget = await ext.tripBudget.findUnique({
       where: { routeId: parseInt(routeId) },
     })
     if (!budget) {
@@ -78,7 +79,8 @@ export async function POST(request: NextRequest) {
     const f = Math.max(0, Number(food) || 0)
     const e = Math.max(0, Number(entertainment) || 0)
 
-    const budget = await prisma.tripBudget.upsert({
+    const ext = prisma as unknown as { tripBudget: { findUnique: (args: object) => Promise<unknown>; upsert: (args: object) => Promise<{ transport: unknown; accommodation: unknown; food: unknown; entertainment: unknown }> } }
+    const budget = await ext.tripBudget.upsert({
       where: { routeId: rId },
       create: { routeId: rId, transport: t, accommodation: a, food: f, entertainment: e },
       update: { transport: t, accommodation: a, food: f, entertainment: e },

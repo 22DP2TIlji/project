@@ -7,9 +7,9 @@ export default function Footer() {
         <p>All rights reserved.</p>
         <p>
           Created with{" "}
-          <Link href="https://www.webnode.com" className="underline">
+          <a href="https://www.webnode.com" className="underline" target="_blank" rel="noopener noreferrer">
             Webnode
-          </Link>{" "}
+          </a>{" "}
           •{" "}
           <Link href="/cookies" className="underline">
             Cookie Policy

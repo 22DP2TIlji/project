@@ -10,15 +10,16 @@ export async function GET(
   try {
     const routeId = parseInt((await params).id)
     const userId = request.nextUrl.searchParams.get('userId')
+    const ext = prisma as unknown as { routeLike: { count: (args: object) => Promise<number>; findUnique: (args: object) => Promise<unknown>; delete: (args: object) => Promise<unknown>; create: (args: object) => Promise<unknown> } }
 
-    const count = await prisma.routeLike.count({ where: { routeId } })
+    const count = await ext.routeLike.count({ where: { routeId } })
     let liked = false
     if (userId && userId !== 'admin') {
       const user = await getUserFromId(userId)
       if (user && user.id && user.id !== 'admin') {
         const numericUserId = parseInt(user.id)
         if (!isNaN(numericUserId)) {
-          const like = await prisma.routeLike.findUnique({
+          const like = await ext.routeLike.findUnique({
             where: { userId_routeId: { userId: numericUserId, routeId } },
           })
           liked = !!like
@@ -61,22 +62,23 @@ export async function POST(
     if (!route) {
       return NextResponse.json({ success: false, message: 'Route not found' }, { status: 404 })
     }
+    const ext = prisma as unknown as { routeLike: { count: (args: object) => Promise<number>; findUnique: (args: object) => Promise<unknown>; delete: (args: object) => Promise<unknown>; create: (args: object) => Promise<unknown> } }
 
-    const existing = await prisma.routeLike.findUnique({
+    const existing = await ext.routeLike.findUnique({
       where: { userId_routeId: { userId: numericUserId, routeId } },
     })
 
     if (existing) {
-      await prisma.routeLike.delete({
+      await ext.routeLike.delete({
         where: { userId_routeId: { userId: numericUserId, routeId } },
       })
-      const count = await prisma.routeLike.count({ where: { routeId } })
+      const count = await ext.routeLike.count({ where: { routeId } })
       return NextResponse.json({ success: true, liked: false, count })
     } else {
-      await prisma.routeLike.create({
+      await ext.routeLike.create({
         data: { userId: numericUserId, routeId },
       })
-      const count = await prisma.routeLike.count({ where: { routeId } })
+      const count = await ext.routeLike.count({ where: { routeId } })
       return NextResponse.json({ success: true, liked: true, count })
     }
   } catch (error) {

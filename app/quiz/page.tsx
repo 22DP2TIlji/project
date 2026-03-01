@@ -13,31 +13,31 @@ type Question = {
 const QUESTIONS: Question[] = [
   {
     id: "q1",
-    text: "What type of vacation do you prefer?",
+    text: "What type of place interests you most?",
     options: [
-      { id: "nature", value: "Nature & hiking", scores: { nature: 3, park: 2 } },
-      { id: "sea", value: "Sea & beach", scores: { beach: 3, nature: 1 } },
-      { id: "city", value: "City & culture", scores: { city: 3 } },
+      { id: "nature", value: "Nature & forests", scores: { nature: 3, park: 2 } },
+      { id: "sea", value: "Sea & beaches", scores: { beach: 3, nature: 1 } },
+      { id: "city", value: "Cities & urban", scores: { city: 3 } },
       { id: "castles", value: "Castles & history", scores: { castle: 3 } },
     ],
   },
   {
     id: "q2",
-    text: "How many days are you planning?",
+    text: "How long is your trip?",
     options: [
       { id: "1", value: "1 day", scores: {} },
-      { id: "2-3", value: "2–3 days", scores: {} },
-      { id: "4-7", value: "4–7 days", scores: {} },
-      { id: "7+", value: "More than a week", scores: {} },
+      { id: "2-3", value: "2-3 days", scores: {} },
+      { id: "4-7", value: "4-7 days", scores: {} },
+      { id: "7+", value: "7+ days", scores: {} },
     ],
   },
   {
     id: "q3",
-    text: "Budget?",
+    text: "What's your budget?",
     options: [
       { id: "low", value: "Budget-friendly", scores: {} },
       { id: "mid", value: "Moderate", scores: {} },
-      { id: "high", value: "No limits", scores: {} },
+      { id: "high", value: "Premium", scores: {} },
     ],
   },
 ]
@@ -104,9 +104,9 @@ export default function QuizPage() {
         <div className="relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl font-light flex items-center justify-center gap-2">
             <Compass className="h-10 w-10" />
-            Where to go?
+            Find Your Destination
           </h1>
-          <p className="mt-3 text-lg text-gray-600">Atbildi uz pāri jautajumiem</p>
+          <p className="mt-3 text-lg text-gray-600">Answer a few questions to get personalized recommendations</p>
         </div>
       </section>
 
@@ -135,7 +135,7 @@ export default function QuizPage() {
             </div>
           ) : (
             <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-              <h2 className="text-xl font-light mb-2">Mēs rekomendējam</h2>
+              <h2 className="text-xl font-light mb-2">We recommend</h2>
               <p className="text-2xl font-medium text-blue-600 mb-2">
                 {suggestedCity}
               </p>
@@ -151,9 +151,9 @@ export default function QuizPage() {
               </Link>
               <p className="mt-4 text-sm text-gray-500">
                 <Link href="/trip-planner" className="text-blue-600 hover:underline">
-                  Plānojiet veselu ceļojumu
+                  Plan full route
                 </Link>{" "}
-                pamatojoties uz Jūsu ineresēm!
+                based on your interests
               </p>
             </div>
           )}

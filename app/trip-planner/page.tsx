@@ -56,11 +56,11 @@ export default function TripPlannerPage() {
       if (data.success && data.trip) {
         setTrip(data.trip)
       } else {
-        alert(data.message || "Failed to generate trip")
+        alert(data.message || "Failed to generate trip plan.")
       }
     } catch (e) {
       console.error(e)
-      alert("Failed to generate trip")
+      alert("Failed to generate trip plan.")
     } finally {
       setLoading(false)
     }
@@ -73,7 +73,7 @@ export default function TripPlannerPage() {
         <div className="relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl font-light">Smart Trip Planner</h1>
           <p className="mt-3 text-lg text-gray-600">
-            Build your route by days, interests, and budget
+            Build your route through Latvia based on your preferences
           </p>
         </div>
       </section>
@@ -139,7 +139,7 @@ export default function TripPlannerPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
                   <Wallet className="h-4 w-4" />
-                  Max budget (€, optional)
+                  Max budget (€)
                 </label>
                 <input
                   type="number"
@@ -158,7 +158,7 @@ export default function TripPlannerPage() {
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating…
+                    Generating...
                   </>
                 ) : (
                   <>
@@ -213,7 +213,7 @@ export default function TripPlannerPage() {
                 href="/itinerary"
                 className="inline-block mt-6 text-blue-600 hover:underline"
               >
-                Save and plan on map →
+                Save and plan in itinerary
               </Link>
             </div>
           )}

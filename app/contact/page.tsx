@@ -1,3 +1,5 @@
+"use client"
+
 import { Mail, MapPin, Phone } from "lucide-react"
 
 export default function Contact() {
@@ -6,7 +8,7 @@ export default function Contact() {
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Kontakts</h1>
+          <h1 className="text-5xl md:text-6xl font-light">Contact Us</h1>
         </div>
       </section>
 
@@ -15,34 +17,33 @@ export default function Contact() {
           <div className="max-w-4xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12">
               <div>
-                <h2 className="text-3xl font-light mb-6">Sazināties</h2>
+                <h2 className="text-3xl font-light mb-6">Get in touch</h2>
                 <p className="mb-8 text-gray-700">
-                  Jums ir jautājumi par ceļošanu Latvijā? Vēlaties rezervēt ekskursiju vai izveidot individuālu ceļojuma maršrutu? Mēs esam šeit,
- lai palīdzētu padarīt jūsu piedzīvojumu Latvijā neaizmirstamu.
+                  Have questions about planning your trip to Latvia? We&apos;d love to hear from you. Send us a message and we&apos;ll respond as soon as possible.
                 </p>
 
                 <div className="space-y-4 mb-8">
                   <div className="flex items-start text-gray-700">
                     <MapPin className="w-5 h-5 mr-3 mt-1 text-gray-600" />
                     <div>
-                      <h3 className="font-medium">Adrese</h3>
-                      <p className="text-gray-600">Kalēju iela 23, Riga, LV-1050, Latvia</p>
+                      <h3 className="font-medium">Address</h3>
+                      <p className="text-gray-600">Rīga, Latvia</p>
                     </div>
                   </div>
 
                   <div className="flex items-start text-gray-700">
                     <Phone className="w-5 h-5 mr-3 mt-1 text-gray-600" />
                     <div>
-                      <h3 className="font-medium">Tālrunis</h3>
-                      <p className="text-gray-600">+371 2345 6789</p>
+                      <h3 className="font-medium">Phone</h3>
+                      <p className="text-gray-600">+371 123 45678</p>
                     </div>
                   </div>
 
                   <div className="flex items-start text-gray-700">
                     <Mail className="w-5 h-5 mr-3 mt-1 text-gray-600" />
                     <div>
-                      <h3 className="font-medium">E-pasts</h3>
-                      <p className="text-gray-600">info@travellatvia.com</p>
+                      <h3 className="font-medium">Email</h3>
+                      <p className="text-gray-600">info@travelatvia.lv</p>
                     </div>
                   </div>
                 </div>
@@ -51,11 +52,11 @@ export default function Contact() {
               </div>
 
               <div>
-                <h2 className="text-3xl font-light mb-6">Sūtiet mums ziņu</h2>
+                <h2 className="text-3xl font-light mb-6">Send Us a Message</h2>
                 <form className="space-y-4">
                   <div>
                     <label htmlFor="name" className="block mb-2 text-sm font-medium">
-                      Jūsu vārds
+                      Your name
                     </label>
                     <input
                       type="text"
@@ -67,7 +68,7 @@ export default function Contact() {
 
                   <div>
                     <label htmlFor="email" className="block mb-2 text-sm font-medium">
-                      E-pasta adrese
+                      Email address
                     </label>
                     <input
                       type="email"
@@ -79,7 +80,7 @@ export default function Contact() {
 
                   <div>
                     <label htmlFor="subject" className="block mb-2 text-sm font-medium">
-                      Temats
+                      Subject
                     </label>
                     <input
                       type="text"
@@ -91,13 +92,13 @@ export default function Contact() {
 
                   <div>
                     <label htmlFor="message" className="block mb-2 text-sm font-medium">
-                      Ziņa
+                      Message
                     </label>
                     <textarea
                       id="message"
                       rows={5}
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                      placeholder="Tell us about your travel plans..."
+                      placeholder="Tell us about your trip plans..."
                     ></textarea>
                   </div>
 
@@ -105,7 +106,7 @@ export default function Contact() {
                     type="submit"
                     className="w-full py-3 px-4 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
                   >
-                    Sūtīt ziņu
+                    Send message
                   </button>
                 </form>
               </div>

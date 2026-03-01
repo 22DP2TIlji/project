@@ -5,24 +5,26 @@ import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useState, useRef, useEffect } from "react"
 
-const primaryLinks: Array<[string, string]> = [
-  ["/destinations", "Destinations"],
-  ["/trip-planner", "Trip Planner"],
-  ["/routes", "Public Routes"],
-]
-
-const planLinks: Array<[string, string]> = [
-  ["/itinerary", "Plan Trip"],
-  ["/quiz", "Where to go?"],
-  ["/compare", "Compare"],
-  ["/checklist", "Checklist"],
-]
-
-const exploreLinks: Array<[string, string]> = [
-  ["/events", "Events"],
-  ["/cuisine", "Cuisine"],
-  ["/weather", "Weather"],
-]
+function useHeaderLinks() {
+  return {
+    primaryLinks: [
+      ["/destinations", "Destinations"],
+      ["/trip-planner", "Trip Planner"],
+      ["/routes", "Public Routes"],
+    ] as Array<[string, string]>,
+    planLinks: [
+      ["/itinerary", "Plan Trip"],
+      ["/quiz", "Where to go?"],
+      ["/compare", "Compare"],
+      ["/checklist", "Checklist"],
+    ] as Array<[string, string]>,
+    exploreLinks: [
+      ["/events", "Events"],
+      ["/cuisine", "Cuisine"],
+      ["/weather", "Weather"],
+    ] as Array<[string, string]>,
+  }
+}
 
 function Dropdown({ label, links, pathname }: { label: string; links: Array<[string, string]>; pathname: string }) {
   const [open, setOpen] = useState(false)
@@ -64,7 +66,7 @@ function Dropdown({ label, links, pathname }: { label: string; links: Array<[str
               className={`block px-4 py-2 text-sm ${
                 pathname === href
                   ? "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/10"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  : "text-gray-700 dark:text-gray-300 hover:text-gray-100 dark:hover:bg-gray-700"
               }`}
             >
               {linkLabel}
@@ -95,12 +97,13 @@ function NavLink({ href, label, pathname }: { href: string; label: string; pathn
 export default function Header() {
   const { user, isAdmin } = useAuth()
   const pathname = usePathname() ?? ""
+  const { primaryLinks, planLinks, exploreLinks } = useHeaderLinks()
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/70 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/60 border-b border-gray-200/70 dark:border-gray-800 notranslate" translate="no">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center">
               <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">TravelLatvia</span>
             </Link>
@@ -160,5 +163,3 @@ export default function Header() {
     </header>
   )
 }
-
-

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import Link from "next/link"
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 
@@ -25,17 +25,17 @@ export default function SignupPage() {
     setError('')
 
     if (!name || !email || !password || !confirmPassword) {
-      setError('Lūdzu, aizpildiet visus laukus')
+      setError('Please fill in all fields')
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Paroles nesakrīt')
+      setError('Passwords do not match')
       return
     }
 
     if (password.length < 6) {
-      setError('Parolei jābūt vismaz 6 rakstzīmēm garai')
+      setError('Password must be at least 6 characters')
       return
     }
 
@@ -46,14 +46,14 @@ export default function SignupPage() {
     } else if (result.message) {
       setError(result.message)
     } else {
-      setError('E-pasts jau tiek izmantots')
+      setError('Email already in use')
     }
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
       <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-8 shadow-lg">
-        <h2 className="mb-6 text-center text-2xl font-light text-gray-900 dark:text-white">Izveidot kontu</h2>
+        <h2 className="mb-6 text-center text-2xl font-light text-gray-900 dark:text-white">Create an account</h2>
 
         {error && (
           <div className="mb-4 rounded-md bg-red-100 p-3 text-sm text-red-700">
@@ -64,7 +64,7 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Vārds
+              Name
             </label>
             <input
               type="text"
@@ -72,14 +72,14 @@ export default function SignupPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full rounded-md border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-              placeholder="Jānis Bērziņš"
+              placeholder="John Doe"
               required
             />
           </div>
 
           <div className="mb-4">
             <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              E-pasts
+              Email
             </label>
             <input
               type="email"
@@ -87,14 +87,14 @@ export default function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-md border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-              placeholder="Jusu.epasts@gmail.com"
+              placeholder="your@email.com"
               required
             />
           </div>
 
           <div className="mb-4">
             <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Parole
+              Password
             </label>
             <input
               type="password"
@@ -109,7 +109,7 @@ export default function SignupPage() {
 
           <div className="mb-6">
             <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Apstiprināt paroli
+              Confirm Password
             </label>
             <input
               type="password"
@@ -126,14 +126,14 @@ export default function SignupPage() {
             type="submit"
             className="w-full rounded-md bg-blue-600 py-3 px-4 text-white transition-colors hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
           >
-            Reģistrēties
+            Sign Up
           </button>
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-700 dark:text-gray-300">
-          Jau esat reģistrējies?{' '}
+          Already have an account?{' '}
           <Link href="/login" className="underline hover:text-blue-600 dark:hover:text-blue-400">
-            Pieslēgties
+            Log in
           </Link>
         </div>
       </div>

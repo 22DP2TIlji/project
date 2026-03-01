@@ -1,17 +1,10 @@
-﻿"use client"
+"use client"
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useAuth } from "@/lib/auth-context"
 import LikeButton from "@/components/like-button"
 import RandomPlace from "@/components/random-place"
-
-const home = {
-  title: "Discover Latvia",
-  subtitle: "Plan your perfect trip through Latvia",
-  helpOrganize: "We help you organize your journey",
-  exploreDestinations: "Explore destinations",
-}
 
 type Destination = {
   id: number | string
@@ -79,11 +72,9 @@ export default function Home() {
       <section className="relative h-[70vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200" />
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light mb-4" translate="no">
-            {home.title}
-          </h1>
-          <p className="text-xl md:text-2xl font-light mb-8" suppressHydrationWarning translate="no">
-            {home.subtitle}
+          <h1 className="text-5xl md:text-6xl font-light mb-4">Discover Latvia</h1>
+          <p className="text-xl md:text-2xl font-light mb-8">
+            Plan your perfect trip through Latvia
           </p>
         </div>
       </section>
@@ -94,13 +85,13 @@ export default function Home() {
             <div className="md:col-span-2">
               <div className="border border-gray-200 p-8 md:p-12 rounded-md text-center">
                 <h2 className="text-3xl font-light mb-4">
-                  {home.helpOrganize}
+                  We help you organize your journey
                 </h2>
                 <Link
                   href="/destinations"
                   className="inline-block mt-6 px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
-                  {home.exploreDestinations}
+                  Explore destinations
                 </Link>
               </div>
             </div>

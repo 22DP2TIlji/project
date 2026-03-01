@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Check, Plus, X, Trash2 } from "lucide-react"
+import { Check, Plus, Trash2 } from "lucide-react"
 
 interface ChecklistItem {
   id: string
@@ -10,17 +10,31 @@ interface ChecklistItem {
   category: string
 }
 
-const defaultItems: ChecklistItem[] = [
-  { id: "1", text: "Rezervēt naktsmītni", completed: false, category: "Naktsmītnes" },
-  { id: "2", text: "Pārbaudīt laikapstākļu prognozi", completed: false, category: "Plānošana" },
-  { id: "3", text: "Iepakot pasi / ID karti", completed: false, category: "Dokumenti" },
-  { id: "4", text: "Rezervēt transportu", completed: false, category: "Transports" },
-  { id: "5", text: "Lejupielādēt bezsaistes kartes", completed: false, category: "Plānošana" },
-  { id: "6", text: "Informēt ģimeni / draugus", completed: false, category: "Drošība" },
-  { id: "7", text: "Iepakot lādētāju un adapteri", completed: false, category: "Elektronika" },
-  { id: "8", text: "Noformēt ceļojuma apdrošināšanu", completed: false, category: "Dokumenti" },
+const DEFAULT_ITEM_KEYS = [
+  { id: "1", key: "bookAccommodation", category: "Accommodation" },
+  { id: "2", key: "checkWeather", category: "Planning" },
+  { id: "3", key: "packPassport", category: "Documents" },
+  { id: "4", key: "bookTransport", category: "Transportation" },
+  { id: "5", key: "downloadMaps", category: "Planning" },
+  { id: "6", key: "informFamily", category: "Safety" },
+  { id: "7", key: "packCharger", category: "Electronics" },
+  { id: "8", key: "getInsurance", category: "Documents" },
 ]
 
+const ITEM_LABELS: Record<string, string> = {
+  bookAccommodation: "Book accommodation",
+  checkWeather: "Check weather forecast",
+  packPassport: "Pack passport",
+  bookTransport: "Book transport",
+  downloadMaps: "Download offline maps",
+  informFamily: "Inform family of itinerary",
+  packCharger: "Pack phone charger",
+  getInsurance: "Get travel insurance",
+}
+
+function getItemLabel(text: string): string {
+  return ITEM_LABELS[text] ?? text
+}
 
 export default function ChecklistPage() {
   const [items, setItems] = useState<ChecklistItem[]>([])
@@ -34,10 +48,20 @@ export default function ChecklistPage() {
       try {
         setItems(JSON.parse(saved))
       } catch {
-        setItems(defaultItems)
+        setItems(DEFAULT_ITEM_KEYS.map(({ id, key, category }) => ({
+          id,
+          text: key,
+          completed: false,
+          category,
+        })))
       }
     } else {
-      setItems(defaultItems)
+      setItems(DEFAULT_ITEM_KEYS.map(({ id, key, category }) => ({
+        id,
+        text: key,
+        completed: false,
+        category,
+      })))
     }
   }, [])
 
@@ -84,8 +108,8 @@ export default function ChecklistPage() {
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Ceļojuma pārbaudes saraksts</h1>
-          <p className="mt-4 text-xl">Sagatavojieties ceļojumam</p>
+          <h1 className="text-5xl md:text-6xl font-light">Travel Checklist</h1>
+          <p className="mt-4 text-xl">Stay organized before your trip to Latvia</p>
         </div>
       </section>
 
@@ -105,19 +129,19 @@ export default function ChecklistPage() {
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
-            <p className="text-sm text-gray-600 mt-2">{progress}% pabeigts</p>
+            <p className="text-sm text-gray-600 mt-2">{progress}% complete</p>
           </div>
 
           {/* Add new item */}
           <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
-            <h2 className="text-xl font-light mb-4">Pievieno jaunu punktu sarakstam</h2>
+            <h2 className="text-xl font-light mb-4">Add new item</h2>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={newItemText}
                 onChange={(e) => setNewItemText(e.target.value)}
-                onKeyPress={(e) => e.key === "Ievādiet" && addItem()}
-                placeholder="Ievadiet pārbaudes saraksta punktu..."
+                onKeyPress={(e) => e.key === "Enter" && addItem()}
+                placeholder="Enter item..."
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <select
@@ -125,7 +149,7 @@ export default function ChecklistPage() {
                 onChange={(e) => setNewItemCategory(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="Custom">Pielāgot</option>
+                <option value="Custom">Custom</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
@@ -137,7 +161,7 @@ export default function ChecklistPage() {
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
               >
                 <Plus className="h-5 w-5" />
-                Pievienot
+                Add
               </button>
             </div>
           </div>
@@ -153,7 +177,7 @@ export default function ChecklistPage() {
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >
-                Viss
+                All
               </button>
               {categories.map((cat) => (
                 <button
@@ -173,7 +197,7 @@ export default function ChecklistPage() {
 
           {/* Checklist items */}
           <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-            <h2 className="text-xl font-light mb-4">Pārbaudes punktu saraksts</h2>
+            <h2 className="text-xl font-light mb-4">Checklist items</h2>
             {filteredItems.length > 0 ? (
               <div className="space-y-2">
                 {filteredItems.map((item) => (
@@ -200,7 +224,7 @@ export default function ChecklistPage() {
                         item.completed ? "line-through text-gray-500" : "text-gray-900"
                       }`}
                     >
-                      {item.text}
+                      {getItemLabel(item.text)}
                     </span>
                     <span className="text-xs px-2 py-1 bg-gray-100 rounded text-gray-600">
                       {item.category}
@@ -215,7 +239,7 @@ export default function ChecklistPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-600 text-center py-8">Šajā kategorijā nav pārbaudes punktu</p>
+              <p className="text-gray-600 text-center py-8">No items in this category</p>
             )}
           </div>
         </div>

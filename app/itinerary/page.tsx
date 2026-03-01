@@ -6,13 +6,17 @@ import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Search, Clock, Navigation, MapPin, Download, Hotel, Calendar, X, Calendar as CalendarIcon, Printer, Share2, FileText } from "lucide-react"
 
-const ItineraryMap = dynamic(() => import("@/components/itinerary-map"), {
-  ssr: false,
-  loading: () => (
+function ItineraryMapLoadingPlaceholder() {
+  return (
     <div className="h-[600px] w-full flex items-center justify-center bg-gray-100 rounded-md">
       <p className="text-gray-600">Loading map...</p>
     </div>
-  ),
+  )
+}
+
+const ItineraryMap = dynamic(() => import("@/components/itinerary-map"), {
+  ssr: false,
+  loading: () => <ItineraryMapLoadingPlaceholder />,
 })
 
 const popularDestinations = [
@@ -197,7 +201,7 @@ export default function ItineraryPage() {
       }
   
       if (!start || !end) {
-        alert("Please select valid start and end points")
+        alert("Please select valid start and end points.")
         return
       }
   
@@ -247,7 +251,7 @@ export default function ItineraryPage() {
       setShowNearby(true)
     } catch (error) {
       console.error("Error calculating route:", error)
-      alert("An error occurred while calculating the route. Please try again.")
+      alert("Failed to calculate route.")
     }
   }
   
@@ -305,13 +309,13 @@ export default function ItineraryPage() {
               window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
             }
           } else {
-            const msg = data?.message || `Failed to save route (${response.status})`
+            const msg = data?.message || "Failed to save itinerary."
             alert(msg)
             return
           }
         } catch (error) {
           console.error("Error saving itinerary to database:", error)
-          alert("Could not save route. Check your connection.")
+          alert("Failed to save itinerary.")
           return
         }
       } else {
@@ -332,7 +336,7 @@ export default function ItineraryPage() {
       alert("Itinerary saved successfully!")
     } catch (error) {
       console.error("Error saving itinerary:", error)
-      alert("An error occurred while saving the itinerary. Please try again.")
+      alert("Error saving itinerary.")
     }
   }
 
@@ -386,12 +390,12 @@ export default function ItineraryPage() {
         link.click()
         URL.revokeObjectURL(url)
       } else {
-        alert('Failed to export to iCal format')
+        alert("Failed to export to iCal.")
       }
-    } catch (error) {
-      console.error('Error exporting to iCal:', error)
-      alert('An error occurred while exporting')
-    }
+} catch (error) {
+    console.error('Error exporting to iCal:', error)
+    alert("Export failed.")
+  }
   }
 
   const printRoute = () => {
@@ -463,7 +467,7 @@ export default function ItineraryPage() {
 
     const text = `Route: ${route.startPoint} to ${route.endPoint}\nDistance: ${route.distance} km\nTime: ${Math.floor(route.time)} hours\n\nView on TravelLatvia: ${window.location.href}`
     navigator.clipboard.writeText(text).then(() => {
-      alert('Route link copied to clipboard!')
+      alert("Route copied to clipboard.")
     })
   }
 
@@ -491,7 +495,7 @@ export default function ItineraryPage() {
             it.id === itinerary.id ? { ...it, isPublic: !!itinerary.isPublic } : it
           )
         )
-        alert(data.message || "Failed to update")
+        alert(data.message || "Failed to update.")
       }
       if (data.success && typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
@@ -502,7 +506,7 @@ export default function ItineraryPage() {
           it.id === itinerary.id ? { ...it, isPublic: !!itinerary.isPublic } : it
         )
       )
-      alert("Failed to update")
+      alert("Failed to update.")
     }
   }
 
@@ -540,7 +544,7 @@ export default function ItineraryPage() {
       }
     } catch (error) {
       console.error("Error deleting itinerary:", error)
-      alert("An error occurred while deleting the itinerary. Please try again.")
+      alert("Failed to delete itinerary.")
     }
   }
 
@@ -560,13 +564,13 @@ export default function ItineraryPage() {
   const getPlaceTypeLabel = (type: string) => {
     switch (type) {
       case 'destination':
-        return 'Destination'
+        return "Destination"
       case 'accommodation':
-        return 'Accommodation'
+        return "Accommodation"
       case 'event':
-        return 'Event'
+        return "Event"
       default:
-        return 'Place'
+        return "Place"
     }
   }
 
@@ -575,8 +579,8 @@ export default function ItineraryPage() {
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Plan Your Itinerary</h1>
-          <p className="mt-4 text-xl">Create your perfect route through Latvia</p>
+          <h1 className="text-5xl md:text-6xl font-light">Itinerary</h1>
+          <p className="mt-4 text-xl">Plan and save your routes through Latvia</p>
         </div>
       </section>
 
@@ -589,7 +593,7 @@ export default function ItineraryPage() {
 
                 <div className="mb-4">
                   <label htmlFor="startPoint" className="block mb-2 text-sm font-medium">
-                    Starting Point
+                    Starting point
                   </label>
                   <select
                     id="startPoint"
@@ -597,7 +601,7 @@ export default function ItineraryPage() {
                     onChange={(e) => setStartPoint(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                   >
-                    <option value="">Select starting point</option>
+                    <option value="">Select start point</option>
                     {popularDestinations.map((dest) => (
                       <option key={`start-${dest.id}`} value={dest.id}>
                         {dest.name}
@@ -610,7 +614,7 @@ export default function ItineraryPage() {
                 {startPoint === "custom" && (
                   <div className="mb-4">
                     <label htmlFor="customStartPoint" className="block mb-2 text-sm font-medium">
-                      Custom Starting Point (lat, lng)
+                      Custom start coordinates (lat, lng)
                     </label>
                     <input
                       type="text"
@@ -646,7 +650,7 @@ export default function ItineraryPage() {
                 {endPoint === "custom" && (
                   <div className="mb-4">
                     <label htmlFor="customEndPoint" className="block mb-2 text-sm font-medium">
-                      Custom Destination (lat, lng)
+                      Custom end coordinates (lat, lng)
                     </label>
                     <input
                       type="text"
@@ -665,28 +669,28 @@ export default function ItineraryPage() {
                   disabled={!startPoint || !endPoint}
                 >
                   <Search className="w-4 h-4 mr-2" />
-                  Calculate Route
+                  Calculate route
                 </button>
 
                 {route && (
                   <div className="mt-6 p-4 bg-gray-50 rounded-md border border-gray-200">
-                    <h3 className="font-medium mb-2 text-gray-800">Route Details</h3>
+                    <h3 className="font-medium mb-2 text-gray-800">Route details</h3>
                     <p className="text-sm mb-1">
-                      <strong>From:</strong> {route.startPoint}
+                      <strong>From</strong> {route.startPoint}
                     </p>
                     <p className="text-sm mb-1">
-                      <strong>To:</strong> {route.endPoint}
+                      <strong>To</strong> {route.endPoint}
                     </p>
                     <div className="flex items-center text-sm mb-1">
                       <Navigation className="w-4 h-4 mr-1" />
                       <span>
-                        <strong>Distance:</strong> {route.distance} km
+                        <strong>Distance</strong> {route.distance} km
                       </span>
                     </div>
                     <div className="flex items-center text-sm mb-3">
                       <Clock className="w-4 h-4 mr-1" />
                       <span>
-                        <strong>Est. Time:</strong> {Math.floor(route.time)} hours {Math.round((route.time % 1) * 60)}{" "}
+                        <strong>Est. time</strong> {Math.floor(route.time)} hours {Math.round((route.time % 1) * 60)}{" "}
                         minutes
                       </span>
                     </div>
@@ -698,36 +702,15 @@ export default function ItineraryPage() {
                         >
                           Save
                         </button>
-                        <button
-                          onClick={exportItinerary}
-                          className="flex-1 py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <Download className="h-4 w-4" />
-                          JSON
-                        </button>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={exportToICal}
-                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <CalendarIcon className="h-4 w-4" />
-                          iCal
-                        </button>
-                        <button
-                          onClick={printRoute}
-                          className="py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <Printer className="h-4 w-4" />
-                          Print
-                        </button>
                       </div>
                       <button
                         onClick={shareRoute}
                         className="w-full py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
                       >
                         <Share2 className="h-4 w-4" />
-                        Share Route
+                        Share route
                       </button>
                     </div>
                     <div className="mt-4 flex items-center gap-2">
@@ -739,7 +722,7 @@ export default function ItineraryPage() {
                         className="rounded border-gray-300"
                       />
                       <label htmlFor="isPublic" className="text-sm text-gray-700">
-                        Share publicly (others can clone this route)
+                        Share publicly
                       </label>
                     </div>
                     <div className="mt-4 grid grid-cols-2 gap-2">
@@ -782,7 +765,7 @@ export default function ItineraryPage() {
                     </div>
                     <div className="mt-4">
                       <label className="block mb-2 text-sm font-medium text-gray-800">
-                        Start Date (for calendar export)
+                        Start date
                       </label>
                       <input
                         type="date"
@@ -798,7 +781,7 @@ export default function ItineraryPage() {
                       <textarea
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Add notes about this route..."
+                        placeholder="Add notes about your trip..."
                         rows={3}
                         className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 resize-none"
                       />
@@ -809,7 +792,7 @@ export default function ItineraryPage() {
                 {route && (
                   <div className="mt-4 p-4 bg-blue-50 rounded-md border border-blue-200">
                     <label className="block mb-2 text-sm font-medium text-gray-800">
-                      Search radius for nearby places (km)
+                      Search radius (km)
                     </label>
                     <input
                       type="number"
@@ -820,7 +803,7 @@ export default function ItineraryPage() {
                       className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <p className="text-xs text-gray-600 mt-1">
-                      Places within {searchRadius} km from your route will be shown
+                      Places within {searchRadius} km of route
                     </p>
                   </div>
                 )}
@@ -828,7 +811,7 @@ export default function ItineraryPage() {
 
               {isClient && savedItineraries.length > 0 && (
                 <div className="mt-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                  <h2 className="text-2xl font-light mb-4 text-gray-800">Saved Itineraries</h2>
+                  <h2 className="text-2xl font-light mb-4 text-gray-800">Saved itineraries</h2>
                   <div className="space-y-3">
                     {savedItineraries.map((itinerary) => (
                       <div key={itinerary.id} className="p-3 border border-gray-200 rounded-md bg-gray-50">
@@ -859,7 +842,7 @@ export default function ItineraryPage() {
                           {Math.round((itinerary.time % 1) * 60)} minutes
                         </p>
                         {itinerary.isPublic && (
-                          <p className="text-xs text-green-600 mt-1">Published — visible on Public Routes</p>
+                          <p className="text-xs text-green-600 mt-1">Published</p>
                         )}
                       </div>
                     ))}
@@ -881,7 +864,7 @@ export default function ItineraryPage() {
                 <div className="mt-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-light text-gray-800">
-                      Places Near Your Route ({nearbyPlaces.length})
+                      Places near route ({nearbyPlaces.length})
                     </h2>
                     <button
                       onClick={() => setShowNearby(false)}
@@ -934,7 +917,7 @@ export default function ItineraryPage() {
                                 href={`/destination/${place.id}`}
                                 className="ml-4 text-sm text-blue-600 hover:underline"
                               >
-                                View →
+                                View
                               </Link>
                             )}
                           </div>
@@ -942,7 +925,7 @@ export default function ItineraryPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-600">No places found within {searchRadius} km of your route.</p>
+                    <p className="text-gray-600">No places found within {searchRadius} km</p>
                   )}
                 </div>
               )}

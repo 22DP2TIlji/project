@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Shuffle } from "lucide-react"
 
+
 type Place = {
   id: number
   name: string
@@ -46,7 +47,7 @@ export default function RandomPlace() {
           <Shuffle className="h-4 w-4" />
         </button>
       </div>
-      {loading && <p className="text-sm text-gray-500">Loading…</p>}
+      {loading && <p className="text-sm text-gray-500">Loading...</p>}
       {!loading && place && (
         <div>
           <Link
