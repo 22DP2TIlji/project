@@ -117,16 +117,17 @@ export default function ProfilePage() {
         })
         const data = await res.json()
         if (!res.ok || !data.success) {
-          setSavedItineraries(savedItineraries)
-          alert(data.message || 'Failed to delete route.')
-          return
+          const isNotFound = data.message?.includes('not found') || data.message?.includes('access denied')
+          if (isNotFound) {
+            localStorage.setItem('savedItineraries', JSON.stringify(updated))
+          } else {
+            setSavedItineraries(savedItineraries)
+            alert(data.message || 'Failed to delete route.')
+            return
+          }
         }
-      } else {
-        localStorage.setItem('savedItineraries', JSON.stringify(updated))
       }
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('savedItinerariesUpdated'))
-      }
+      localStorage.setItem('savedItineraries', JSON.stringify(updated))
     } catch (e) {
       setSavedItineraries(savedItineraries)
       alert('Failed to delete route.')
