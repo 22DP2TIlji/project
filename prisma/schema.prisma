@@ -8,58 +8,57 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(50)
-  email     String   @unique @db.VarChar(100)
-  password  String   @db.VarChar(255)
-  role      Role     @default(user)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
+  id                Int                    @id @default(autoincrement())
+  name              String                 @db.VarChar(50)
+  email             String                 @unique @db.VarChar(100)
+  password          String                 @db.VarChar(255)
+  role              Role                   @default(user)
+  createdAt         DateTime               @default(now()) @map("created_at")
+  updatedAt         DateTime               @updatedAt @map("updated_at")
   reviews           Review[]
+  routeComments     RouteComment[]
+  routeLikes        RouteLike[]
   routes            Route[]
   likedDestinations UserLikedDestination[]
-  routeLikes        RouteLike[]
-  routeComments     RouteComment[]
 
   @@map("users")
 }
 
 model Destination {
-  id                   Int      @id @default(autoincrement())
-  name                 String   @db.VarChar(100)
-  latitude             Decimal? @db.Decimal(10, 8)
-  longitude            Decimal? @db.Decimal(11, 8)
-  country              String?  @db.VarChar(50)
-  city                 String?  @db.VarChar(50)
-  description          String   @db.Text
-  category             String?  @db.VarChar(50)
-  region               String?  @db.VarChar(50)
-  averageCost          Decimal? @db.Decimal(10, 2) @map("average_cost")
-  averageVisitMinutes  Int?     @map("average_visit_minutes")
-  rating               Decimal? @db.Decimal(3, 2)
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
-
-  likedByUsers UserLikedDestination[]
-  weatherData  WeatherData[]
+  id                  Int                    @id @default(autoincrement())
+  name                String                 @db.VarChar(100)
+  latitude            Decimal?               @db.Decimal(10, 8)
+  longitude           Decimal?               @db.Decimal(11, 8)
+  country             String?                @db.VarChar(50)
+  city                String?                @db.VarChar(50)
+  description         String                 @db.Text
+  category            String?                @db.VarChar(50)
+  region              String?                @db.VarChar(50)
+  imageUrl             String?  @map("image_url") @db.LongText
+  createdAt           DateTime               @default(now()) @map("created_at")
+  updatedAt           DateTime               @updatedAt @map("updated_at")
+  averageCost         Decimal?               @map("average_cost") @db.Decimal(10, 2)
+  averageVisitMinutes Int?                   @map("average_visit_minutes")
+  rating              Decimal?               @db.Decimal(3, 2)
+  likedByUsers        UserLikedDestination[]
+  weatherData         WeatherData[]
 
   @@map("destinations")
 }
 
 model Accommodation {
-  id           Int      @id @default(autoincrement())
-  name         String   @db.VarChar(100)
-  description  String?  @db.Text
-  address      String   @db.VarChar(255)
-  latitude     Decimal  @db.Decimal(10, 8)
-  longitude    Decimal  @db.Decimal(11, 8)
-  category     String   @db.VarChar(50)
-  priceRange   String?  @db.VarChar(50) @map("price_range")
-  contactInfo  String?  @db.Text @map("contact_info")
-  images       String?  @db.Text
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  address     String   @db.VarChar(255)
+  latitude    Decimal  @db.Decimal(10, 8)
+  longitude   Decimal  @db.Decimal(11, 8)
+  category    String   @db.VarChar(50)
+  priceRange  String?  @map("price_range") @db.VarChar(50)
+  contactInfo String?  @map("contact_info") @db.Text
+  images      String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("accommodations")
 }
@@ -83,50 +82,50 @@ model Event {
 }
 
 model Review {
-  id         Int           @id @default(autoincrement())
-  userId     Int          @map("user_id")
-  objectId   Int          @map("object_id")
+  id         Int        @id @default(autoincrement())
+  userId     Int        @map("user_id")
+  objectId   Int        @map("object_id")
   objectType ObjectType
   rating     Int
-  comment    String?      @db.Text
-  createdAt  DateTime     @default(now()) @map("created_at")
-  updatedAt  DateTime     @updatedAt @map("updated_at")
+  comment    String?    @db.Text
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  user       User       @relation(fields: [userId], references: [id])
 
-  user       User         @relation(fields: [userId], references: [id])
-
+  @@index([userId], map: "reviews_user_id_fkey")
   @@map("reviews")
 }
 
 model Route {
-  id          Int           @id @default(autoincrement())
-  userId      Int          @map("user_id")
-  name        String       @db.VarChar(100)
-  description String?      @db.Text
-  startLat    Decimal?     @db.Decimal(10, 8) @map("start_lat")
-  startLng    Decimal?     @db.Decimal(11, 8) @map("start_lng")
-  endLat      Decimal?     @db.Decimal(10, 8) @map("end_lat")
-  endLng      Decimal?     @db.Decimal(11, 8) @map("end_lng")
-  isPublic    Boolean      @default(false) @map("is_public")
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  id          Int            @id @default(autoincrement())
+  userId      Int            @map("user_id")
+  name        String         @db.VarChar(100)
+  description String?        @db.Text
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  startLat Decimal? @db.Decimal(10, 8) @map("start_lat")
+startLng Decimal? @db.Decimal(11, 8) @map("start_lng")
+endLat   Decimal? @db.Decimal(10, 8) @map("end_lat")
+endLng   Decimal? @db.Decimal(11, 8) @map("end_lng")
+isPublic Boolean  @default(false) @map("is_public")
+  comments    RouteComment[]
+  likes       RouteLike[]
+  points      RoutePoint[]
+  user        User           @relation(fields: [userId], references: [id])
+  tripBudget  TripBudget?
 
-  user       User           @relation(fields: [userId], references: [id])
-  points     RoutePoint[]
-  likes      RouteLike[]
-  comments   RouteComment[]
-  tripBudget TripBudget?
-
+  @@index([userId], map: "routes_user_id_fkey")
   @@map("routes")
 }
 
 model RouteLike {
-  userId   Int
-  routeId  Int   @map("route_id")
-
-  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  route    Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  userId  Int
+  routeId Int   @map("route_id")
+  route   Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, routeId])
+  @@index([routeId], map: "route_likes_route_id_fkey")
   @@map("route_likes")
 }
 
@@ -136,54 +135,54 @@ model RouteComment {
   routeId   Int      @map("route_id")
   text      String   @db.Text
   createdAt DateTime @default(now()) @map("created_at")
+  route     Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  route  Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
-
+  @@index([routeId], map: "route_comments_route_id_fkey")
+  @@index([userId], map: "route_comments_user_id_fkey")
   @@map("route_comments")
 }
 
 model TripBudget {
-  id             Int      @id @default(autoincrement())
-  routeId        Int      @unique @map("route_id")
-  transport      Decimal  @db.Decimal(10, 2)
-  accommodation  Decimal  @db.Decimal(10, 2)
-  food           Decimal  @db.Decimal(10, 2)
-  entertainment  Decimal  @db.Decimal(10, 2)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  route  Route  @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  id            Int      @id @default(autoincrement())
+  routeId       Int      @unique @map("route_id")
+  transport     Decimal  @db.Decimal(10, 2)
+  accommodation Decimal  @db.Decimal(10, 2)
+  food          Decimal  @db.Decimal(10, 2)
+  entertainment Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  route         Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
 
   @@map("trip_budgets")
 }
 
 model RoutePoint {
-  id         Int           @id @default(autoincrement())
-  routeId    Int          @map("route_id")
-  objectId   Int          @map("object_id")
+  id         Int        @id @default(autoincrement())
+  routeId    Int        @map("route_id")
+  objectId   Int        @map("object_id")
   objectType ObjectType
   sequence   Int
-  createdAt  DateTime     @default(now()) @map("created_at")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  route      Route      @relation(fields: [routeId], references: [id], onDelete: Cascade)
 
-  route      Route        @relation(fields: [routeId], references: [id], onDelete: Cascade)
-
+  @@index([routeId], map: "route_points_route_id_fkey")
   @@map("route_points")
 }
 
 model TouristAttraction {
-  id            Int      @id @default(autoincrement())
-  name          String   @db.VarChar(100)
-  description   String?  @db.Text
-  address       String   @db.VarChar(255)
-  latitude      Decimal  @db.Decimal(10, 8)
-  longitude     Decimal  @db.Decimal(11, 8)
-  category      String   @db.VarChar(50)
-  workingHours  String?  @db.Text @map("working_hours")
-  contactInfo   String?  @db.Text @map("contact_info")
-  images        String?  @db.Text
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(100)
+  description  String?  @db.Text
+  address      String   @db.VarChar(255)
+  latitude     Decimal  @db.Decimal(10, 8)
+  longitude    Decimal  @db.Decimal(11, 8)
+  category     String   @db.VarChar(50)
+  workingHours String?  @map("working_hours") @db.Text
+  contactInfo  String?  @map("contact_info") @db.Text
+  images       String?  @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   @@map("tourist_attractions")
 }
@@ -191,28 +190,28 @@ model TouristAttraction {
 model UserLikedDestination {
   userId        Int
   destinationId Int
-
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, destinationId])
+  @@index([destinationId], map: "user_liked_destinations_destinationId_fkey")
   @@map("user_liked_destinations")
 }
 
 model WeatherData {
-  id            Int      @id @default(autoincrement())
-  locationId    Int      @map("location_id")
-  timestamp     DateTime @default(now()) @updatedAt
-  temperature   Decimal  @db.Decimal(5, 2)
-  humidity      Decimal? @db.Decimal(5, 2)
-  windSpeed     Decimal? @db.Decimal(5, 2) @map("wind_speed")
-  windDirection Int?     @map("wind_direction")
-  pressure      Decimal? @db.Decimal(6, 2)
-  precipitation Decimal? @db.Decimal(5, 2)
-  createdAt     DateTime @default(now()) @map("created_at")
-
+  id            Int         @id @default(autoincrement())
+  locationId    Int         @map("location_id")
+  timestamp     DateTime    @default(now()) @updatedAt
+  temperature   Decimal     @db.Decimal(5, 2)
+  humidity      Decimal?    @db.Decimal(5, 2)
+  windSpeed     Decimal?    @map("wind_speed") @db.Decimal(5, 2)
+  windDirection Int?        @map("wind_direction")
+  pressure      Decimal?    @db.Decimal(6, 2)
+  precipitation Decimal?    @db.Decimal(5, 2)
+  createdAt     DateTime    @default(now()) @map("created_at")
   location      Destination @relation(fields: [locationId], references: [id])
 
+  @@index([locationId], map: "weather_data_location_id_fkey")
   @@map("weather_data")
 }
 
@@ -225,4 +224,4 @@ enum ObjectType {
   attraction
   event
   accommodation
-} 
+}

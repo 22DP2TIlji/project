@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { normalizeDestinationImageUrl } from '../../destination-images'
 
 type RouteParams = { params: { id: string } }
 
-// Update a single destination by id
 export async function PUT(request: Request, { params }: RouteParams) {
   const rawId = params.id
   const destinationId = Number.parseInt(rawId, 10)
@@ -21,7 +21,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     description?: string
     category?: string | null
     region?: string | null
-    imageUrl?: string | null
+    imageUrl?: string | string[] | null
   }
 
   if (!name || !description) {
@@ -32,18 +32,32 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 
   try {
-    await prisma.destination.update({
+    const updatedDestination = await prisma.destination.update({
       where: { id: destinationId },
       data: {
-        name,
-        description,
-        category: category || null,
-        region: region || null,
-        // imageUrl пока не сохраняем в БД, потому что в схеме Destination нет поля image_url
+        name: name.trim(),
+        description: description.trim(),
+        category: category?.trim() || null,
+        region: region?.trim() || null,
+        imageUrl: normalizeDestinationImageUrl(imageUrl),
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        category: true,
+        region: true,
+        imageUrl: true,
       },
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({
+      success: true,
+      destination: {
+        ...updatedDestination,
+        image_url: updatedDestination.imageUrl,
+      },
+    })
   } catch (err) {
     console.error('Error in PUT /api/admin/destinations/[id]:', err)
     return NextResponse.json(
@@ -53,7 +67,6 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 }
 
-// Delete a single destination by id
 export async function DELETE(_: Request, { params }: RouteParams) {
   const rawId = params.id
   const destinationId = Number.parseInt(rawId, 10)
@@ -66,7 +79,6 @@ export async function DELETE(_: Request, { params }: RouteParams) {
   }
 
   try {
-    // Удаляем связанные данные, чтобы не было ошибок внешних ключей
     await prisma.$transaction([
       prisma.userLikedDestination.deleteMany({
         where: { destinationId },
