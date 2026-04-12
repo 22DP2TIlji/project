@@ -146,10 +146,23 @@ if (linePoints) {
               )
           })
 
-          const bounds = [route.startCoords, route.endCoords, ...places.map((p: any) => [Number(p.latitude), Number(p.longitude)])]
-          map.fitBounds(bounds as any, {
-            padding: [50, 50],
+          const bounds: [number, number][] = []
+          if (route?.geometry?.type === "LineString" && Array.isArray(route.geometry.coordinates)) {
+            route.geometry.coordinates.forEach((c: [number, number]) => {
+              bounds.push([c[1], c[0]])
+            })
+          } else {
+            bounds.push(route.startCoords as [number, number], route.endCoords as [number, number])
+          }
+          destinations.forEach((d) => {
+            bounds.push(d.coordinates as [number, number])
           })
+          places.forEach((p: any) => {
+            bounds.push([Number(p.latitude), Number(p.longitude)])
+          })
+          if (bounds.length > 0) {
+            map.fitBounds(bounds as any, { padding: [50, 50] })
+          }
         } else {
           // Если нет маршрута, показываем все destinations
           if (destinations.length > 0) {

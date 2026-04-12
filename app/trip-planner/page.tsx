@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { MapPin, Calendar, Wallet, Heart, Loader2 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { MapPin, Calendar, Wallet, Heart, Loader2, Save } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 
 const CITIES = [
   { id: "riga", name: "Rīga" },
@@ -25,11 +27,15 @@ const CATEGORIES = [
 ]
 
 export default function TripPlannerPage() {
+  const { user, isAuthenticated } = useAuth()
+  const router = useRouter()
+  const [tripName, setTripName] = useState("")
   const [days, setDays] = useState(2)
   const [interests, setInterests] = useState<string[]>([])
   const [budget, setBudget] = useState("")
   const [startCity, setStartCity] = useState("riga")
   const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [trip, setTrip] = useState<any>(null)
 
   const toggleInterest = (id: string) => {
@@ -63,6 +69,46 @@ export default function TripPlannerPage() {
       alert("Failed to generate trip plan.")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const saveTrip = async () => {
+    if (!trip) return
+    if (!isAuthenticated || !user?.id || user.id === "admin") {
+      alert("Please log in to save your trip.")
+      router.push("/login")
+      return
+    }
+    const name = tripName.trim()
+    if (!name) {
+      alert("Please enter a name for your trip.")
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch("/api/trip-planner/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          tripName: name,
+          trip,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        alert(data.message || "Could not save trip.")
+        return
+      }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
+      }
+      router.push(`/itinerary?route=${data.routeId}`)
+    } catch (e) {
+      console.error(e)
+      alert("Could not save trip.")
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -173,6 +219,18 @@ export default function TripPlannerPage() {
           {trip && (
             <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
               <h2 className="text-xl font-light mb-4">Your route</h2>
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Trip name (saved to your profile)
+                </label>
+                <input
+                  type="text"
+                  value={tripName}
+                  onChange={(e) => setTripName(e.target.value)}
+                  placeholder="e.g. Weekend in Kurzeme"
+                  className="w-full max-w-md p-2 border border-gray-300 rounded-md"
+                />
+              </div>
               <div className="flex flex-wrap gap-4 mb-6 text-sm text-gray-600">
                 <span>{trip.totalPlaces} places</span>
                 <span>~{trip.totalDistance} km</span>
@@ -209,12 +267,24 @@ export default function TripPlannerPage() {
                   </div>
                 ))}
               </div>
-              <Link
-                href="/itinerary"
-                className="inline-block mt-6 text-blue-600 hover:underline"
-              >
-                Save and plan in itinerary
-              </Link>
+              <div className="mt-6 flex flex-wrap items-center gap-4">
+                <button
+                  type="button"
+                  onClick={saveTrip}
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  Save trip and open on map
+                </button>
+                <Link href="/itinerary" className="text-sm text-gray-600 hover:text-blue-600 underline">
+                  Open itinerary planner only
+                </Link>
+              </div>
             </div>
           )}
         </div>

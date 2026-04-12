@@ -6,7 +6,7 @@ import { Search, MapPin, Filter, Navigation } from 'lucide-react'
 import LikeButton from "@/components/like-button"
 
 const categories = ["all", "city", "nature", "beach", "palace"]
-const regions = ["all", "central", "western", "southern", "eastern"]
+const regions = ["all", "Vidzeme", "Zemgale", "Latgale", "Kurzeme"]
 
 export default function DestinationsPage() {
   const [destinations, setDestinations] = useState<any[]>([])

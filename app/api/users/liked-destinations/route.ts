@@ -1,16 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromId } from '@/lib/auth-utils';
 
-// GET /api/users/liked-destinations - Get liked destinations for the current user
-export async function GET(request: Request) {
-  console.log('Received GET request for liked destinations');
+// GET /api/users/liked-destinations?userId=123
+export async function GET(request: NextRequest) {
   try {
-    // Get user ID from request body (as per simplified auth setup)
-    // Note: GET requests typically don't have a body, but we are using POST-like behavior for this simplified auth.
-    // Consider revising auth for standard GET requests in production.
-    const { userId } = await request.json(); // Assuming userId is passed in body for this simplified setup
-    console.log('GET liked destinations for userId:', userId);
+    const userId = new URL(request.url).searchParams.get('userId');
+    if (!userId) {
+      return NextResponse.json({ success: false, message: 'User ID is required' }, { status: 400 });
+    }
 
     const user = await getUserFromId(userId);
     if (!user) {

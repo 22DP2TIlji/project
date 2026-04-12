@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import LikeButton from '@/components/like-button'
@@ -29,48 +29,47 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated, router])
 
-  useEffect(() => {
-    if (user && user.id) {
-      fetch(`/api/user-stats?userId=${user.id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            setStats(data.stats)
-          }
-          setLoading(false)
-        })
-        .catch(() => {
-          setLoading(false)
-        })
-    }
-  }, [user])
+  const loadStatsAndSavedPlaces = useCallback(async () => {
+    if (!user?.id) return
+    setLoading(true)
+    try {
+      const statsRes = await fetch(`/api/user-stats?userId=${user.id}`)
+      const statsData = await statsRes.json()
+      if (statsData.success) setStats(statsData.stats)
 
-  useEffect(() => {
-    if (!mounted || !user) return
-
-    const loadSavedPlaces = async () => {
-      const ids: (string | number)[] = user.savedDestinations?.length
-        ? user.savedDestinations
-        : []
-      if (!ids.length) {
-        setSavedPlaces([])
-        return
-      }
-      try {
-        const res = await fetch('/api/destinations')
-        const data = await res.json()
-        const all: SavedDestination[] = data?.destinations || []
-        const filtered = all.filter((d) =>
-          ids.some((id) => id === d.id || String(id) === String(d.id))
+      if (user.id !== 'admin') {
+        const likedRes = await fetch(
+          `/api/users/liked-destinations?userId=${encodeURIComponent(user.id)}`
         )
-        setSavedPlaces(filtered)
-      } catch {
+        const likedData = await likedRes.json()
+        if (likedData.success && Array.isArray(likedData.likedDestinations)) {
+          setSavedPlaces(
+            likedData.likedDestinations.map(
+              (d: { id: number; name: string; description?: string }) => ({
+                id: d.id,
+                name: d.name,
+                description: d.description,
+                image_url: undefined,
+              })
+            )
+          )
+        } else {
+          setSavedPlaces([])
+        }
+      } else {
         setSavedPlaces([])
       }
+    } catch {
+      setSavedPlaces([])
+    } finally {
+      setLoading(false)
     }
+  }, [user?.id])
 
-    loadSavedPlaces()
-  }, [mounted, user, user?.savedDestinations])
+  useEffect(() => {
+    if (!user?.id) return
+    loadStatsAndSavedPlaces()
+  }, [user?.id, loadStatsAndSavedPlaces])
 
   useEffect(() => {
     if (!mounted) return
@@ -128,6 +127,9 @@ export default function ProfilePage() {
         }
       }
       localStorage.setItem('savedItineraries', JSON.stringify(updated))
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('savedItinerariesUpdated'))
+      }
     } catch (e) {
       setSavedItineraries(savedItineraries)
       alert('Failed to delete route.')
@@ -284,7 +286,7 @@ export default function ProfilePage() {
                             destinationId={String(d.id)}
                             destinationName={d.name}
                             onLikeChange={() => {
-                              setSavedPlaces((prev) => prev.filter((x) => String(x.id) !== String(d.id)))
+                              loadStatsAndSavedPlaces()
                             }}
                           />
                           <Link
@@ -322,7 +324,9 @@ export default function ProfilePage() {
                       >
                         <Link href={`/itinerary?route=${it.id}`} className="flex-1 min-w-0">
                           <p className="font-medium text-gray-900">
-                            {it.startPoint} → {it.endPoint}
+                            {it.kind === 'tripPlan' && it.tripName
+                              ? it.tripName
+                              : `${it.startPoint} → ${it.endPoint}`}
                           </p>
                           <p className="text-sm text-gray-600">
                             {it.distance} km · {Math.floor(it.time || 0)} h {Math.round(((it.time || 0) % 1) * 60)} min

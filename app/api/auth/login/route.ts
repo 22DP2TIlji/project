@@ -39,6 +39,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Invalid credentials' }, { status: 401 })
     }
 
+    const likedRows = await prisma.userLikedDestination.findMany({
+      where: { userId: user.id },
+      select: { destinationId: true },
+    })
+    const savedDestinations = likedRows.map((r) => r.destinationId)
+
     return NextResponse.json({
       success: true,
       user: {
@@ -46,7 +52,7 @@ export async function POST(request: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
-        savedDestinations: [],
+        savedDestinations,
         savedItineraries: [],
       },
     })

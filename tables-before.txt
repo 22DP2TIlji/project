@@ -1,0 +1,15 @@
+Tables_in_project
+_prisma_migrations
+accommodations
+destinations
+events
+reviews
+route_comments
+route_likes
+route_points
+routes
+tourist_attractions
+trip_budgets
+user_liked_destinations
+users
+weather_data

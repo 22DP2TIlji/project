@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
@@ -66,6 +66,8 @@ export default function ItineraryPage() {
   const [isPublic, setIsPublic] = useState(false)
   const [budget, setBudget] = useState({ transport: 0, accommodation: 0, food: 0, entertainment: 0 })
 
+  const routeIdFromUrl = searchParams.get("route")
+
   useEffect(() => {
     setIsClient(true)
   }, [])
@@ -76,6 +78,7 @@ export default function ItineraryPage() {
     const loadSavedItineraries = async () => {
       // Если пользователь авторизован — грузим маршруты из БД для конкретного аккаунта
       if (user && user.id) {
+        setSavedItinerariesLoaded(false)
         try {
           const res = await fetch(`/api/itineraries?userId=${user.id}`)
           const data = await res.json()
@@ -103,9 +106,27 @@ export default function ItineraryPage() {
     }
 
     loadSavedItineraries()
-  }, [user, isClient])
+  }, [user, isClient, routeIdFromUrl])
 
-  const routeIdFromUrl = searchParams.get("route")
+  const mapDestinations = useMemo(() => {
+    if (!route || route.kind !== "tripPlan" || !Array.isArray(route.tripDays)) {
+      return popularDestinations
+    }
+    const out: { id: string | number; name: string; coordinates: [number, number] }[] = []
+    let idx = 0
+    for (const day of route.tripDays) {
+      for (const p of day.places || []) {
+        if (p?.latitude != null && p?.longitude != null) {
+          out.push({
+            id: p.id ?? `d${day.dayNumber}-${idx++}`,
+            name: `Day ${day.dayNumber}: ${p.name}`,
+            coordinates: [Number(p.latitude), Number(p.longitude)],
+          })
+        }
+      }
+    }
+    return out.length > 0 ? out : popularDestinations
+  }, [route])
 
   useEffect(() => {
     if (!routeIdFromUrl || !savedItinerariesLoaded) return
@@ -853,7 +874,9 @@ export default function ItineraryPage() {
                       <div key={itinerary.id} className="p-3 border border-gray-200 rounded-md bg-gray-50">
                         <div className="flex justify-between">
                           <h4 className="font-medium text-gray-800">
-                            {itinerary.startPoint} to {itinerary.endPoint}
+                            {itinerary.kind === "tripPlan" && itinerary.tripName
+                              ? itinerary.tripName
+                              : `${itinerary.startPoint} to ${itinerary.endPoint}`}
                           </h4>
                           <div className="flex items-center gap-2">
                             {user && user.id && user.id !== "admin" && Number.isFinite(parseInt(itinerary.id)) && (
@@ -888,10 +911,42 @@ export default function ItineraryPage() {
             </div>
 
             <div className="md:col-span-2">
+              {isClient && route?.kind === "tripPlan" && Array.isArray(route.tripDays) && (
+                <div className="mb-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">
+                  <h2 className="text-2xl font-light text-gray-800 mb-2">
+                    {route.tripName || route.startPoint || "Saved trip"}
+                  </h2>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {route.totalPlaces != null && `${route.totalPlaces} places`}
+                    {route.distance != null && ` · ${route.distance} km`}
+                    {route.estimatedCost != null && Number(route.estimatedCost) > 0 && ` · ~${route.estimatedCost}€`}
+                  </p>
+                  <div className="space-y-6">
+                    {route.tripDays.map((day: { dayNumber: number; places: any[] }) => (
+                      <div key={day.dayNumber} className="border-l-2 border-blue-400 pl-4">
+                        <h3 className="font-medium text-gray-800 mb-2">Day {day.dayNumber}</h3>
+                        <ul className="space-y-2">
+                          {(day.places || []).map((p: any, i: number) => (
+                            <li key={p.id ?? i} className="text-sm text-gray-700 flex items-start gap-2">
+                              <MapPin className="h-4 w-4 shrink-0 mt-0.5 text-blue-600" />
+                              <span>
+                                <Link href={`/destination/${p.id}`} className="text-blue-600 hover:underline font-medium">
+                                  {p.name}
+                                </Link>
+                                {p.city && <span className="text-gray-500"> ({p.city})</span>}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {isClient && (
                 <ItineraryMap
                   route={route}
-                  destinations={popularDestinations}
+                  destinations={mapDestinations}
                   nearbyPlaces={Array.isArray(nearbyPlaces) ? nearbyPlaces : []}
                 />
               )}

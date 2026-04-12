@@ -25,24 +25,22 @@ model User {
 }
 
 model Destination {
-  id                   Int      @id @default(autoincrement())
-  name                 String   @db.VarChar(100)
-  latitude             Decimal? @db.Decimal(10, 8)
-  longitude            Decimal? @db.Decimal(11, 8)
-  country              String?  @db.VarChar(50)
-  city                 String?  @db.VarChar(50)
-  description          String   @db.Text
-  category             String?  @db.VarChar(50)
-  region               String?  @db.VarChar(50)
-  imageUrl             String?  @map("image_url") @db.LongText
-  averageCost          Decimal? @db.Decimal(10, 2) @map("average_cost")
-  averageVisitMinutes  Int?     @map("average_visit_minutes")
-  rating               Decimal? @db.Decimal(3, 2)
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
-
-  likedByUsers UserLikedDestination[]
-  weatherData  WeatherData[]
+  id                  Int                    @id @default(autoincrement())
+  name                String                 @db.VarChar(100)
+  latitude            Decimal?               @db.Decimal(10, 8)
+  longitude           Decimal?               @db.Decimal(11, 8)
+  country             String?                @db.VarChar(50)
+  city                String?                @db.VarChar(50)
+  description         String                 @db.Text
+  category            String?                @db.VarChar(50)
+  region              String?                @db.VarChar(50)
+  createdAt           DateTime               @default(now()) @map("created_at")
+  updatedAt           DateTime               @updatedAt @map("updated_at")
+  averageCost         Decimal?               @map("average_cost") @db.Decimal(10, 2)
+  averageVisitMinutes Int?                   @map("average_visit_minutes")
+  rating              Decimal?               @db.Decimal(3, 2)
+  likedByUsers        UserLikedDestination[]
+  weatherData         WeatherData[]
 
   @@map("destinations")
 }
@@ -104,11 +102,6 @@ model Route {
   description String?        @db.Text
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
-  startLat Decimal? @db.Decimal(10, 8) @map("start_lat")
-startLng Decimal? @db.Decimal(11, 8) @map("start_lng")
-endLat   Decimal? @db.Decimal(10, 8) @map("end_lat")
-endLng   Decimal? @db.Decimal(11, 8) @map("end_lng")
-isPublic Boolean  @default(false) @map("is_public")
   comments    RouteComment[]
   likes       RouteLike[]
   points      RoutePoint[]
