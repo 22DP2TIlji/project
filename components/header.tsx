@@ -18,11 +18,6 @@ function useHeaderLinks() {
       ["/compare", "Compare"],
       ["/checklist", "Checklist"],
     ] as Array<[string, string]>,
-    exploreLinks: [
-      ["/events", "Events"],
-      ["/cuisine", "Cuisine"],
-      ["/weather", "Weather"],
-    ] as Array<[string, string]>,
   }
 }
 
@@ -97,7 +92,7 @@ function NavLink({ href, label, pathname }: { href: string; label: string; pathn
 export default function Header() {
   const { user, isAdmin } = useAuth()
   const pathname = usePathname() ?? ""
-  const { primaryLinks, planLinks, exploreLinks } = useHeaderLinks()
+  const { primaryLinks, planLinks } = useHeaderLinks()
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/70 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/60 border-b border-gray-200/70 dark:border-gray-800 notranslate" translate="no">
@@ -114,7 +109,7 @@ export default function Header() {
               <NavLink key={href} href={href} label={label} pathname={pathname} />
             ))}
             <Dropdown label="Plan & tools" links={planLinks} pathname={pathname} />
-            <Dropdown label="Explore" links={exploreLinks} pathname={pathname} />
+            <NavLink href="/explore" label="Explore" pathname={pathname} />
             <NavLink href="/contact" label="Contact" pathname={pathname} />
           </nav>
 

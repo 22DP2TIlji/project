@@ -19,9 +19,7 @@ export function ClientNavbar() {
         <ul className="mt-2 space-y-1">
           <li><Link href="/destinations">Destinations</Link></li>
           <li><Link href="/itinerary">Plan Trip</Link></li>
-          <li><Link href="/events">Events</Link></li>
-          <li><Link href="/cuisine">Cuisine</Link></li>
-          <li><Link href="/weather">Weather</Link></li>
+          <li><Link href="/explore">Explore</Link></li>
           <li><Link href="/contact">Contact</Link></li>
         </ul>
       )}

@@ -61,10 +61,7 @@ export default function ItineraryPage() {
   const [loadingNearby, setLoadingNearby] = useState(false)
   const [searchRadius, setSearchRadius] = useState("50") // радиус в км
   const [showNearby, setShowNearby] = useState(false)
-  const [notes, setNotes] = useState("")
-  const [startDate, setStartDate] = useState("")
   const [isPublic, setIsPublic] = useState(false)
-  const [budget, setBudget] = useState({ transport: 0, accommodation: 0, food: 0, entertainment: 0 })
 
   const routeIdFromUrl = searchParams.get("route")
 
@@ -406,7 +403,6 @@ export default function ItineraryPage() {
         estimatedTime: route.time,
       },
       nearbyPlaces: nearbyPlaces,
-      notes: notes,
       exportedAt: new Date().toISOString(),
     }
 
@@ -430,7 +426,7 @@ export default function ItineraryPage() {
         body: JSON.stringify({
           route,
           places: nearbyPlaces,
-          startDate: startDate || new Date().toISOString(),
+          startDate: new Date().toISOString(),
         }),
       })
 
@@ -474,7 +470,6 @@ export default function ItineraryPage() {
           <div class="route-info">
             <p><strong>Distance:</strong> ${route.distance} km</p>
             <p><strong>Estimated Time:</strong> ${Math.floor(route.time)} hours ${Math.round((route.time % 1) * 60)} minutes</p>
-            ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ''}
           </div>
           ${nearbyPlaces.length > 0 ? `
             <h2>Places Near Route (${nearbyPlaces.length})</h2>
@@ -781,67 +776,6 @@ export default function ItineraryPage() {
                       <label htmlFor="isPublic" className="text-sm text-gray-700">
                         Share publicly
                       </label>
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 gap-2">
-                      <label className="block text-sm text-gray-700">Transport (€)</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={budget.transport || ""}
-                        onChange={(e) => setBudget((b) => ({ ...b, transport: parseFloat(e.target.value) || 0 }))}
-                        className="col-start-2 p-2 border rounded"
-                        placeholder="0"
-                      />
-                      <label className="block text-sm text-gray-700">Accommodation (€)</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={budget.accommodation || ""}
-                        onChange={(e) => setBudget((b) => ({ ...b, accommodation: parseFloat(e.target.value) || 0 }))}
-                        className="col-start-2 p-2 border rounded"
-                        placeholder="0"
-                      />
-                      <label className="block text-sm text-gray-700">Food (€)</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={budget.food || ""}
-                        onChange={(e) => setBudget((b) => ({ ...b, food: parseFloat(e.target.value) || 0 }))}
-                        className="col-start-2 p-2 border rounded"
-                        placeholder="0"
-                      />
-                      <label className="block text-sm text-gray-700">Entertainment (€)</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={budget.entertainment || ""}
-                        onChange={(e) => setBudget((b) => ({ ...b, entertainment: parseFloat(e.target.value) || 0 }))}
-                        className="col-start-2 p-2 border rounded"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="mt-4">
-                      <label className="block mb-2 text-sm font-medium text-gray-800">
-                        Start date
-                      </label>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                      />
-                    </div>
-                    <div className="mt-4">
-                      <label className="block mb-2 text-sm font-medium text-gray-800">
-                        Notes
-                      </label>
-                      <textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Add notes about your trip..."
-                        rows={3}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 resize-none"
-                      />
                     </div>
                   </div>
                 )}
