@@ -9,11 +9,11 @@ function useHeaderLinks() {
   return {
     primaryLinks: [
       ["/destinations", "Destinations"],
-      ["/trip-planner", "Trip Planner"],
+      ["/itinerary", "Plan Trip"],
       ["/routes", "Public Routes"],
     ] as Array<[string, string]>,
     planLinks: [
-      ["/itinerary", "Plan Trip"],
+      ["/trip-planner", "Trip Planner"],
       ["/quiz", "Where to go?"],
       ["/compare", "Compare"],
       ["/checklist", "Checklist"],
