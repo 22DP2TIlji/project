@@ -171,7 +171,7 @@ export default function DestinationPage() {
     setLoadingDestination(true)
     const fetchDestination = async () => {
       try {
-        const res = await fetch(`/api/destinations/${id}`)
+        const res = await fetch(`/api/destinations/${id}`, { cache: "no-store" })
         const data = await res.json()
         if (res.ok && data.success && data.destination) {
           const d = data.destination
@@ -236,7 +236,7 @@ export default function DestinationPage() {
     setLoadingMore(true)
     const loadMore = async () => {
       try {
-        const res = await fetch('/api/destinations?limit=8')
+        const res = await fetch('/api/destinations?limit=8', { cache: "no-store" })
         const data = await res.json()
         const list = data?.destinations || []
         const currentId = destination?.id != null ? String(destination.id) : null

@@ -47,6 +47,7 @@ export async function GET(
       (row.endLat != null && row.endLng != null
         ? [Number(row.endLat), Number(row.endLng)]
         : undefined)
+        
 const {
       id: _ignoredParsedId,
       date: parsedDate,

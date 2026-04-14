@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -50,7 +53,10 @@ export async function GET(request: NextRequest) {
       })
 
       if (countOnly) {
-        return NextResponse.json({ success: true, count: nearbyDestinations.length })
+        return NextResponse.json(
+          { success: true, count: nearbyDestinations.length },
+          { headers: { 'Cache-Control': 'no-store' } }
+        )
       }
 
       const limited = limit ? nearbyDestinations.slice(0, limit) : nearbyDestinations
@@ -65,14 +71,20 @@ export async function GET(request: NextRequest) {
         longitude: d.longitude ? Number(d.longitude) : null,
         image_url: null,
       }))
-      return NextResponse.json({ success: true, destinations })
+      return NextResponse.json(
+        { success: true, destinations },
+        { headers: { 'Cache-Control': 'no-store' } }
+      )
     }
 
     if (countOnly) {
       const count = await prisma.destination.count({
         where: Object.keys(where).length ? where : undefined,
       })
-      return NextResponse.json({ success: true, count })
+      return NextResponse.json(
+        { success: true, count },
+        { headers: { 'Cache-Control': 'no-store' } }
+      )
     }
 
     const rows = await prisma.destination.findMany({
@@ -93,7 +105,10 @@ export async function GET(request: NextRequest) {
       image_url: null,
     }))
 
-    return NextResponse.json({ success: true, destinations })
+    return NextResponse.json(
+      { success: true, destinations },
+      { headers: { 'Cache-Control': 'no-store' } }
+    )
   } catch (error) {
     console.error('Error fetching destinations:', error)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })

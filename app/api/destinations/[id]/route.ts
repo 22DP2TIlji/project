@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0 
+
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   const destinationId = Number(params.id)
   if (!Number.isFinite(destinationId)) {
@@ -26,13 +29,17 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
   }
 
-  return NextResponse.json({
-    success: true,
-    destination: {
-      ...destination,
-      latitude: destination.latitude ? Number(destination.latitude) : null,
-      longitude: destination.longitude ? Number(destination.longitude) : null,
-      image_url: destination.imageUrl,
+ return NextResponse.json(
+    {
+      success: true,
+      destination: {
+        ...destination,
+        latitude: destination.latitude ? Number(destination.latitude) : null,
+        longitude: destination.longitude ? Number(destination.longitude) : null,
+        image_url: destination.imageUrl,
+      },
     },
-  })
+  { headers: { 'Cache-Control': 'no-store' } }
+  )
 }
+

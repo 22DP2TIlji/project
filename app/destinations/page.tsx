@@ -42,7 +42,7 @@ export default function DestinationsPage() {
     const apiUrl = `/api/destinations?${queryParams.toString()}`;
     console.log('Fetching destinations from:', apiUrl);
 
-    fetch(apiUrl)
+    fetch(apiUrl, { cache: "no-store" })
       .then(res => res.json())
       .then(data => {
         console.log('Received destinations data:', data);
