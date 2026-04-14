@@ -11,12 +11,12 @@ export async function GET(request: NextRequest) {
     const countOnly = searchParams.get('countOnly') === 'true'
     const lat = searchParams.get('lat')
     const lng = searchParams.get('lng')
-    const radius = searchParams.get('radius')
+    const radius = searchParams.get('radius') // в километрах
 
     const limit = limitParam ? Math.min(Math.max(1, parseInt(limitParam, 10)), 100) : undefined
 
     const where: Record<string, unknown> = {}
-
+    
     if (search) {
       where.OR = [
         { name: { contains: search } },
@@ -30,11 +30,13 @@ export async function GET(request: NextRequest) {
       where.region = region
     }
 
+    // Поиск по радиусу (если указаны координаты)
     if (lat && lng && radius) {
       const centerLat = parseFloat(lat)
       const centerLng = parseFloat(lng)
       const radiusKm = parseFloat(radius)
-
+      
+      // Получаем все destinations и фильтруем по расстоянию
       const allDestinations = await prisma.destination.findMany({
         where: Object.keys(where).length ? where : undefined,
       })
@@ -61,7 +63,7 @@ export async function GET(request: NextRequest) {
         region: d.region,
         latitude: d.latitude ? Number(d.latitude) : null,
         longitude: d.longitude ? Number(d.longitude) : null,
-        image_url: d.imageUrl,
+        image_url: null,
       }))
       return NextResponse.json({ success: true, destinations })
     }
@@ -88,7 +90,7 @@ export async function GET(request: NextRequest) {
       region: d.region,
       latitude: d.latitude ? Number(d.latitude) : null,
       longitude: d.longitude ? Number(d.longitude) : null,
-      image_url: d.imageUrl,
+      image_url: null,
     }))
 
     return NextResponse.json({ success: true, destinations })
@@ -99,7 +101,7 @@ export async function GET(request: NextRequest) {
 }
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371
+  const R = 6371 // Радиус Земли в километрах
   const dLat = deg2rad(lat2 - lat1)
   const dLon = deg2rad(lon2 - lon1)
   const a =

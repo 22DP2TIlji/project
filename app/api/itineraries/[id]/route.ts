@@ -47,18 +47,28 @@ export async function GET(
       (row.endLat != null && row.endLng != null
         ? [Number(row.endLat), Number(row.endLng)]
         : undefined)
-
+const {
+      id: _ignoredParsedId,
+      date: parsedDate,
+      startPoint: parsedStartPoint,
+      endPoint: parsedEndPoint,
+      startCoords: parsedStartCoords,
+      endCoords: parsedEndCoords,
+      distance: parsedDistance,
+      time: parsedTime,
+      ...parsedRest
+    } = parsed
     const itinerary = {
       id: routeRow.id.toString(),
-      startPoint: (parsed.startPoint as string) ?? routeRow.name,
-      endPoint: (parsed.endPoint as string) ?? "",
-      startCoords,
-      endCoords,
-      distance: (parsed.distance as number) ?? 0,
-      time: (parsed.time as number) ?? 0,
-      date: (parsed.date as string) ?? routeRow.createdAt.toISOString(),
+      startPoint: (parsedStartPoint as string) ?? routeRow.name,
+      endPoint: (parsedEndPoint as string) ?? "",
+      startCoords: (parsedStartCoords as [number, number]) ?? startCoords,
+      endCoords: (parsedEndCoords as [number, number]) ?? endCoords,
+      distance: (parsedDistance as number) ?? 0,
+      time: (parsedTime as number) ?? 0,
+      date: (parsedDate as string) ?? routeRow.createdAt.toISOString(),
       isPublic: true,
-      ...parsed,
+      ...parsedRest,
     }
 
     return NextResponse.json({ success: true, itinerary })

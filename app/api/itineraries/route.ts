@@ -53,15 +53,24 @@ export async function GET(request: NextRequest) {
           // если не получилось распарсить, просто игнорируем
         }
       }
+const {
+        id: _ignoredParsedId,
+        date: parsedDate,
+        startPoint: parsedStartPoint,
+        endPoint: parsedEndPoint,
+        distance: parsedDistance,
+        time: parsedTime,
+        ...parsedRest
+      } = parsed
 
       return {
         id: route.id.toString(),
-        startPoint: parsed.startPoint ?? route.name,
-        endPoint: parsed.endPoint ?? "",
-        distance: parsed.distance ?? 0,
-        time: parsed.time ?? 0,
-        date: parsed.date ?? route.createdAt.toISOString(),
-        ...parsed,
+        startPoint: parsedStartPoint ?? route.name,
+        endPoint: parsedEndPoint ?? "",
+        distance: parsedDistance ?? 0,
+        time: parsedTime ?? 0,
+        date: parsedDate ?? route.createdAt.toISOString(),
+        ...parsedRest,
         isPublic: (route as { isPublic?: boolean }).isPublic ?? false,
       }
     })
@@ -141,9 +150,11 @@ export async function POST(request: NextRequest) {
 // DELETE /api/itineraries - удалить маршрут пользователя
 export async function DELETE(request: NextRequest) {
   try {
+    console.log("DELETE /api/itineraries called")
     const body = await request.json()
-    const { userId, routeId } = body as { userId?: string; routeId?: string | number }
+console.log("DELETE body:", body)
 
+const { userId, routeId } = body as { userId?: string; routeId?: string | number }
     if (!userId || routeId === undefined || routeId === null) {
       return NextResponse.json(
         { success: false, message: "User ID and route ID are required" },
@@ -166,6 +177,8 @@ export async function DELETE(request: NextRequest) {
     const numericUserId = parseInt(user.id)
     const numericRouteId =
       typeof routeId === "string" ? parseInt(routeId, 10) : Number(routeId)
+      console.log("numericUserId:", numericUserId)
+console.log("numericRouteId:", numericRouteId)
 
     if (isNaN(numericUserId) || isNaN(numericRouteId)) {
       return NextResponse.json({ success: false, message: "Invalid IDs" }, { status: 400 })
@@ -175,6 +188,7 @@ export async function DELETE(request: NextRequest) {
       where: { id: numericRouteId },
       select: { id: true, userId: true },
     })
+    console.log("existing route:", existing)
 
     if (!existing) {
       return NextResponse.json(
@@ -197,16 +211,16 @@ export async function DELETE(request: NextRequest) {
       tripBudget: { deleteMany: (args: object) => Promise<{ count: number }> }
       route: { delete: (args: object) => Promise<unknown> }
     }
-    await tx.routePoint.deleteMany({ where: { routeId: numericRouteId } })
-    await tx.routeComment.deleteMany({ where: { routeId: numericRouteId } })
-    await tx.routeLike.deleteMany({ where: { routeId: numericRouteId } })
-    await tx.tripBudget.deleteMany({ where: { routeId: numericRouteId } })
-    await tx.route.delete({ where: { id: numericRouteId } })
+    await prisma.routePoint.deleteMany({
+  where: { routeId: numericRouteId },
+})
 
+await prisma.route.delete({
+  where: { id: numericRouteId },
+})
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error deleting itinerary:", error)
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }
-
