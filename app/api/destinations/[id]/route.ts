@@ -29,17 +29,27 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
   }
 
- return NextResponse.json(
+return NextResponse.json(
     {
       success: true,
       destination: {
         ...destination,
         latitude: destination.latitude ? Number(destination.latitude) : null,
         longitude: destination.longitude ? Number(destination.longitude) : null,
-        image_url: destination.imageUrl,
+        image_url: normalizeImageUrl(destination.imageUrl),
       },
     },
   { headers: { 'Cache-Control': 'no-store' } }
   )
+}
+
+function normalizeImageUrl(value: string | null): string | null {
+  if (!value) return null
+  const raw = value.trim()
+  if (!raw) return null
+
+  if (raw.startsWith("//")) return `https:${raw}`
+  if (raw.startsWith("http://")) return raw.replace("http://", "https://")
+  return raw
 }
 

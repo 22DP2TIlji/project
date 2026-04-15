@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 const { PrismaClient } = require("@prisma/client")
 
 const prisma = new PrismaClient()
@@ -23,7 +22,14 @@ async function fetchWikipediaThumbnail(query) {
   if (!response.ok) return null
 
   const data = await response.json()
-  return data?.thumbnail?.source || data?.originalimage?.source || null
+  const raw = data?.thumbnail?.source || data?.originalimage?.source || null
+  if (!raw || typeof raw !== "string") return null
+
+  const normalized = raw.trim()
+  if (!normalized) return null
+  if (normalized.startsWith("//")) return `https:${normalized}`
+  if (normalized.startsWith("http://")) return normalized.replace("http://", "https://")
+  return normalized
 }
 
 async function resolveImageUrl(destination) {

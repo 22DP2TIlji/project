@@ -69,10 +69,10 @@ export async function GET(request: NextRequest) {
         region: d.region,
         latitude: d.latitude ? Number(d.latitude) : null,
         longitude: d.longitude ? Number(d.longitude) : null,
-        image_url: null,
+        image_url: normalizeImageUrl(d.imageUrl),
       }))
       return NextResponse.json(
-        { success: true, destinations },
+        { success: true, count: nearbyDestinations.length, destinations },
         { headers: { 'Cache-Control': 'no-store' } }
       )
     }
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
       region: d.region,
       latitude: d.latitude ? Number(d.latitude) : null,
       longitude: d.longitude ? Number(d.longitude) : null,
-      image_url: null,
+      image_url: normalizeImageUrl(d.imageUrl),
     }))
 
     return NextResponse.json(
@@ -113,6 +113,36 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching destinations:', error)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
+}
+
+function normalizeImageUrl(value: string | null): string | null {
+  if (!value) return null
+
+  let raw = value.trim()
+  if (!raw) return null
+
+  // Иногда в БД может оказаться сериализованный JSON (массив/объект) вместо чистой ссылки
+  if (raw.startsWith("{") || raw.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(raw)
+      const candidate =
+        (Array.isArray(parsed) ? parsed.find((item) => typeof item === "string") : null) ||
+        (typeof parsed?.url === "string" ? parsed.url : null) ||
+        (typeof parsed?.source === "string" ? parsed.source : null) ||
+        (typeof parsed?.thumbnail?.source === "string" ? parsed.thumbnail.source : null) ||
+        (typeof parsed?.originalimage?.source === "string" ? parsed.originalimage.source : null)
+
+      if (typeof candidate === "string" && candidate.trim()) {
+        raw = candidate.trim()
+      }
+    } catch {
+      // оставляем исходное значение
+    }
+  }
+
+  if (raw.startsWith("//")) return `https:${raw}`
+  if (raw.startsWith("http://")) return raw.replace("http://", "https://")
+  return raw
 }
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
