@@ -328,7 +328,20 @@ export default function DestinationPage() {
               <LikeButton destinationId={destination.id} destinationName={destination.name} />
             </div>
 
-            <div className="relative h-96 mb-8 overflow-hidden rounded-md bg-gray-200"></div>
+            
+<div className="relative h-96 mb-8 overflow-hidden rounded-md bg-gray-200">
+  {destination.image_url ? (
+    <img
+      src={destination.image_url}
+      alt={destination.name}
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center text-sm text-gray-500">
+      Bilde nav pieejama
+    </div>
+  )}
+</div>
 
             <div className="prose max-w-none">
               <p className="text-xl text-gray-700 mb-6">{destination.description}</p>
