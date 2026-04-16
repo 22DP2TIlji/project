@@ -39,11 +39,11 @@ export default function ComparePage() {
 
   const addDestination = (destination: any) => {
     if (selectedDestinations.length >= 3) {
-      alert("You can compare up to 3 destinations at once")
+      alert("Vienlaicīgi varat salīdzināt līdz 3 galamērķiem")
       return
     }
     if (selectedDestinations.find((d) => d.id === destination.id)) {
-      alert("This destination is already added.")
+      alert("Šis galamērķis jau ir pievienots.")
       return
     }
     setSelectedDestinations([...selectedDestinations, destination])
@@ -57,62 +57,65 @@ export default function ComparePage() {
     <>
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
-        <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Compare Destinations</h1>
-          <p className="mt-4 text-xl">Compare up to 3 destinations side by side</p>
+        <div className="relative z-10 text-center px-4">
+          <h1 className="text-5xl md:text-6xl font-light text-gray-900">Salīdzināt galamērķus</h1>
+          <p className="mt-4 text-xl text-gray-700">Salīdziniet līdz 3 galamērķiem vienuviet</p>
         </div>
       </section>
 
       <section className="py-16">
         <div className="container mx-auto px-4">
           {selectedDestinations.length === 0 ? (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-6 mb-8">
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-6 mb-8 text-center">
               <p className="text-gray-700">
-                Select up to 3 destinations to compare. Use the search below to find destinations.
+                Izvēlieties līdz 3 galamērķiem, lai tos salīdzinātu. Izmantojiet meklēšanu zemāk, lai atrastu vietas.
               </p>
             </div>
           ) : (
             <div className="mb-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {selectedDestinations.map((dest) => (
-                  <div key={dest.id} className="border border-gray-200 rounded-md p-4 bg-white relative">
+                  <div key={dest.id} className="border border-gray-200 rounded-md p-4 bg-white relative shadow-sm">
                     <button
                       onClick={() => removeDestination(dest.id)}
-                      className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
+                      className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors"
+                      title="Noņemt"
                     >
                       <X className="h-5 w-5" />
                     </button>
-                    <h3 className="text-xl font-semibold mb-2">{dest.name}</h3>
+                    <h3 className="text-xl font-semibold mb-2 text-gray-900">{dest.name}</h3>
                     <p className="text-sm text-gray-600 line-clamp-3">{dest.description}</p>
-                    {dest.category && (
-                      <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-xs rounded">
-                        {dest.category}
-                      </span>
-                    )}
-                    {dest.region && (
-                      <span className="inline-block mt-2 ml-2 px-2 py-1 bg-gray-100 text-xs rounded">
-                        {dest.region}
-                      </span>
-                    )}
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {dest.category && (
+                        <span className="px-2 py-1 bg-gray-100 text-xs rounded text-gray-600">
+                          {dest.category}
+                        </span>
+                      )}
+                      {dest.region && (
+                        <span className="px-2 py-1 bg-gray-100 text-xs rounded text-gray-600">
+                          {dest.region}
+                        </span>
+                      )}
+                    </div>
                     {dest.latitude && dest.longitude && (
-                      <div className="mt-2 text-xs text-gray-500">
-                        <MapPin className="h-3 w-3 inline mr-1" />
+                      <div className="mt-3 text-xs text-gray-500 flex items-center">
+                        <MapPin className="h-3 w-3 mr-1" />
                         {Number(dest.latitude).toFixed(4)}, {Number(dest.longitude).toFixed(4)}
                       </div>
                     )}
                     <Link
                       href={`/destination/${dest.id}`}
-                      className="mt-3 inline-block text-sm text-blue-600 hover:underline"
+                      className="mt-4 inline-block text-sm text-blue-600 hover:underline font-medium"
                     >
-                      View details
+                      Skatīt informāciju
                     </Link>
                   </div>
                 ))}
                 {selectedDestinations.length < 3 && (
-                  <div className="border-2 border-dashed border-gray-300 rounded-md p-4 flex items-center justify-center min-h-[200px]">
+                  <div className="border-2 border-dashed border-gray-300 rounded-md p-4 flex items-center justify-center min-h-[200px] bg-gray-50/50">
                     <div className="text-center">
                       <Plus className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">Add destination</p>
+                      <p className="text-sm text-gray-500">Pievienot vēl vienu</p>
                     </div>
                   </div>
                 )}
@@ -120,111 +123,111 @@ export default function ComparePage() {
             </div>
           )}
 
-          <div className="bg-white border border-gray-200 rounded-md p-6">
-            <h2 className="text-2xl font-light mb-4">Search Destinations</h2>
-            <div className="relative mb-4">
+          <div className="bg-white border border-gray-200 rounded-md p-6 shadow-sm">
+            <h2 className="text-2xl font-light mb-4 text-gray-900">Meklēt galamērķus</h2>
+            <div className="relative mb-6">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search destinations..."
+                placeholder="Ierakstiet nosaukumu vai aprakstu..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               />
             </div>
 
             {loading ? (
-              <p className="text-gray-600">Loading destinations...</p>
+              <p className="text-gray-600 italic">Ielādē galamērķus...</p>
             ) : filteredDestinations.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2">
                 {filteredDestinations
                   .filter((d) => !selectedDestinations.find((sd) => sd.id === d.id))
                   .map((dest) => (
                     <div
                       key={dest.id}
-                      className="border border-gray-200 rounded-md p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="border border-gray-200 rounded-md p-4 hover:bg-blue-50/50 cursor-pointer transition-all hover:border-blue-200"
                       onClick={() => addDestination(dest)}
                     >
-                      <h4 className="font-semibold">{dest.name}</h4>
+                      <h4 className="font-semibold text-gray-900">{dest.name}</h4>
                       <p className="text-sm text-gray-600 line-clamp-2 mt-1">{dest.description}</p>
-                      <button className="mt-2 text-sm text-blue-600 hover:underline">
-                        Add to compare
+                      <button className="mt-3 text-sm text-blue-600 flex items-center gap-1 font-medium hover:text-blue-700">
+                        <Plus className="h-4 w-4" /> Pievienot salīdzināšanai
                       </button>
                     </div>
                   ))}
               </div>
             ) : (
-              <p className="text-gray-600">No destinations found</p>
+              <p className="text-gray-600">Netika atrasts neviens galamērķis</p>
             )}
           </div>
 
           {selectedDestinations.length > 0 && (
-            <div className="mt-8 bg-white border border-gray-200 rounded-md p-6">
-              <h2 className="text-2xl font-light mb-4">Comparison Table</h2>
+            <div className="mt-12 bg-white border border-gray-200 rounded-md p-6 shadow-sm">
+              <h2 className="text-2xl font-light mb-6 text-gray-900">Salīdzināšanas tabula</h2>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full border-collapse">
                   <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2">Feature</th>
+                    <tr className="border-b bg-gray-50">
+                      <th className="text-left p-4 font-semibold text-gray-700">Īpašība</th>
                       {selectedDestinations.map((dest) => (
-                        <th key={dest.id} className="text-left p-2">
+                        <th key={dest.id} className="text-left p-4 font-semibold text-gray-900">
                           {dest.name}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Name</td>
+                  <tbody className="divide-y divide-gray-200">
+                    <tr>
+                      <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Nosaukums</td>
                       {selectedDestinations.map((dest) => (
-                        <td key={dest.id} className="p-2">
+                        <td key={dest.id} className="p-4 text-gray-900 font-medium">
                           {dest.name}
                         </td>
                       ))}
                     </tr>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Description</td>
+                    <tr>
+                      <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Apraksts</td>
                       {selectedDestinations.map((dest) => (
-                        <td key={dest.id} className="p-2 text-sm">
-                          {dest.description || "N/A"}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Category</td>
-                      {selectedDestinations.map((dest) => (
-                        <td key={dest.id} className="p-2">
-                          {dest.category || "N/A"}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Region</td>
-                      {selectedDestinations.map((dest) => (
-                        <td key={dest.id} className="p-2">
-                          {dest.region || "N/A"}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Location</td>
-                      {selectedDestinations.map((dest) => (
-                        <td key={dest.id} className="p-2 text-sm">
-                          {dest.latitude && dest.longitude
-                            ? `${Number(dest.latitude).toFixed(4)}, ${Number(dest.longitude).toFixed(4)}`
-                            : "N/A"}
+                        <td key={dest.id} className="p-4 text-sm text-gray-600 leading-relaxed">
+                          {dest.description || "Nav pieejams"}
                         </td>
                       ))}
                     </tr>
                     <tr>
-                      <td className="p-2 font-medium">Actions</td>
+                      <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Kategorija</td>
                       {selectedDestinations.map((dest) => (
-                        <td key={dest.id} className="p-2">
+                        <td key={dest.id} className="p-4 text-gray-900">
+                          {dest.category || "Nav pieejama"}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Reģions</td>
+                      {selectedDestinations.map((dest) => (
+                        <td key={dest.id} className="p-4 text-gray-900">
+                          {dest.region || "Nav pieejams"}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Atrašanās vieta</td>
+                      {selectedDestinations.map((dest) => (
+                        <td key={dest.id} className="p-4 text-sm text-gray-500">
+                          {dest.latitude && dest.longitude
+                            ? `${Number(dest.latitude).toFixed(4)}, ${Number(dest.longitude).toFixed(4)}`
+                            : "Nav norādīta"}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Darbības</td>
+                      {selectedDestinations.map((dest) => (
+                        <td key={dest.id} className="p-4">
                           <Link
                             href={`/destination/${dest.id}`}
-                            className="text-blue-600 hover:underline text-sm"
+                            className="text-blue-600 hover:underline text-sm font-medium"
                           >
-                            View details
+                            Skatīt vairāk
                           </Link>
                         </td>
                       ))}

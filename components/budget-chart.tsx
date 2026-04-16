@@ -9,10 +9,10 @@ type Budget = {
 }
 
 const LABELS: Record<string, string> = {
-  transport: "Transport",
-  accommodation: "Accommodation",
-  food: "Food",
-  entertainment: "Entertainment",
+  transport: "Transports",
+  accommodation: "Naktsmītne",
+  food: "Ēdiens",
+  entertainment: "Izklaide",
 }
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"]
@@ -48,7 +48,7 @@ export default function BudgetChart({ budget }: { budget: Budget }) {
       ))}
       {budget.total > 0 && (
         <div className="pt-2 mt-2 border-t border-gray-200 flex justify-between font-medium">
-          <span>Total</span>
+          <span>Kopā</span>
           <span>{budget.total}€</span>
         </div>
       )}

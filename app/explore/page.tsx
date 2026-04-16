@@ -7,32 +7,32 @@ import { Cloud, Wind, Thermometer, Droplets, Calendar } from "lucide-react"
 const EVENTS = [
   {
     id: "song-festival",
-    name: "Latvian Song and Dance Festival",
-    date: "July 2025",
+    name: "Vispārējie latviešu Dziesmu un Deju svētki",
+    date: "2025. gada jūlijs",
     location: "Rīga",
     description:
-      "The Latvian Song and Dance Celebration is a massive cultural event held every five years. Thousands of singers and dancers from across Latvia perform traditional songs and dances.",
-    highlights: ["UNESCO Intangible Cultural Heritage", "Thousands of participants", "Week-long celebration"],
+      "Dziesmu un deju svētki ir vērienīgs kultūras notikums, kas notiek reizi piecos gados. Tūkstošiem dziedātāju un dejotāju no visas Latvijas izpilda tradicionālās dziesmas un dejas.",
+    highlights: ["UNESCO Cilvēces nemateriālā kultūras mantojuma saraksts", "Tūkstošiem dalībnieku", "Nedēļu ilgas svinības"],
     image: "/images/song-festival.jpg",
   },
   {
     id: "riga-festival",
-    name: "Rīga Festival",
-    date: "June",
+    name: "Rīgas svētki",
+    date: "Jūnijs",
     location: "Rīga",
     description:
-      "Annual cultural festival featuring music, theater, and art. The festival brings together local and international artists for a vibrant celebration of culture.",
-    highlights: ["Music concerts", "Theater performances", "Art exhibitions"],
+      "Ikgadējs kultūras festivāls, kurā tiek piedāvāta mūzika, teātris un māksla. Festivāls pulcē vietējos un ārzemju māksliniekus dinamiskām kultūras svinībām.",
+    highlights: ["Mūzikas koncerti", "Teātra izrādes", "Mākslas izstādes"],
     image: "/images/riga-festival.jpg",
   },
   {
     id: "christmas-markets",
-    name: "Christmas Markets",
-    date: "December",
+    name: "Ziemassvētku tirdziņi",
+    date: "Decembris",
     location: "Rīga",
     description:
-      "Traditional Christmas markets in the heart of Rīga's Old Town. Handcrafted gifts, Latvian delicacies, and festive atmosphere.",
-    highlights: ["Handmade crafts", "Traditional food", "Festive entertainment"],
+      "Tradicionālie Ziemassvētku tirdziņi pašā Rīgas sirdī – Vecrīgā. Amatnieku dāvanas, latviešu delikateses un svētku atmosfēra.",
+    highlights: ["Amatnieku izstrādājumi", "Tradicionālie ēdieni", "Svētku izklaides"],
     image: "/images/christmas-markets.jpg",
   },
 ]
@@ -40,37 +40,37 @@ const EVENTS = [
 const DISHES = [
   {
     id: "rye-bread",
-    name: "Rye Bread",
+    name: "Rupjmaize",
     description:
-      "Traditional Latvian rye bread (rupjmaize) - dark, dense, and slightly sour. A staple of Latvian cuisine.",
-    details: ["Made from rye flour", "Baked in wood-fired ovens", "Keeps fresh for weeks"],
+      "Tradicionāla latviešu rudzu maize – tumša, blīva un nedaudz skābena. Latvijas virtuves pamatvērtība.",
+    details: ["Gatavota no rudzu miltiem", "Cepta malkas krāsnī", "Saglabājas svaiga nedēļām ilgi"],
   },
   {
     id: "grey-peas",
-    name: "Grey Peas with Bacon",
+    name: "Pelēkie zirņi ar speķi",
     description:
-      "A classic Latvian New Year's dish. Grey peas (pelēkie zirņi) served with fried bacon and onions.",
-    details: ["Traditional holiday dish", "Rich in protein", "Often served with kefir"],
+      "Klasisks latviešu svētku ēdiens. Pelēkie zirņi tiek pasniegti ar ceptu speķi un sīpoliem.",
+    details: ["Tradicionāls svētku ēdiens", "Bagāts ar olbaltumvielām", "Bieži pasniedz ar kefīru"],
   },
   {
     id: "black-balsam",
-    name: "Riga Black Balsam",
+    name: "Rīgas Melnais balzams",
     description:
-      "A bitter liqueur made from 24 natural ingredients including herbs, roots, and berries. Latvia's national drink.",
-    details: ["Created in 1752", "45% ABV", "Often used in cocktails"],
+      "Rūgts liķieris, kas pagatavots no 24 dabīgām sastāvdaļām, tostarp zālītēm, saknēm un ogām. Latvijas nacionālais dzēriens.",
+    details: ["Radīts 1752. gadā", "45% alkohola saturs", "Bieži izmanto kokteiļos"],
   },
 ]
 
 const PLACES = [
   {
-    name: "Restaurants in Rīga",
-    description: "Discover traditional Latvian restaurants in the capital.",
-    options: ["Lido", "1221", "Folkklub Ala"],
+    name: "Restorāni Rīgā",
+    description: "Atklājiet tradicionālos latviešu restorānus galvaspilsētā.",
+    options: ["Lido", "1221", "Folkklubs Ala"],
   },
   {
-    name: "Central Market",
-    description: "The largest market in Europe. Fresh produce and local specialties.",
-    options: ["Rīga Central Market", "Try smoked fish", "Fresh berries in season"],
+    name: "Centrāltirgus",
+    description: "Lielākais tirgus Eiropā. Svaiga produkcija un vietējie gardumi.",
+    options: ["Rīgas Centrāltirgus", "Nogaršojiet kūpinātas zivis", "Svaigas ogas sezonā"],
   },
 ]
 
@@ -108,7 +108,7 @@ function ExploreWeather() {
         const data = await res.json()
 
         if (!res.ok) {
-          throw new Error(data?.body || data?.error || "Failed to load weather")
+          throw new Error(data?.body || data?.error || "Neizdevās ielādēt laikapstākļus")
         }
 
         if (data?.current && data?.forecast?.list) {
@@ -136,16 +136,16 @@ function ExploreWeather() {
             feels_like: w.temperature,
             humidity: w.humidity ?? 0,
             pressure: 0,
-            weather: [{ main: "Weather", description: w.note || "Current conditions", icon: "01d" }],
+            weather: [{ main: "Weather", description: w.note || "Pašreizējie apstākļi", icon: "01d" }],
             wind_speed: w.windSpeed != null ? +(w.windSpeed / 3.6).toFixed(1) : 0,
           })
           setForecast([])
           return
         }
 
-        throw new Error("Unknown weather response")
+        throw new Error("Nezināma atbilde no servera")
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to load weather data.")
+        setError(err instanceof Error ? err.message : "Neizdevās ielādēt datus.")
       } finally {
         setLoading(false)
       }
@@ -154,10 +154,10 @@ function ExploreWeather() {
   }, [])
 
   const getDayName = (timestamp: number) =>
-    new Date(timestamp * 1000).toLocaleDateString("en-US", { weekday: "long" })
+    new Date(timestamp * 1000).toLocaleDateString("lv-LV", { weekday: "long" })
 
   if (loading) {
-    return <p className="text-gray-600 dark:text-gray-300 py-8">Loading weather…</p>
+    return <p className="text-gray-600 dark:text-gray-300 py-8">Ielādē laikapstākļus…</p>
   }
   if (error) {
     return (
@@ -174,9 +174,9 @@ function ExploreWeather() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-2">Current weather (Rīga)</h3>
+                <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-2">Laikapstākļi (Rīga)</h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  {new Date().toLocaleDateString("en-US", {
+                  {new Date().toLocaleDateString("lv-LV", {
                     weekday: "long",
                     year: "numeric",
                     month: "long",
@@ -194,28 +194,28 @@ function ExploreWeather() {
               <div className="flex items-center space-x-3">
                 <Thermometer className="w-6 h-6 text-blue-500" />
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Temperature</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Temperatūra</p>
                   <p className="text-2xl font-medium text-gray-900 dark:text-white">{Math.round(current.temp)}°C</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Wind className="w-6 h-6 text-blue-500" />
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Wind speed</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Vēja ātrums</p>
                   <p className="text-2xl font-medium text-gray-900 dark:text-white">{current.wind_speed} m/s</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Droplets className="w-6 h-6 text-blue-500" />
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Humidity</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Mitrums</p>
                   <p className="text-2xl font-medium text-gray-900 dark:text-white">{current.humidity}%</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Cloud className="w-6 h-6 text-blue-500" />
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Conditions</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Apstākļi</p>
                   <p className="text-2xl font-medium text-gray-900 dark:text-white capitalize">
                     {current.weather[0].description}
                   </p>
@@ -230,10 +230,10 @@ function ExploreWeather() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
           <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-6 flex items-center">
             <Calendar className="w-6 h-6 mr-2" />
-            5-Day Forecast
+            5 dienu prognoze
           </h3>
           {forecast.length === 0 ? (
-            <p className="text-gray-600 dark:text-gray-300">Forecast unavailable</p>
+            <p className="text-gray-600 dark:text-gray-300">Prognoze nav pieejama</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               {forecast.map((day) => (
@@ -242,16 +242,16 @@ function ExploreWeather() {
                   className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-lg font-medium text-gray-900 dark:text-white">{getDayName(day.dt)}</h4>
+                    <h4 className="text-lg font-medium text-gray-900 dark:text-white capitalize">{getDayName(day.dt)}</h4>
                     <img
                       src={`https://openweathermap.org/img/wn/${day.weather[0].icon}.png`}
                       alt={day.weather[0].description}
                       className="w-10 h-10"
                     />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Temp {Math.round(day.main.temp)}°C</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{Math.round(day.main.temp)}°C</p>
                   <p className="text-sm text-gray-600 dark:text-gray-300 capitalize">{day.weather[0].description}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Wind {day.wind.speed} m/s</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Vējš: {day.wind.speed} m/s</p>
                 </div>
               ))}
             </div>
@@ -284,28 +284,28 @@ export default function ExplorePage() {
       <section className="relative h-[38vh] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200 dark:bg-gray-700" />
         <div className="relative z-10 text-center px-4">
-          <h1 className="text-4xl md:text-6xl font-light text-gray-900 dark:text-white">Explore Latvia</h1>
+          <h1 className="text-4xl md:text-6xl font-light text-gray-900 dark:text-white">Iepazīsti Latviju</h1>
           <p className="mt-4 text-lg md:text-xl text-gray-700 dark:text-gray-200 max-w-2xl mx-auto">
-            Events, cuisine, and weather in one place
+            Pasākumi, virtuve un laikapstākļi vienuviet
           </p>
           <nav className="mt-8 flex flex-wrap justify-center gap-3 text-sm">
             <a
               href="#events"
               className="px-4 py-2 rounded-md bg-white/90 dark:bg-gray-800/90 shadow border border-gray-200 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-700"
             >
-              Events
+              Pasākumi
             </a>
             <a
               href="#cuisine"
               className="px-4 py-2 rounded-md bg-white/90 dark:bg-gray-800/90 shadow border border-gray-200 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-700"
             >
-              Cuisine
+              Virtuve
             </a>
             <a
               href="#weather"
               className="px-4 py-2 rounded-md bg-white/90 dark:bg-gray-800/90 shadow border border-gray-200 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-700"
             >
-              Weather
+              Laiks
             </a>
           </nav>
         </div>
@@ -313,12 +313,12 @@ export default function ExplorePage() {
 
       <section id="events" className="scroll-mt-20 py-12 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light text-center mb-2 text-gray-900 dark:text-white">Events in Latvia</h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Discover festivals and events</p>
+          <h2 className="text-3xl font-light text-center mb-2 text-gray-900 dark:text-white">Pasākumi Latvijā</h2>
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Atklājiet festivālus un notikumus</p>
           <div className="max-w-2xl mx-auto mb-10">
             <input
               type="text"
-              placeholder="Search events…"
+              placeholder="Meklēt pasākumus…"
               value={eventQuery}
               onChange={(e) => setEventQuery(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-white"
@@ -341,7 +341,7 @@ export default function ExplorePage() {
                 </div>
                 <div className="p-6">
                   <p className="text-gray-600 dark:text-gray-300 mb-4">{event.description}</p>
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Highlights</h4>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Spilgtākie momenti</h4>
                   <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 text-sm">
                     {event.highlights.map((h, i) => (
                       <li key={i}>{h}</li>
@@ -356,12 +356,12 @@ export default function ExplorePage() {
 
       <section id="cuisine" className="scroll-mt-20 py-12 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light text-center mb-2 text-gray-900 dark:text-white">Latvian cuisine</h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Traditional dishes and where to try them</p>
+          <h2 className="text-3xl font-light text-center mb-2 text-gray-900 dark:text-white">Latvijas virtuve</h2>
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Tradicionālie ēdieni un kur tos nobaudīt</p>
           <div className="max-w-2xl mx-auto mb-10">
             <input
               type="text"
-              placeholder="Search dishes…"
+              placeholder="Meklēt ēdienus…"
               value={dishQuery}
               onChange={(e) => setDishQuery(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-white"
@@ -375,7 +375,7 @@ export default function ExplorePage() {
               >
                 <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">{dish.name}</h3>
                 <p className="text-gray-600 dark:text-gray-300 mb-4">{dish.description}</p>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2 text-sm">Details</h4>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2 text-sm">Detaļas</h4>
                 <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 text-sm">
                   {dish.details.map((detail, i) => (
                     <li key={i}>{detail}</li>
@@ -384,7 +384,7 @@ export default function ExplorePage() {
               </div>
             ))}
           </div>
-          <h3 className="text-2xl font-light text-center mb-8 text-gray-900 dark:text-white">Where to try</h3>
+          <h3 className="text-2xl font-light text-center mb-8 text-gray-900 dark:text-white">Kur nobaudīt</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {PLACES.map((place) => (
               <div
@@ -406,11 +406,11 @@ export default function ExplorePage() {
 
       <section id="weather" className="scroll-mt-20 py-12 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light text-center mb-8 text-gray-900 dark:text-white">Weather in Latvia</h2>
+          <h2 className="text-3xl font-light text-center mb-8 text-gray-900 dark:text-white">Laikapstākļi Latvijā</h2>
           <ExploreWeather />
           <p className="text-center mt-10">
             <Link href="/destinations" className="text-blue-600 dark:text-blue-400 hover:underline">
-              Browse destinations →
+              Apskatīt galamērķus →
             </Link>
           </p>
         </div>

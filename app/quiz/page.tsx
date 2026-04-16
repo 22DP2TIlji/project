@@ -13,30 +13,30 @@ type Question = {
 const QUESTIONS: Question[] = [
   {
     id: "q1",
-    text: "What type of place interests you most?",
+    text: "Kāda veida vietas jūs interesē visvairāk?",
     options: [
-      { id: "nature", value: "Nature & forests", scores: { nature: 3, park: 2 } },
-      { id: "sea", value: "Sea & beaches", scores: { beach: 3, nature: 1 } },
-      { id: "city", value: "Cities & urban", scores: { city: 3 } },
-      { id: "castles", value: "Castles & history", scores: { castle: 3 } },
+      { id: "nature", value: "Daba un meži", scores: { nature: 3, park: 2 } },
+      { id: "sea", value: "Jūra un pludmales", scores: { beach: 3, nature: 1 } },
+      { id: "city", value: "Pilsētas un urbānā vide", scores: { city: 3 } },
+      { id: "castles", value: "Pilis un vēsture", scores: { castle: 3 } },
     ],
   },
   {
     id: "q2",
-    text: "How long is your trip?",
+    text: "Cik ilgs būs jūsu brauciens?",
     options: [
-      { id: "1", value: "1 day", scores: {} },
-      { id: "2-3", value: "2-3 days", scores: {} },
-      { id: "4-7", value: "4-7 days", scores: {} },
-      { id: "7+", value: "7+ days", scores: {} },
+      { id: "1", value: "1 diena", scores: {} },
+      { id: "2-3", value: "2–3 dienas", scores: {} },
+      { id: "4-7", value: "4–7 dienas", scores: {} },
+      { id: "7+", value: "Vairāk par nedēļu", scores: {} },
     ],
   },
   {
     id: "q3",
-    text: "What's your budget?",
+    text: "Kāds ir jūsu plānotais budžets?",
     options: [
-      { id: "low", value: "Budget-friendly", scores: {} },
-      { id: "mid", value: "Moderate", scores: {} },
+      { id: "low", value: "Draudzīgs maciņam", scores: {} },
+      { id: "mid", value: "Vidējs", scores: {} },
       { id: "high", value: "Premium", scores: {} },
     ],
   },
@@ -60,11 +60,11 @@ const CITY_TO_REGION: Record<string, string> = {
 }
 
 const CATEGORY_DESCRIPTIONS: Record<string, string> = {
-  beach: "Sea, sand, and summer vibes. Jūrmala and the Kurzeme coast.",
-  nature: "Forests, lakes, and trails. Gauja National Park, Sigulda.",
-  park: "National parks and nature reserves. Slītere, Ķemeri.",
-  city: "Old towns, museums, and urban life. Rīga, Kuldīga, Cēsis.",
-  castle: "Medieval castles and history. Cēsis, Turaida, Bauska.",
+  beach: "Jūra, smiltis un vasaras noskaņa. Jūrmala un Kurzemes piekraste.",
+  nature: "Meži, ezeri un dabas takas. Gaujas Nacionālais parks, Sigulda.",
+  park: "Nacionālie parki un dabas rezervāti. Slītere, Ķemeri.",
+  city: "Vecpilsētas, muzeji un pilsētas dzīve. Rīga, Kuldīga, Cēsis.",
+  castle: "Viduslaiku pilis un vēsture. Cēsis, Turaida, Bauska.",
 }
 
 export default function QuizPage() {
@@ -73,7 +73,7 @@ export default function QuizPage() {
   const [finished, setFinished] = useState(false)
 
   const current = QUESTIONS[step]
-  if (!current) return null
+  if (!current && !finished) return null
 
   const select = (opt: (typeof current.options)[0]) => {
     const newScores = { ...scores }
@@ -104,9 +104,9 @@ export default function QuizPage() {
         <div className="relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl font-light flex items-center justify-center gap-2">
             <Compass className="h-10 w-10" />
-            Find Your Destination
+            Atrodi savu galamērķi
           </h1>
-          <p className="mt-3 text-lg text-gray-600">Answer a few questions to get personalized recommendations</p>
+          <p className="mt-3 text-lg text-gray-600">Atbildi uz dažiem jautājumiem, lai saņemtu personalizētus ieteikumus</p>
         </div>
       </section>
 
@@ -124,7 +124,7 @@ export default function QuizPage() {
                     <button
                       type="button"
                       onClick={() => select(opt)}
-                      className="w-full text-left p-4 border border-gray-200 rounded-md hover:bg-gray-50 flex items-center justify-between"
+                      className="w-full text-left p-4 border border-gray-200 rounded-md hover:bg-gray-50 flex items-center justify-between transition-colors"
                     >
                       {opt.value}
                       <ChevronRight className="h-5 w-5 text-gray-400" />
@@ -134,8 +134,8 @@ export default function QuizPage() {
               </ul>
             </div>
           ) : (
-            <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-              <h2 className="text-xl font-light mb-2">We recommend</h2>
+            <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 animate-in fade-in duration-500">
+              <h2 className="text-xl font-light mb-2">Mēs iesakām:</h2>
               <p className="text-2xl font-medium text-blue-600 mb-2">
                 {suggestedCity}
               </p>
@@ -144,16 +144,17 @@ export default function QuizPage() {
               )}
               <Link
                 href={`/destinations?region=${CITY_TO_REGION[suggestedCity] ?? "Vidzeme"}`}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
               >
-                Explore {suggestedCity}
+                Izpētīt vietu: {suggestedCity}
                 <ChevronRight className="h-4 w-4" />
               </Link>
               <p className="mt-4 text-sm text-gray-500">
+                Vai arī{" "}
                 <Link href="/trip-planner" className="text-blue-600 hover:underline">
-                  Plan full route
+                  plānojiet pilnu maršrutu
                 </Link>{" "}
-                based on your interests
+                balstoties uz savām interesēm.
               </p>
             </div>
           )}

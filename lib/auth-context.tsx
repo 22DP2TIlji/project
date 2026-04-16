@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
-interface User {
+interface Lietotajs {
   id: string
   name: string
   email: string
@@ -13,7 +13,7 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null
+  user: Lietotajs | null
   isAuthenticated: boolean
   isLoading: boolean
   isAdmin: () => boolean
@@ -30,16 +30,16 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<Lietotajs | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load user from localStorage on mount
+  // Ielādēt lietotāju no localStorage pēc montēšanas
   useEffect(() => {
     const loadUser = async () => {
       try {
         const storedUser = localStorage.getItem('user')
         if (storedUser) {
-          const userData = JSON.parse(storedUser) as User
+          const userData = JSON.parse(storedUser) as Lietotajs
           setUser(userData)
           try {
             const response = await fetch('/api/auth/me', {
@@ -58,14 +58,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               return
             }
           } catch {
-            // network error: use stored user so admin panel can load
+            // Tīkla kļūda: izmantojam saglabāto lietotāju, lai administratora panelis varētu ielādēties
             setUser(userData)
             return
           }
           setUser(userData)
         }
       } catch (error) {
-        console.error('Error loading user:', error)
+        console.error('Kļūda ielādējot lietotāju:', error)
         localStorage.removeItem('user')
       } finally {
         setIsLoading(false)
@@ -92,11 +92,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('user', JSON.stringify(result.user))
         return { success: true }
       } else {
-        return { success: false, message: result.message || 'Login failed' }
+        return { success: false, message: result.message || 'Pieslēgšanās neizdevās' }
       }
     } catch (error) {
-      console.error('Login error:', error)
-      return { success: false, message: 'An error occurred during login' }
+      console.error('Pieslēgšanās kļūda:', error)
+      return { success: false, message: 'Pieslēgšanās laikā radās kļūda' }
     }
   }
 
@@ -113,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await response.json()
 
       if (result.success && result.user) {
-        // Auto login after successful signup
+        // Automātiska pieslēgšanās pēc veiksmīgas reģistrācijas
         const userWithDefaults = { 
           ...result.user, 
           savedDestinations: [],
@@ -123,11 +123,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('user', JSON.stringify(userWithDefaults))
         return { success: true }
       } else {
-        return { success: false, message: result.message || 'Signup failed' }
+        return { success: false, message: result.message || 'Reģistrācija neizdevās' }
       }
     } catch (error) {
-      console.error('Signup error:', error)
-      return { success: false, message: 'An error occurred during signup' }
+      console.error('Reģistrācijas kļūda:', error)
+      return { success: false, message: 'Reģistrācijas laikā radās kļūda' }
     }
   }
 
@@ -160,12 +160,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(updatedUser)
         localStorage.setItem('user', JSON.stringify(updatedUser))
       } else {
-        const msg = data?.message || `Failed to save (${response.status})`
+        const msg = data?.message || `Neizdevās saglabāt (${response.status})`
         if (typeof window !== 'undefined') alert(msg)
       }
     } catch (error) {
-      console.error('Error saving destination:', error)
-      if (typeof window !== 'undefined') alert('Could not save place. Check your connection.')
+      console.error('Kļūda saglabājot galamērķi:', error)
+      if (typeof window !== 'undefined') alert('Neizdevās saglabāt vietu. Pārbaudiet savienojumu.')
     }
   }
 
@@ -190,18 +190,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(updatedUser)
         localStorage.setItem('user', JSON.stringify(updatedUser))
       } else {
-        const msg = data?.message || `Failed to remove (${response.status})`
+        const msg = data?.message || `Neizdevās noņemt (${response.status})`
         if (typeof window !== 'undefined') alert(msg)
       }
     } catch (error) {
-      console.error('Error removing destination:', error)
-      if (typeof window !== 'undefined') alert('Could not remove place.')
+      console.error('Kļūda noņemot galamērķi:', error)
+      if (typeof window !== 'undefined') alert('Neizdevās noņemt vietu.')
     }
   }
 
   const removeSavedItinerary = async (itineraryId: string) => {
-    // Implement itinerary removal logic here
-    console.log('Remove itinerary:', itineraryId)
+    // Šeit implementē maršruta noņemšanas loģiku
+    console.log('Noņemt maršrutu:', itineraryId)
   }
 
   const refreshUser = async () => {
@@ -224,7 +224,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (error) {
-      console.error('Error refreshing user:', error)
+      console.error('Kļūda atsvaidzinot lietotāju:', error)
     }
   }
 
@@ -266,7 +266,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error('useAuth ir jāizmanto AuthProvider ietvaros')
   }
   return context
 }

@@ -10,7 +10,7 @@ import { Search, Clock, Navigation, MapPin, Download, Hotel, Calendar, X, Calend
 function ItineraryMapLoadingPlaceholder() {
   return (
     <div className="h-[600px] w-full flex items-center justify-center bg-gray-100 rounded-md">
-      <p className="text-gray-600">Loading map...</p>
+      <p className="text-gray-600">Ielādē karti...</p>
     </div>
   )
 }
@@ -21,7 +21,7 @@ const ItineraryMap = dynamic(() => import("@/components/itinerary-map"), {
 })
 
 const popularDestinations = [
-  { id: "riga", name: "Riga", coordinates: [56.9496, 24.1052] },
+  { id: "riga", name: "Rīga", coordinates: [56.9496, 24.1052] },
   { id: "jurmala", name: "Jūrmala", coordinates: [56.9715, 23.7408] },
   { id: "sigulda", name: "Sigulda", coordinates: [57.1537, 24.8598] },
   { id: "cesis", name: "Cēsis", coordinates: [57.3119, 25.2749] },
@@ -59,7 +59,7 @@ export default function ItineraryPage() {
   const [isClient, setIsClient] = useState(false)
   const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([])
   const [loadingNearby, setLoadingNearby] = useState(false)
-  const [searchRadius, setSearchRadius] = useState("50") // радиус в км
+  const [searchRadius, setSearchRadius] = useState("50")
   const [showNearby, setShowNearby] = useState(false)
   const [isPublic, setIsPublic] = useState(false)
 
@@ -73,7 +73,6 @@ export default function ItineraryPage() {
     if (!isClient) return
 
     const loadSavedItineraries = async () => {
-      // Если пользователь авторизован — грузим маршруты из БД для конкретного аккаунта
       if (user && user.id) {
         setSavedItinerariesLoaded(false)
         try {
@@ -86,16 +85,15 @@ export default function ItineraryPage() {
             return
           }
         } catch (error) {
-          console.error("Error loading user itineraries:", error)
+          console.error("Kļūda, ielādējot lietotāja maršrutus:", error)
         }
       }
 
-      // Гостевой режим или запасной вариант — читаем из localStorage
       try {
         const saved = localStorage.getItem("savedItineraries")
         setSavedItineraries(saved ? JSON.parse(saved) : [])
       } catch (error) {
-        console.error("Error loading saved itineraries from localStorage:", error)
+        console.error("Kļūda, ielādējot saglabātos maršrutus no localStorage:", error)
         setSavedItineraries([])
       } finally {
         setSavedItinerariesLoaded(true)
@@ -116,7 +114,7 @@ export default function ItineraryPage() {
         if (p?.latitude != null && p?.longitude != null) {
           out.push({
             id: p.id ?? `d${day.dayNumber}-${idx++}`,
-            name: `Day ${day.dayNumber}: ${p.name}`,
+            name: `Diena ${day.dayNumber}: ${p.name}`,
             coordinates: [Number(p.latitude), Number(p.longitude)],
           })
         }
@@ -135,7 +133,7 @@ export default function ItineraryPage() {
       setShowNearby(true)
       return
     }
-    // Маршрут не найден в сохранённых — возможно, это публичный маршрут
+
     const numericId = parseInt(routeIdFromUrl, 10)
     if (!Number.isFinite(numericId)) return
     fetch(`/api/itineraries/${numericId}`)
@@ -224,7 +222,7 @@ export default function ItineraryPage() {
         setNearbyPlaces(places.sort((a, b) => a.distance - b.distance))
       }
     } catch (error) {
-      console.error("Error loading nearby places:", error)
+      console.error("Kļūda, ielādējot tuvumā esošās vietas:", error)
     } finally {
       setLoadingNearby(false)
     }
@@ -251,11 +249,10 @@ export default function ItineraryPage() {
       }
   
       if (!start || !end) {
-        alert("Please select valid start and end points.")
+        alert("Lūdzu, izvēlieties derīgus sākuma un galamērķa punktus.")
         return
       }
   
-      // ✅ ДОБАВИЛИ: получаем маршрут по дорогам (geometry)
       let geometry = null
       let distanceRoad = null
       let timeMinutesRoad = null
@@ -277,31 +274,27 @@ export default function ItineraryPage() {
           timeMinutesRoad = rdata.timeMinutes
         }
       } catch (e) {
-        console.error("Road routing failed, fallback to straight line:", e)
+        console.error("Maršruta aprēķins pa ceļiem neizdevās, izmantojam taisno līniju:", e)
       }
   
       const newRoute = {
         startPoint:
-          startPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === startPoint)?.name,
+          startPoint === "custom" ? "Pielāgota vieta" : popularDestinations.find((d) => d.id === startPoint)?.name,
         endPoint:
-          endPoint === "custom" ? "Custom location" : popularDestinations.find((d) => d.id === endPoint)?.name,
+          endPoint === "custom" ? "Pielāgota vieta" : popularDestinations.find((d) => d.id === endPoint)?.name,
         startCoords: start,
         endCoords: end,
-  
-        // ✅ если есть данные по дорогам — используем их, иначе оставляем твою старую формулу
         distance: distanceRoad ?? calculateDistance(start[0], start[1], end[0], end[1]),
         timeMinutes: timeMinutesRoad ?? null,
         time: timeMinutesRoad != null ? timeMinutesRoad / 60 : calculateDistance(start[0], start[1], end[0], end[1]) / 60,
-  
-        // ✅ добавили geometry, остальное не ломаем
         geometry,
       }
   
       setRoute(newRoute)
       setShowNearby(true)
     } catch (error) {
-      console.error("Error calculating route:", error)
-      alert("Failed to calculate route.")
+      console.error("Kļūda, aprēķinot maršrutu:", error)
+      alert("Neizdevās aprēķināt maršrutu.")
     }
   }
   
@@ -335,7 +328,6 @@ export default function ItineraryPage() {
 
       let savedForState = baseItinerary
 
-      // Если пользователь авторизован (и не admin) — сохраняем маршрут в БД, привязав к userId
       if (user && user.id && user.id !== "admin") {
         try {
           const response = await fetch("/api/itineraries", {
@@ -359,17 +351,16 @@ export default function ItineraryPage() {
               window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
             }
           } else {
-            const msg = data?.message || "Failed to save itinerary."
+            const msg = data?.message || "Neizdevās saglabāt maršrutu."
             alert(msg)
             return
           }
         } catch (error) {
-          console.error("Error saving itinerary to database:", error)
-          alert("Failed to save itinerary.")
+          console.error("Kļūda, saglabājot maršrutu datubāzē:", error)
+          alert("Neizdevās saglabāt maršrutu.")
           return
         }
       } else {
-        // Гостевой режим или admin — сохраняем только в localStorage (без привязки к аккаунту)
         try {
           const updatedGuestItineraries = [...savedItineraries, baseItinerary]
           localStorage.setItem("savedItineraries", JSON.stringify(updatedGuestItineraries))
@@ -377,16 +368,16 @@ export default function ItineraryPage() {
             window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
           }
         } catch (error) {
-          console.error("Error saving itinerary to localStorage:", error)
+          console.error("Kļūda, saglabājot maršrutu localStorage:", error)
         }
       }
 
       const updatedItineraries = [...savedItineraries, savedForState]
       setSavedItineraries(updatedItineraries)
-      alert("Itinerary saved successfully!")
+      alert("Maršruts veiksmīgi saglabāts!")
     } catch (error) {
-      console.error("Error saving itinerary:", error)
-      alert("Error saving itinerary.")
+      console.error("Kļūda, saglabājot maršrutu:", error)
+      alert("Kļūda, saglabājot maršrutu.")
     }
   }
 
@@ -439,11 +430,11 @@ export default function ItineraryPage() {
         link.click()
         URL.revokeObjectURL(url)
       } else {
-        alert("Failed to export to iCal.")
+        alert("Neizdevās eksportēt uz iCal.")
       }
 } catch (error) {
-    console.error('Error exporting to iCal:', error)
-    alert("Export failed.")
+    console.error('Kļūda, eksportējot uz iCal:', error)
+    alert("Eksportēšana neizdevās.")
   }
   }
 
@@ -457,7 +448,7 @@ export default function ItineraryPage() {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Route: ${route.startPoint} to ${route.endPoint}</title>
+          <title>Maršruts: ${route.startPoint} līdz ${route.endPoint}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
             h1 { color: #333; }
@@ -466,23 +457,23 @@ export default function ItineraryPage() {
           </style>
         </head>
         <body>
-          <h1>Route: ${route.startPoint} to ${route.endPoint}</h1>
+          <h1>Maršruts: ${route.startPoint} līdz ${route.endPoint}</h1>
           <div class="route-info">
-            <p><strong>Distance:</strong> ${route.distance} km</p>
-            <p><strong>Estimated Time:</strong> ${Math.floor(route.time)} hours ${Math.round((route.time % 1) * 60)} minutes</p>
+            <p><strong>Attālums:</strong> ${route.distance} km</p>
+            <p><strong>Aptuvenais laiks:</strong> ${Math.floor(route.time)} stundas ${Math.round((route.time % 1) * 60)} minūtes</p>
           </div>
           ${nearbyPlaces.length > 0 ? `
-            <h2>Places Near Route (${nearbyPlaces.length})</h2>
+            <h2>Vietas maršruta tuvumā (${nearbyPlaces.length})</h2>
             ${nearbyPlaces.map((p: any) => `
               <div class="place">
                 <h3>${p.name} (${p.type})</h3>
                 <p>${p.description || ''}</p>
-                <p>Distance: ${p.distance?.toFixed(1) || 0} km</p>
+                <p>Attālums: ${p.distance?.toFixed(1) || 0} km</p>
               </div>
             `).join('')}
           ` : ''}
           <p style="margin-top: 40px; color: #666; font-size: 12px;">
-            Generated by TravelLatvia on ${new Date().toLocaleString()}
+            Izveidots ar TravelLatvia ${new Date().toLocaleString()}
           </p>
         </body>
       </html>
@@ -496,8 +487,8 @@ export default function ItineraryPage() {
     if (!route) return
 
     const shareData = {
-      title: `Route: ${route.startPoint} to ${route.endPoint}`,
-      text: `Check out this route: ${route.startPoint} to ${route.endPoint}. Distance: ${route.distance} km, Time: ${Math.floor(route.time)} hours`,
+      title: `Maršruts: ${route.startPoint} līdz ${route.endPoint}`,
+      text: `Apskati šo maršrutu: ${route.startPoint} līdz ${route.endPoint}. Attālums: ${route.distance} km, Laiks: ${Math.floor(route.time)} stundas`,
       url: window.location.href,
     }
 
@@ -513,9 +504,9 @@ export default function ItineraryPage() {
   const copyToClipboard = () => {
     if (!route) return
 
-    const text = `Route: ${route.startPoint} to ${route.endPoint}\nDistance: ${route.distance} km\nTime: ${Math.floor(route.time)} hours\n\nView on TravelLatvia: ${window.location.href}`
+    const text = `Maršruts: ${route.startPoint} līdz ${route.endPoint}\nAttālums: ${route.distance} km\nLaiks: ${Math.floor(route.time)} stundas\n\nSkatīt TravelLatvia: ${window.location.href}`
     navigator.clipboard.writeText(text).then(() => {
-      alert("Route copied to clipboard.")
+      alert("Maršruts nokopēts starpliktuvē.")
     })
   }
 
@@ -543,7 +534,7 @@ export default function ItineraryPage() {
             it.id === itinerary.id ? { ...it, isPublic: !!itinerary.isPublic } : it
           )
         )
-        alert(data.message || "Failed to update.")
+        alert(data.message || "Neizdevās atjaunināt.")
       }
       if (data.success && typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
@@ -554,7 +545,7 @@ export default function ItineraryPage() {
           it.id === itinerary.id ? { ...it, isPublic: !!itinerary.isPublic } : it
         )
       )
-      alert("Failed to update.")
+      alert("Neizdevās atjaunināt.")
     }
   }
 
@@ -566,7 +557,6 @@ export default function ItineraryPage() {
       )
       setSavedItineraries(updatedItineraries)
 
-      // Если пользователь не залогинен — поддерживаем старое поведение через localStorage
       if (!user || user.id === "admin") {
         try {
           localStorage.setItem("savedItineraries", JSON.stringify(updatedItineraries))
@@ -574,10 +564,9 @@ export default function ItineraryPage() {
             window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
           }
         } catch (error) {
-          console.error("Error updating saved itineraries in localStorage:", error)
+          console.error("Kļūda, atjauninot saglabātos maršrutus localStorage:", error)
         }
       } else {
-        // Авторизованный пользователь — удаляем маршрут в БД
         const res = await fetch("/api/itineraries", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
@@ -586,7 +575,7 @@ export default function ItineraryPage() {
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.success) {
           setSavedItineraries(savedItineraries)
-          alert(data.message || "Failed to delete route.")
+          alert(data.message || "Neizdevās dzēst maršrutu.")
           return
         }
         if (typeof window !== "undefined") {
@@ -594,9 +583,9 @@ export default function ItineraryPage() {
         }
       }
     } catch (error) {
-      console.error("Error deleting itinerary:", error)
+      console.error("Kļūda, dzēšot maršrutu:", error)
       setSavedItineraries(savedItineraries)
-      alert("Failed to delete route.")
+      alert("Neizdevās dzēst maršrutu.")
     }
   }
 
@@ -616,13 +605,13 @@ export default function ItineraryPage() {
   const getPlaceTypeLabel = (type: string) => {
     switch (type) {
       case 'destination':
-        return "Destination"
+        return "Galamērķis"
       case 'accommodation':
-        return "Accommodation"
+        return "Naktsmītne"
       case 'event':
-        return "Event"
+        return "Pasākums"
       default:
-        return "Place"
+        return "Vieta"
     }
   }
 
@@ -631,8 +620,8 @@ export default function ItineraryPage() {
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Itinerary</h1>
-          <p className="mt-4 text-xl">Plan and save your routes through Latvia</p>
+          <h1 className="text-5xl md:text-6xl font-light">Maršruts</h1>
+          <p className="mt-4 text-xl">Plāno un saglabā savus maršrutus pa Latviju</p>
         </div>
       </section>
 
@@ -641,11 +630,11 @@ export default function ItineraryPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-1">
               <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                <h2 className="text-2xl font-light mb-6 text-gray-800">Route Planner</h2>
+                <h2 className="text-2xl font-light mb-6 text-gray-800">Maršruta plānotājs</h2>
 
                 <div className="mb-4">
                   <label htmlFor="startPoint" className="block mb-2 text-sm font-medium">
-                    Starting point
+                    Sākuma punkts
                   </label>
                   <select
                     id="startPoint"
@@ -653,27 +642,27 @@ export default function ItineraryPage() {
                     onChange={(e) => setStartPoint(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                   >
-                    <option value="">Select start point</option>
+                    <option value="">Izvēlieties sākuma punktu</option>
                     {popularDestinations.map((dest) => (
                       <option key={`start-${dest.id}`} value={dest.id}>
                         {dest.name}
                       </option>
                     ))}
-                    <option value="custom">Custom location</option>
+                    <option value="custom">Pielāgota vieta</option>
                   </select>
                 </div>
 
                 {startPoint === "custom" && (
                   <div className="mb-4">
                     <label htmlFor="customStartPoint" className="block mb-2 text-sm font-medium">
-                      Custom start coordinates (lat, lng)
+                      Pielāgotas sākuma koordinātas (plat., gar.)
                     </label>
                     <input
                       type="text"
                       id="customStartPoint"
                       value={customStartPoint}
                       onChange={(e) => setCustomStartPoint(e.target.value)}
-                      placeholder="e.g. 56.9496, 24.1052"
+                      placeholder="piem. 56.9496, 24.1052"
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                     />
                   </div>
@@ -681,7 +670,7 @@ export default function ItineraryPage() {
 
                 <div className="mb-4">
                   <label htmlFor="endPoint" className="block mb-2 text-sm font-medium">
-                    Destination
+                    Galamērķis
                   </label>
                   <select
                     id="endPoint"
@@ -689,27 +678,27 @@ export default function ItineraryPage() {
                     onChange={(e) => setEndPoint(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                   >
-                    <option value="">Select destination</option>
+                    <option value="">Izvēlieties galamērķi</option>
                     {popularDestinations.map((dest) => (
                       <option key={`end-${dest.id}`} value={dest.id}>
                         {dest.name}
                       </option>
                     ))}
-                    <option value="custom">Custom location</option>
+                    <option value="custom">Pielāgota vieta</option>
                   </select>
                 </div>
 
                 {endPoint === "custom" && (
                   <div className="mb-4">
                     <label htmlFor="customEndPoint" className="block mb-2 text-sm font-medium">
-                      Custom end coordinates (lat, lng)
+                      Pielāgotas galapunkta koordinātas (plat., gar.)
                     </label>
                     <input
                       type="text"
                       id="customEndPoint"
                       value={customEndPoint}
                       onChange={(e) => setCustomEndPoint(e.target.value)}
-                      placeholder="e.g. 57.3119, 25.2749"
+                      placeholder="piem. 57.3119, 25.2749"
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                     />
                   </div>
@@ -721,29 +710,29 @@ export default function ItineraryPage() {
                   disabled={!startPoint || !endPoint}
                 >
                   <Search className="w-4 h-4 mr-2" />
-                  Calculate route
+                  Aprēķināt maršrutu
                 </button>
 
                 {route && (
                   <div className="mt-6 p-4 bg-gray-50 rounded-md border border-gray-200">
-                    <h3 className="font-medium mb-2 text-gray-800">Route details</h3>
+                    <h3 className="font-medium mb-2 text-gray-800">Maršruta informācija</h3>
                     <p className="text-sm mb-1">
-                      <strong>From</strong> {route.startPoint}
+                      <strong>No</strong> {route.startPoint}
                     </p>
                     <p className="text-sm mb-1">
-                      <strong>To</strong> {route.endPoint}
+                      <strong>Uz</strong> {route.endPoint}
                     </p>
                     <div className="flex items-center text-sm mb-1">
                       <Navigation className="w-4 h-4 mr-1" />
                       <span>
-                        <strong>Distance</strong> {route.distance} km
+                        <strong>Attālums</strong> {route.distance} km
                       </span>
                     </div>
                     <div className="flex items-center text-sm mb-3">
                       <Clock className="w-4 h-4 mr-1" />
                       <span>
-                        <strong>Est. time</strong> {Math.floor(route.time)} hours {Math.round((route.time % 1) * 60)}{" "}
-                        minutes
+                        <strong>Apt. laiks</strong> {Math.floor(route.time)} stundas {Math.round((route.time % 1) * 60)}{" "}
+                        minūtes
                       </span>
                     </div>
                     <div className="space-y-2">
@@ -752,7 +741,7 @@ export default function ItineraryPage() {
                           onClick={saveItinerary}
                           className="flex-1 py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                         >
-                          Save
+                          Saglabāt
                         </button>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
@@ -762,7 +751,7 @@ export default function ItineraryPage() {
                         className="w-full py-2 px-3 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
                       >
                         <Share2 className="h-4 w-4" />
-                        Share route
+                        Kopīgot maršrutu
                       </button>
                     </div>
                     <div className="mt-4 flex items-center gap-2">
@@ -774,7 +763,7 @@ export default function ItineraryPage() {
                         className="rounded border-gray-300"
                       />
                       <label htmlFor="isPublic" className="text-sm text-gray-700">
-                        Share publicly
+                        Kopīgot publiski
                       </label>
                     </div>
                   </div>
@@ -783,7 +772,7 @@ export default function ItineraryPage() {
                 {route && (
                   <div className="mt-4 p-4 bg-blue-50 rounded-md border border-blue-200">
                     <label className="block mb-2 text-sm font-medium text-gray-800">
-                      Search radius (km)
+                      Meklēšanas rādiuss (km)
                     </label>
                     <input
                       type="number"
@@ -794,7 +783,7 @@ export default function ItineraryPage() {
                       className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <p className="text-xs text-gray-600 mt-1">
-                      Places within {searchRadius} km of route
+                      Vietas {searchRadius} km rādiusā ap maršrutu
                     </p>
                   </div>
                 )}
@@ -802,7 +791,7 @@ export default function ItineraryPage() {
 
               {isClient && savedItineraries.length > 0 && (
                 <div className="mt-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                  <h2 className="text-2xl font-light mb-4 text-gray-800">Saved itineraries</h2>
+                  <h2 className="text-2xl font-light mb-4 text-gray-800">Saglabātie maršruti</h2>
                   <div className="space-y-3">
                     {savedItineraries.map((itinerary) => (
                       <div key={itinerary.id} className="p-3 border border-gray-200 rounded-md bg-gray-50">
@@ -810,7 +799,7 @@ export default function ItineraryPage() {
                           <h4 className="font-medium text-gray-800">
                             {itinerary.kind === "tripPlan" && itinerary.tripName
                               ? itinerary.tripName
-                              : `${itinerary.startPoint} to ${itinerary.endPoint}`}
+                              : `${itinerary.startPoint} līdz ${itinerary.endPoint}`}
                           </h4>
                           <div className="flex items-center gap-2">
                             {user && user.id && user.id !== "admin" && Number.isFinite(parseInt(itinerary.id)) && (
@@ -821,21 +810,21 @@ export default function ItineraryPage() {
                                   onChange={() => togglePublish(itinerary)}
                                   className="rounded border-gray-300"
                                 />
-                                <span className="text-gray-600">Public</span>
+                                <span className="text-gray-600">Publisks</span>
                               </label>
                             )}
                             <button onClick={() => deleteItinerary(itinerary.id)} className="text-red-500 text-sm">
-                              Delete
+                              Dzēst
                             </button>
                           </div>
                         </div>
                         <p className="text-sm text-gray-600">{new Date(itinerary.date).toLocaleDateString()}</p>
                         <p className="text-sm">
-                          {itinerary.distance} km • {Math.floor(itinerary.time)} hours{" "}
-                          {Math.round((itinerary.time % 1) * 60)} minutes
+                          {itinerary.distance} km • {Math.floor(itinerary.time)} stundas{" "}
+                          {Math.round((itinerary.time % 1) * 60)} minūtes
                         </p>
                         {itinerary.isPublic && (
-                          <p className="text-xs text-green-600 mt-1">Published</p>
+                          <p className="text-xs text-green-600 mt-1">Publicēts</p>
                         )}
                       </div>
                     ))}
@@ -848,17 +837,17 @@ export default function ItineraryPage() {
               {isClient && route?.kind === "tripPlan" && Array.isArray(route.tripDays) && (
                 <div className="mb-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">
                   <h2 className="text-2xl font-light text-gray-800 mb-2">
-                    {route.tripName || route.startPoint || "Saved trip"}
+                    {route.tripName || route.startPoint || "Saglabāts ceļojums"}
                   </h2>
                   <p className="text-sm text-gray-600 mb-4">
-                    {route.totalPlaces != null && `${route.totalPlaces} places`}
+                    {route.totalPlaces != null && `${route.totalPlaces} vietas`}
                     {route.distance != null && ` · ${route.distance} km`}
                     {route.estimatedCost != null && Number(route.estimatedCost) > 0 && ` · ~${route.estimatedCost}€`}
                   </p>
                   <div className="space-y-6">
                     {route.tripDays.map((day: { dayNumber: number; places: any[] }) => (
                       <div key={day.dayNumber} className="border-l-2 border-blue-400 pl-4">
-                        <h3 className="font-medium text-gray-800 mb-2">Day {day.dayNumber}</h3>
+                        <h3 className="font-medium text-gray-800 mb-2">Diena {day.dayNumber}</h3>
                         <ul className="space-y-2">
                           {(day.places || []).map((p: any, i: number) => (
                             <li key={p.id ?? i} className="text-sm text-gray-700 flex items-start gap-2">
@@ -889,7 +878,7 @@ export default function ItineraryPage() {
                 <div className="mt-6 bg-white p-6 rounded-md shadow-sm border border-gray-200">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-light text-gray-800">
-                      Places near route ({nearbyPlaces.length})
+                      Vietas maršruta tuvumā ({nearbyPlaces.length})
                     </h2>
                     <button
                       onClick={() => setShowNearby(false)}
@@ -900,7 +889,7 @@ export default function ItineraryPage() {
                   </div>
 
                   {loadingNearby ? (
-                    <p className="text-gray-600">Loading nearby places...</p>
+                    <p className="text-gray-600">Ielādē tuvumā esošās vietas...</p>
                   ) : nearbyPlaces.length > 0 ? (
                     <div className="space-y-3 max-h-[400px] overflow-y-auto">
                       {nearbyPlaces.map((place) => (
@@ -916,7 +905,7 @@ export default function ItineraryPage() {
                                   {getPlaceTypeLabel(place.type)}
                                 </span>
                                 <span className="text-xs text-gray-500">
-                                  {place.distance.toFixed(1)} km away
+                                  {place.distance.toFixed(1)} km attālumā
                                 </span>
                               </div>
                               <h3 className="font-semibold text-gray-800">{place.name}</h3>
@@ -929,7 +918,7 @@ export default function ItineraryPage() {
                                 </span>
                               )}
                               {place.type === 'accommodation' && place.priceRange && (
-                                <p className="text-sm text-gray-600 mt-1">Price: {place.priceRange}</p>
+                                <p className="text-sm text-gray-600 mt-1">Cena: {place.priceRange}</p>
                               )}
                               {place.type === 'event' && place.startDate && (
                                 <p className="text-sm text-gray-600 mt-1">
@@ -942,7 +931,7 @@ export default function ItineraryPage() {
                                 href={`/destination/${place.id}`}
                                 className="ml-4 text-sm text-blue-600 hover:underline"
                               >
-                                View
+                                Skatīt
                               </Link>
                             )}
                           </div>
@@ -950,7 +939,7 @@ export default function ItineraryPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-600">No places found within {searchRadius} km</p>
+                    <p className="text-gray-600">Nav atrasta neviena vieta {searchRadius} km rādiusā</p>
                   )}
                 </div>
               )}

@@ -18,12 +18,12 @@ const CITIES = [
 ]
 
 const CATEGORIES = [
-  { id: "nature", name: "Nature" },
-  { id: "castle", name: "Castles" },
-  { id: "park", name: "Parks" },
-  { id: "beach", name: "Beaches" },
-  { id: "city", name: "City" },
-  { id: "viewing_tower", name: "Viewing towers" },
+  { id: "nature", name: "Daba" },
+  { id: "castle", name: "Pilis un muižas" },
+  { id: "park", name: "Parki" },
+  { id: "beach", name: "Pludmales" },
+  { id: "city", name: "Pilsētvide" },
+  { id: "viewing_tower", name: "Skatu torņi" },
 ]
 
 export default function TripPlannerPage() {
@@ -62,11 +62,11 @@ export default function TripPlannerPage() {
       if (data.success && data.trip) {
         setTrip(data.trip)
       } else {
-        alert(data.message || "Failed to generate trip plan.")
+        alert(data.message || "Neizdevās izveidot ceļojuma plānu.")
       }
     } catch (e) {
       console.error(e)
-      alert("Failed to generate trip plan.")
+      alert("Neizdevās izveidot ceļojuma plānu.")
     } finally {
       setLoading(false)
     }
@@ -75,13 +75,13 @@ export default function TripPlannerPage() {
   const saveTrip = async () => {
     if (!trip) return
     if (!isAuthenticated || !user?.id || user.id === "admin") {
-      alert("Please log in to save your trip.")
+      alert("Lūdzu, piesakieties, lai saglabātu savu ceļojumu.")
       router.push("/login")
       return
     }
     const name = tripName.trim()
     if (!name) {
-      alert("Please enter a name for your trip.")
+      alert("Lūdzu, ievadiet ceļojuma nosaukumu.")
       return
     }
     setSaving(true)
@@ -97,7 +97,7 @@ export default function TripPlannerPage() {
       })
       const data = await res.json()
       if (!res.ok || !data.success) {
-        alert(data.message || "Could not save trip.")
+        alert(data.message || "Neizdevās saglabāt ceļojumu.")
         return
       }
       if (typeof window !== "undefined") {
@@ -106,7 +106,7 @@ export default function TripPlannerPage() {
       router.push(`/itinerary?route=${data.routeId}`)
     } catch (e) {
       console.error(e)
-      alert("Could not save trip.")
+      alert("Neizdevās saglabāt ceļojumu.")
     } finally {
       setSaving(false)
     }
@@ -117,9 +117,9 @@ export default function TripPlannerPage() {
       <section className="relative h-[35vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200" />
         <div className="relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-light">Smart Trip Planner</h1>
+          <h1 className="text-4xl md:text-5xl font-light">Viedais ceļojumu plānotājs</h1>
           <p className="mt-3 text-lg text-gray-600">
-            Build your route through Latvia based on your preferences
+            Izveidojiet savu maršrutu pa Latviju, balstoties uz savām vēlmēm
           </p>
         </div>
       </section>
@@ -129,12 +129,12 @@ export default function TripPlannerPage() {
           <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-8">
             <h2 className="text-xl font-light mb-4 flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Trip options
+              Ceļojuma uzstādījumi
             </h2>
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Number of days
+                  Dienu skaits
                 </label>
                 <input
                   type="number"
@@ -147,7 +147,7 @@ export default function TripPlannerPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Start city
+                  Sākuma pilsēta
                 </label>
                 <select
                   value={startCity}
@@ -163,7 +163,7 @@ export default function TripPlannerPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Interests (optional)
+                  Intereses (pēc izvēles)
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {CATEGORIES.map((c) => (
@@ -185,12 +185,12 @@ export default function TripPlannerPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
                   <Wallet className="h-4 w-4" />
-                  Max budget (€)
+                  Maksimālais budžets (€)
                 </label>
                 <input
                   type="number"
                   min={0}
-                  placeholder="e.g. 200"
+                  placeholder="piem., 200"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
                   className="w-full max-w-[150px] p-2 border border-gray-300 rounded-md"
@@ -199,17 +199,17 @@ export default function TripPlannerPage() {
               <button
                 onClick={generate}
                 disabled={loading}
-                className="px-6 py-3 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-3 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
               >
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating...
+                    Ģenerē maršrutu...
                   </>
                 ) : (
                   <>
                     <MapPin className="h-4 w-4" />
-                    Generate route
+                    Izveidot maršrutu
                   </>
                 )}
               </button>
@@ -217,22 +217,22 @@ export default function TripPlannerPage() {
           </div>
 
           {trip && (
-            <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-              <h2 className="text-xl font-light mb-4">Your route</h2>
+            <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 animate-in fade-in duration-500">
+              <h2 className="text-xl font-light mb-4">Jūsu maršruts</h2>
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Trip name (saved to your profile)
+                  Ceļojuma nosaukums (saglabāšanai profilā)
                 </label>
                 <input
                   type="text"
                   value={tripName}
                   onChange={(e) => setTripName(e.target.value)}
-                  placeholder="e.g. Weekend in Kurzeme"
+                  placeholder="piem., Brīvdienas Kurzemē"
                   className="w-full max-w-md p-2 border border-gray-300 rounded-md"
                 />
               </div>
               <div className="flex flex-wrap gap-4 mb-6 text-sm text-gray-600">
-                <span>{trip.totalPlaces} places</span>
+                <span>{trip.totalPlaces} vietas</span>
                 <span>~{trip.totalDistance} km</span>
                 {trip.estimatedCost > 0 && (
                   <span>~{trip.estimatedCost}€</span>
@@ -242,7 +242,7 @@ export default function TripPlannerPage() {
                 {trip.tripDays.map((day: any) => (
                   <div key={day.dayNumber} className="border-l-2 border-blue-200 pl-4">
                     <h3 className="font-medium text-gray-800 mb-2">
-                      Day {day.dayNumber}
+                      {day.dayNumber}. diena
                     </h3>
                     <ul className="space-y-1">
                       {day.places.map((p: any, i: number) => (
@@ -272,17 +272,17 @@ export default function TripPlannerPage() {
                   type="button"
                   onClick={saveTrip}
                   disabled={saving}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
                 >
                   {saving ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Save className="h-4 w-4" />
                   )}
-                  Save trip and open on map
+                  Saglabāt un atvērt kartē
                 </button>
                 <Link href="/itinerary" className="text-sm text-gray-600 hover:text-blue-600 underline">
-                  Open itinerary planner only
+                  Atvērt tikai maršruta plānotāju
                 </Link>
               </div>
             </div>

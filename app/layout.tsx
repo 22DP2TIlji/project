@@ -6,11 +6,11 @@ import { ThemeProvider } from "@/lib/theme-context"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin", "latin-ext"] }) // Pievienots latin-ext latviešu zīmēm
 
 export const metadata = {
-  title: "TravelLatvia",
-  description: "Plan your trip through Latvia",
+  title: "TravelLatvia | Ceļo gudri",
+  description: "Plāno savu perfekto ceļojumu pa Latviju",
 }
 
 export const dynamic = "force-dynamic"
@@ -21,12 +21,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning translate="no">
-      <body className={inter.className} suppressHydrationWarning translate="no">
+    <html lang="lv" suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
         <AuthProvider>
           <ThemeProvider>
             <Header />
-            <main className="pt-16">{children}</main>
+            <main className="pt-16 min-h-screen">
+              {children}
+            </main>
             <Footer />
           </ThemeProvider>
         </AuthProvider>

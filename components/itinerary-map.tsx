@@ -23,7 +23,7 @@ export default function ItineraryMap({ route, destinations, nearbyPlaces = [] }:
       try {
         const L = (await import("leaflet")).default
 
-        // @ts-expect-error - leaflet CSS has no type declarations
+        // @ts-expect-error - leaflet CSS nav tipu deklarāciju
         await import("leaflet/dist/leaflet.css")
 
         delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -34,20 +34,20 @@ export default function ItineraryMap({ route, destinations, nearbyPlaces = [] }:
           shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
         })
 
-        const center: [number, number] = [56.8796, 24.6032]
+        const center: [number, number] = [56.8796, 24.6032] // Latvijas centrs
         const zoom = 7
 
         if (!map) {
           const mapInstance = L.map("itinerary-map").setView(center, zoom)
 
           L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> autori',
           }).addTo(mapInstance)
 
           setMap(mapInstance)
         }
       } catch (error) {
-        console.error("Error loading map:", error)
+        console.error("Kļūda ielādējot karti:", error)
       }
     }
 
@@ -80,7 +80,7 @@ export default function ItineraryMap({ route, destinations, nearbyPlaces = [] }:
         })
 
         if (route && route.startCoords && route.endCoords) {
-          // Start marker
+          // Sākuma marķieris
           L.marker(route.startCoords as [number, number], {
             icon: L.icon({
               iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
@@ -90,9 +90,9 @@ export default function ItineraryMap({ route, destinations, nearbyPlaces = [] }:
             }),
           })
             .addTo(map)
-            .bindPopup(`Start: ${route.startPoint}`)
+            .bindPopup(`Sākums: ${route.startPoint}`)
 
-          // End marker
+          // Beigu marķieris
           L.marker(route.endCoords as [number, number], {
             icon: L.icon({
               iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
@@ -102,26 +102,26 @@ export default function ItineraryMap({ route, destinations, nearbyPlaces = [] }:
             }),
           })
             .addTo(map)
-            .bindPopup(`End: ${route.endPoint}`)
+            .bindPopup(`Galamērķis: ${route.endPoint}`)
 
-          // Route line (roads if available)
-let linePoints: [number, number][] | null = null
+          // Maršruta līnija
+          let linePoints: [number, number][] | null = null
 
-if (route?.geometry?.type === "LineString" && Array.isArray(route.geometry.coordinates)) {
-  // OSRM geojson: [lng, lat] -> Leaflet: [lat, lng]
-  linePoints = route.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]])
-} else if (route?.startCoords && route?.endCoords) {
-  // fallback: straight line (your old behavior)
-  linePoints = [route.startCoords, route.endCoords]
-}
+          if (route?.geometry?.type === "LineString" && Array.isArray(route.geometry.coordinates)) {
+            // OSRM geojson: [garums, platums] -> Leaflet: [platums, garums]
+            linePoints = route.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]])
+          } else if (route?.startCoords && route?.endCoords) {
+            // Rezerves variants: taisna līnija
+            linePoints = [route.startCoords, route.endCoords]
+          }
 
-if (linePoints) {
-  L.polyline(linePoints, {
-    color: "blue",
-    weight: 4,
-    opacity: 0.7,
-  }).addTo(map)
-}
+          if (linePoints) {
+            L.polyline(linePoints, {
+              color: "blue",
+              weight: 4,
+              opacity: 0.7,
+            }).addTo(map)
+          }
 
           const places = Array.isArray(nearbyPlaces) ? nearbyPlaces : []
           places.forEach((place) => {
@@ -129,8 +129,14 @@ if (linePoints) {
             const lng = Number(place.longitude)
             
             let iconColor = "blue"
-            if (place.type === "accommodation") iconColor = "orange"
-            if (place.type === "event") iconColor = "violet"
+            let typeLabel = place.type
+            if (place.type === "accommodation") {
+                iconColor = "orange"
+                typeLabel = "Naktsmītne"
+            } else if (place.type === "event") {
+                iconColor = "violet"
+                typeLabel = "Pasākums"
+            }
 
             L.marker([lat, lng], {
               icon: L.icon({
@@ -142,7 +148,7 @@ if (linePoints) {
             })
               .addTo(map)
               .bindPopup(
-                `<strong>${place.name}</strong><br/>${place.type}<br/>${place.distance?.toFixed(1) || 0} km away`
+                `<strong>${place.name}</strong><br/>${typeLabel}<br/>${place.distance?.toFixed(1) || 0} km attālumā`
               )
           })
 
@@ -164,7 +170,7 @@ if (linePoints) {
             map.fitBounds(bounds as any, { padding: [50, 50] })
           }
         } else {
-          // Если нет маршрута, показываем все destinations
+          // Ja nav maršruta, rādām visus galamērķus
           if (destinations.length > 0) {
             const bounds = destinations.map((d) => d.coordinates)
             map.fitBounds(bounds as any, {
@@ -173,7 +179,7 @@ if (linePoints) {
           }
         }
       } catch (error) {
-        console.error("Error updating map:", error)
+        console.error("Kļūda atjauninot karti:", error)
       }
     }
 
@@ -183,7 +189,7 @@ if (linePoints) {
   if (!isClient) {
     return (
       <div className="h-[600px] w-full flex items-center justify-center bg-gray-100 rounded-md border border-gray-200">
-        <p className="text-gray-600">Loading map...</p>
+        <p className="text-gray-600">Ielādē karti...</p>
       </div>
     )
   }

@@ -28,7 +28,7 @@ export default function DestinationCard({
 
   const handleLikeClick = async () => {
     if (!user) {
-      // You might want to show a login prompt here
+      // Šeit varētu pievienot paziņojumu par nepieciešamību pieslēgties
       return;
     }
 
@@ -38,7 +38,7 @@ export default function DestinationCard({
       setIsLiked(newLikeStatus);
       onLikeChange?.(newLikeStatus);
     } catch (err) {
-      console.error('Error toggling like:', err);
+      console.error('Kļūda mainot "patīk" statusu:', err);
     }
   };
 
@@ -53,7 +53,7 @@ export default function DestinationCard({
             className={`p-2 rounded-full transition-colors ${
               isLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
             } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-            title={user ? (isLiked ? 'Unlike' : 'Like') : 'Login to like'}
+            title={user ? (isLiked ? 'Noņemt patīk' : 'Patīk') : 'Pieslēdzieties, lai pievienotu izlasei'}
           >
             <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
           </button>
@@ -74,4 +74,4 @@ export default function DestinationCard({
       </div>
     </div>
   );
-} 
+}

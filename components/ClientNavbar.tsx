@@ -1,4 +1,3 @@
-
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
@@ -12,15 +11,15 @@ export function ClientNavbar() {
         className="px-2 py-1 border rounded"
         onClick={() => setOpen(!open)}
       >
-        {open ? 'Close Menu' : 'Open Menu'}
+        {open ? 'Aizvērt izvēlni' : 'Atvērt izvēlni'}
       </button>
 
       {open && (
         <ul className="mt-2 space-y-1">
-          <li><Link href="/destinations">Destinations</Link></li>
-          <li><Link href="/itinerary">Plan Trip</Link></li>
-          <li><Link href="/explore">Explore</Link></li>
-          <li><Link href="/contact">Contact</Link></li>
+          <li><Link href="/destinations">Galamērķi</Link></li>
+          <li><Link href="/itinerary">Plānot ceļojumu</Link></li>
+          <li><Link href="/explore">Izpētīt</Link></li>
+          <li><Link href="/contact">Kontakti</Link></li>
         </ul>
       )}
     </nav>

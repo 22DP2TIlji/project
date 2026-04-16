@@ -52,7 +52,7 @@ export default function LikeButton({ destinationId, destinationName, onLikeChang
         }
         await refreshUser()
       } catch (e) {
-        console.error("Like toggle error:", e)
+        console.error("Kļūda mainot patīk statusu:", e)
       } finally {
         setUpdating(false)
       }
@@ -84,12 +84,12 @@ export default function LikeButton({ destinationId, destinationName, onLikeChang
       onClick={toggleLike}
       disabled={updating}
       className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
-      aria-label={isLiked ? "Remove from favorites" : "Add to favorites"}
+      aria-label={isLiked ? "Noņemt no izlases" : "Pievienot izlasei"}
     >
       <Heart
         className={`w-5 h-5 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-400 hover:text-gray-600"}`}
       />
-      <span className="text-gray-600">{isLiked ? "Liked" : "Like"}</span>
+      <span className="text-gray-600">{isLiked ? "Pievienots" : "Patīk"}</span>
     </button>
   )
 }

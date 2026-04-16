@@ -10,126 +10,108 @@ import { useAuth } from "@/lib/auth-context"
 const destinations = {
   riga: {
     id: "riga",
-    name: "Old town, Riga",
+    name: "Rīgas vecpilsēta",
     description:
-      "Explore the charming cobblestone streets and colorful buildings of Riga's historic Old Town, a UNESCO World Heritage site featuring stunning architecture from various periods.",
+      "Izpētiet burvīgās bruģētās ielas un krāsainās ēkas Rīgas vēsturiskajā vecpilsētā, kas ir UNESCO Pasaules mantojuma sarakstā iekļauta vieta ar satriecošu arhitektūru.",
     fullDescription: `
-      Riga's Old Town (Vecrīga) is a captivating blend of architectural styles spanning over 800 years. As you wander through its narrow cobblestone streets, you'll discover Gothic spires, baroque facades, and art nouveau masterpieces.
+      Rīgas vecpilsēta (Vecrīga) ir aizraujošs arhitektūras stilu apvienojums, kas aptver vairāk nekā 800 gadus. Klīstot pa tās šaurajām bruģētajām ieliņām, jūs atklāsiet gotikas smailes, baroka fasādes un jūgendstila šedevrus.
       
-      The heart of Old Riga is the Town Hall Square (Rātslaukums), home to the iconic House of the Blackheads, a stunning example of Dutch Renaissance architecture. Nearby, St. Peter's Church offers panoramic views of the city from its towering spire.
+      Vecrīgas sirds ir Rātslaukums, kur atrodas ikoniskais Melngalvju nams – lielisks holandiešu renesanses arhitektūras piemērs. Turpat blakus Svētā Pētera baznīca piedāvā panorāmas skatu uz pilsētu no tās augstās smailes.
       
-      Don't miss the "Three Brothers" - the oldest complex of dwelling houses in Riga, each representing a different period of the city's architectural development. The Riga Cathedral, founded in 1211, is another must-visit landmark with its impressive organ and beautiful cloister.
+      Nepalaidiet garām "Trīs brāļus" – vecāko dzīvojamo māju kompleksu Rīgā, kur katra ēka pārstāv citu pilsētas arhitektūras attīstības periodu. Rīgas Doms, kas dibināts 1211. gadā, ir vēl viens obligāti apmeklējams piemineklis ar iespaidīgām ērģelēm un skaistu krusteju.
       
-      The Old Town is also home to numerous museums, cozy cafes, and traditional Latvian restaurants where you can sample local specialties like grey peas with bacon, rye bread, and Riga Black Balsam.
+      Vecpilsētā atrodas arī neskaitāmi muzeji, mājīgas kafejnīcas un tradicionāli latviešu restorāni, kur var nobaudīt vietējos ēdienus, piemēram, pelēkos zirņus ar speķi, rupjmaizi un Rīgas Melno balzamu.
     `,
   },
   sigulda: {
     id: "sigulda",
     name: "Sigulda",
     description:
-      'Known as the "Switzerland of Latvia," Sigulda offers breathtaking landscapes, medieval castles, and outdoor activities surrounded by the picturesque Gauja National Park.',
+      'Pazīstama kā "Latvijas Šveice", Sigulda piedāvā elpu aizraujošas ainavas, viduslaiku pilis un āra aktivitātes gleznainā Gaujas nacionālā parka ieskautā vidē.',
     fullDescription: `
-      Sigulda is a picturesque town located in the Gauja River valley, about an hour's drive from Riga. The area is famous for its stunning natural landscapes, especially beautiful during autumn when the forests transform into a vibrant palette of red, orange, and gold.
+      Sigulda ir gleznaina pilsēta Gaujas senlejā, aptuveni stundas brauciena attālumā no Rīgas. Šī vieta ir slavena ar savām satriecošajām dabas ainavām, kas ir īpaši skaistas rudenī, kad meži pārvēršas dinamiskā sarkanā, oranžā un zelta krāsu paletē.
       
-      The town is home to several historical castles. The medieval Sigulda Castle ruins date back to 1207, while the New Castle of Sigulda, built in the 19th century, now houses the local council. Across the valley stands the impressive Turaida Castle, a reconstructed medieval fortress with a museum complex and sculpture park.
+      Pilsētā atrodas vairākas vēsturiskas pilis. Viduslaiku Siguldas pils drupas datētas ar 1207. gadu, savukārt Siguldas Jaunajā pilī, kas celta 19. gadsimtā, tagad atrodas pašvaldība. Ielejas pretējā pusē paceļas iespaidīgā Turaidas pils – rekonstruēts viduslaiku cietoksnis ar muzeja kompleksu un skulptūru parku.
       
-      Adventure enthusiasts will find plenty to do in Sigulda. The town is Latvia's adventure capital, offering activities like bobsledding on the Olympic track, bungee jumping, zip-lining across the Gauja valley, and extensive hiking and cycling trails through the national park.
+      Piedzīvojumu meklētāji Siguldā atradīs daudz ko darīt. Pilsēta ir Latvijas piedzīvojumu galvaspilsēta, piedāvājot tādas aktivitātes kā braukšanu ar bobslēgu olimpiskajā trasē, gumijlēkšanu, braucienu ar vagoniņu pāri Gaujas senlejai, kā arī plašas pārgājienu un riteņbraukšanas takas nacionālajā parkā.
       
-      Don't miss the opportunity to take the cable car across the Gauja valley for breathtaking views, or visit the Gutmanis Cave, the largest cave in the Baltics with ancient inscriptions dating back to the 17th century.
+      Nepalaidiet garām iespēju doties ar gaisa vagoniņu pāri Gaujas ielejai, lai baudītu elpu aizraujošus skatus, vai apmeklēt Gūtmaņa alu – lielāko alu Baltijā ar seniem ierakstiem, kas datēti pat ar 17. gadsimtu.
     `,
   },
   jurmala: {
     id: "jurmala",
     name: "Jūrmala",
     description:
-      "Latvia's premier beach resort town features 33 km of white sand beaches along the Baltic Sea, charming wooden architecture, and a relaxing spa culture.",
+      "Latvijas galvenā kūrortpilsēta ar 33 km garām baltu smilšu pludmalēm Baltijas jūras krastā, burvīgu koka arhitektūru un relaksējošu spa kultūru.",
     fullDescription: `
-      Jūrmala is Latvia's premier seaside resort, stretching along 33 kilometers of white sand beach on the Gulf of Riga. The town has been a popular holiday destination since the late 19th century when Russian nobility discovered its charms.
+      Jūrmala ir Latvijas nozīmīgākais kūrorts, kas stiepjas 33 kilometru garumā gar Rīgas jūras līča balto smilšu pludmali. Pilsēta ir bijusi populārs brīvdienu galamērķis kopš 19. gadsimta beigām.
       
-      The town is famous for its unique wooden architecture - ornate summer cottages built in the late 19th and early 20th centuries. These charming wooden villas, many in the Art Nouveau style, give Jūrmala its distinctive character. Jomas Street, the main pedestrian thoroughfare, is lined with restaurants, cafes, and shops.
+      Pilsēta ir slavena ar savu unikālo koka arhitektūru – greznām vasarnīcām, kas celtas 19. gadsimta beigās un 20. gadsimta sākumā. Šīs burvīgās koka villas, no kurām daudzas ir jūgendstila stilā, piešķir Jūrmalai tās raksturīgo tēlu. Jomas iela, galvenā gājēju iela, ir pilna ar restorāniem, kafejnīcām un veikaliem.
       
-      Jūrmala has a long tradition as a spa town, with natural resources like mineral waters, curative mud, and pine-scented air. Many luxury hotels and historic sanatoriums offer spa treatments and wellness programs.
+      Jūrmalai ir senas kūrortpilsētas tradīcijas ar tādiem dabas resursiem kā minerālūdeņi, ārstnieciskās dūņas un priežu smaržas piesātināts gaiss. Daudzas luksusa viesnīcas un vēsturiskās sanatorijas piedāvā spa procedūras un labsajūtas programmas.
       
-      The wide, sandy beach is the town's main attraction, perfect for swimming in summer and long walks year-round. The shallow waters of the Gulf of Riga warm up nicely in summer, making it ideal for families with children.
+      Plašā, smilšainā pludmale ir pilsētas galvenā atrakcija, kas ir lieliski piemērota peldēšanai vasarā un garām pastaigām visa gada garumā. Rīgas jūras līča seklie ūdeņi vasarā labi uzsilst, padarot to par ideālu vietu ģimenēm ar bērniem.
     `,
   },
   cesis: {
     id: "cesis",
     name: "Cēsis",
     description:
-      "One of Latvia's most picturesque towns, Cēsis boasts a well-preserved medieval castle, charming old town, and beautiful surroundings perfect for history enthusiasts.",
+      "Viena no Latvijas gleznainākajām pilsētām, Cēsis lepojas ar labi saglabājušos viduslaiku pili, burvīgu vecpilsētu un skaistu apkārtni, kas ir lieliski piemērota vēstures entuziastiem.",
     fullDescription: `
-      Cēsis is one of Latvia's most charming and historic towns, dating back to 1206 when the Livonian Brothers of the Sword built a castle here. The medieval layout of the town has been preserved, with narrow streets winding around the central square.
+      Cēsis ir viena no Latvijas šarmantākajām un vēsturiskākajām pilsētām, kuras pirmsākumi meklējami 1206. gadā. Pilsētas viduslaiku plānojums ir saglabājies, ar šaurām ieliņām, kas vijas ap centrālo laukumu.
       
-      The main attraction is the Cēsis Castle complex, consisting of the ruins of the medieval Livonian Order Castle and the New Castle, which now houses the Cēsis History and Art Museum. Visitors can explore the medieval castle ruins with lanterns, climb the western tower for panoramic views, and learn about the region's rich history.
+      Galvenais apskates objekts ir Cēsu pils komplekss, kas sastāv no Livonijas ordeņa viduslaiku pils drupām un Jaunās pils, kurā tagad atrodas Cēsu Vēstures un mākslas muzejs. Apmeklētāji var izpētīt viduslaiku pils drupas ar lukturīšiem, uzkāpt Rietumu tornī, lai baudītu panorāmas skatu, un uzzināt par reģiona bagāto vēsturi.
       
-      The town's historic center features well-preserved 18th-19th century wooden buildings, the impressive St. John's Church dating from the 13th century, and several art galleries and craft workshops. The central square, Rožu laukums (Rose Square), is a pleasant place to relax at an outdoor cafe.
+      Pilsētas vēsturiskajā centrā ir labi saglabājušās 18.–19. gadsimta koka ēkas, iespaidīgā Svētā Jāņa baznīca, kas celta 13. gadsimtā, kā arī vairākas mākslas galerijas un amatnieku darbnīcas. Centrālais laukums, Rožu laukums, ir patīkama vieta, kur atpūsties kādā āra kafejnīcā.
       
-      Surrounding Cēsis is the beautiful Gauja National Park, offering hiking trails, sandstone cliffs, and the picturesque Gauja River valley. The area is particularly stunning in autumn when the forests display vibrant fall colors.
+      Cēsu apkārtnē atrodas skaistais Gaujas nacionālais parks, kas piedāvā pārgājienu takas, smilšakmens klintis un gleznaino Gaujas upes ieleju.
     `,
   },
   kuldiga: {
     id: "kuldiga",
     name: "Kuldīga",
     description:
-      "A picturesque town known for its red-tiled roofs, cobblestone streets, and Europe's widest waterfall, Ventas Rumba. The historic center is a well-preserved example of a traditional Latvian town.",
+      "Gleznaina pilsēta, kas pazīstama ar sarkanajiem dakstiņu jumtiem, bruģētām ielām un Eiropas platāko ūdenskritumu – Ventas rumbu.",
     fullDescription: `
-      Kuldīga is often described as one of Latvia's most picturesque towns, with its well-preserved historic center featuring red-tiled roofs, cobblestone streets, and wooden buildings dating from the 17th-19th centuries. The town has a distinctly different feel from other Latvian cities, with an almost Mediterranean atmosphere.
+      Kuldīga bieži tiek raksturota kā viena no Latvijas fotogēniskākajām pilsētām. Tās vēsturiskajam centram ir gandrīz Vidusjūras reģiona atmosfēra.
       
-      The town's most famous natural attraction is Ventas Rumba, Europe's widest waterfall at 249 meters across (though only 1.6-2 meters high). In spring, you can witness the unique spectacle of fish attempting to jump up the waterfall, giving rise to the town's historical fishing method using baskets to catch the jumping fish.
+      Pilsētas slavenākais dabas objekts ir Ventas rumba, Eiropas platākais ūdenskritums (249 metri). Pavasarī šeit var vērot unikālu skatu – lidojošās zivis, kas mēģina pārvarēt ūdenskritumu.
       
-      The old brick bridge across the Venta River, built in 1874, offers excellent views of the waterfall and is a popular spot for photographers. The historic center of Kuldīga is centered around the Town Hall Square with its 17th-century Town Hall.
-      
-      Don't miss the opportunity to visit the Kuldīga Regional Museum housed in a former synagogue, stroll along the Alekšupīte River which runs through the town center (sometimes called the 'Venice of Latvia'), and explore the ruins of the Livonian Order Castle.
+      Senais ķieģeļu tilts pār Ventu, celts 1874. gadā, piedāvā lielisku skatu uz ūdenskritumu un ir iecienīta vieta fotogrāfiem. Kuldīgas vēsturiskais centrs ir iekļauts UNESCO Pasaules mantojuma sarakstā.
     `,
   },
   liepaja: {
     id: "liepaja",
     name: "Liepāja",
     description:
-      "A coastal city with beautiful beaches, a historic naval port, and a vibrant music scene. Known as 'The city where the wind is born,' Liepāja offers a mix of cultural heritage and seaside charm.",
+      "Piekrastes pilsēta ar skaistām pludmalēm, vēsturisku kara ostu un dzīvīgu mūzikas dzīvi. Zināma kā 'pilsēta, kurā piedzimst vējš'.",
     fullDescription: `
-      Liepāja is a vibrant coastal city on Latvia's western shore, known for its beautiful beaches, rich musical heritage, and unique military history. The city's slogan, 'The city where the wind is born,' reflects its breezy coastal location.
+      Liepāja ir dinamiska ostas pilsēta Latvijas rietumu piekrastē. Tā lepojas ar brīnišķīgu Zilā karoga pludmali ar baltām, smalkām smiltīm.
       
-      The city boasts a gorgeous Blue Flag beach with white sand that stretches for kilometers along the Baltic Sea. The beach park features a landmark musical instrument sculpture and the famous amber clock.
+      Liepājai ir spēcīgas mūzikas tradīcijas, un tā bieži tiek dēvēta par Latvijas rokmūzikas galvaspilsētu. Apmeklējiet koncertzāli 'Lielais dzintars', kas ir arhitektūras šedevrs.
       
-      Liepāja has a strong musical tradition and is often called the 'Capital of Latvian Rock Music.' The city hosts numerous music festivals and events throughout the year. Visit the Liepāja Concert Hall 'Great Amber,' an architectural masterpiece shaped like a piece of amber crystal.
-      
-      One of the most unique attractions is Karosta, a former military naval base north of the city. This area was a closed military territory during the Soviet era and features impressive fortifications, the striking St. Nicholas Naval Cathedral, and the Karosta Prison, now a museum where visitors can experience what life was like for prisoners.
-      
-      The historic center of Liepāja features beautiful wooden architecture, Art Nouveau buildings, and the largest mechanical organ in the world at St. Trinity Cathedral.
+      Viens no unikālākajiem apskates objektiem ir Karosta – bijusī militārā jūras bāze pilsētas ziemeļos ar tās cietumu, kas tagad ir muzejs.
     `,
   },
   rundale: {
     id: "rundale",
-    name: "Rundāle Palace",
+    name: "Rundāles pils",
     description:
-      "A magnificent baroque palace often called the 'Versailles of Latvia.' The palace features stunning architecture, lavish interiors, and beautiful French-style gardens.",
+      "Iespaidīga baroka pils, ko bieži dēvē par 'Latvijas Versaļu'. Pils izceļas ar satriecošu arhitektūru un krāšņiem franču dārziem.",
     fullDescription: `
-      Rundāle Palace is Latvia's most outstanding example of baroque architecture, often called the 'Versailles of Latvia.' Built between 1736 and 1740 as a summer residence for Ernst Johann Biron, Duke of Courland, the palace was designed by the famous Italian architect Francesco Bartolomeo Rastrelli, who also designed the Winter Palace in St. Petersburg.
+      Rundāles pils ir izcilākais baroka arhitektūras piemērs Latvijā. To projektējis slavenais itāļu arhitekts Frančesko Bartolomeo Rastrelli.
       
-      The palace interior is a masterpiece of luxury and elegance, featuring original 18th-century furniture, silk wallpaper, intricate stucco decorations, and impressive collections of art. The most spectacular rooms include the White Hall, the Gold Hall, and the Duke's bedroom with its elaborate silk bed.
-      
-      The palace is surrounded by a meticulously restored French-style formal garden covering 10 hectares. The garden features ornate fountains, rose gardens with over 2,400 varieties of roses, green amphitheaters, and sculpted hedges. The garden is particularly beautiful in early summer when the roses are in bloom.
-      
-      The palace complex also includes a museum dedicated to Latvian history, temporary exhibition spaces, and a hunting lodge. Special events and classical music concerts are regularly held in the palace and gardens during the summer months.
+      Pils interjers ir greznības un elegances paraugs ar oriģinālām 18. gadsimta mēbelēm, zīda tapetēm un sarežģītiem stuka dekorējumiem. Pils dārzā atrodas rožu kolekcija ar vairāk nekā 2400 šķirnēm.
     `,
   },
   gauja: {
     id: "gauja",
-    name: "Gauja National Park",
+    name: "Gaujas nacionālais parks",
     description:
-      "Latvia's largest and oldest national park, featuring diverse landscapes, medieval castles, sandstone cliffs, and extensive hiking and cycling trails through pristine nature.",
+      "Latvijas lielākais un vecākais nacionālais parks ar daudzveidīgām ainavām, klintīm un pārgājienu takām.",
     fullDescription: `
-      Gauja National Park, established in 1973, is Latvia's largest and oldest national park, covering over 900 square kilometers of pristine nature. The park is centered around the ancient valley of the Gauja River, with dramatic sandstone cliffs, caves, and dense forests.
-      
-      The park is home to an impressive biodiversity, with over 900 plant species, 149 bird species, and 48 mammal species including lynx, wolves, elk, and beavers. The ancient forests, consisting primarily of pine, spruce, and mixed deciduous trees, cover more than half of the park's territory.
-      
-      One of the unique features of Gauja National Park is the combination of natural beauty and cultural heritage. The park contains several medieval castles, including Turaida Castle, Sigulda Castle ruins, and Cēsis Castle. These historical monuments are integrated into the natural landscape, creating a fascinating blend of history and nature.
-      
-      The park offers extensive recreational opportunities with over 500 km of marked hiking trails, cycling routes, and water tourism on the Gauja River. Adventure activities include zip-lining, bungee jumping, and winter sports. The park is particularly beautiful in autumn when the forest foliage turns vibrant shades of red, orange, and gold.
-      
-      Visitor centers in Sigulda, Līgatne, and Cēsis provide information about the park's attractions, trails, and wildlife.
+      Gaujas nacionālais parks, dibināts 1973. gadā, aizsargā Gaujas senlejas unikālo dabu. Parks ir mājvieta lielai bioloģiskajai daudzveidībai un kultūrvēsturiskiem pieminekļiem.
     `,
   },
 }
@@ -184,7 +166,7 @@ export default function DestinationPage() {
           })
         }
       } catch (e) {
-        console.error("Error loading destination:", e)
+        console.error("Kļūda ielādējot galamērķi:", e)
       } finally {
         setLoadingDestination(false)
       }
@@ -192,7 +174,6 @@ export default function DestinationPage() {
     fetchDestination()
   }, [id])
 
-  // Загрузка отзывов только для направлений из БД (числовой id). Для slug (riga, sigulda) API не поддерживается.
   const isNumericDestination = typeof id === "string" && Number.isFinite(Number(id))
 
   useEffect(() => {
@@ -215,11 +196,11 @@ export default function DestinationPage() {
         if (res.ok && data.success) {
           setReviews(data.reviews || [])
         } else {
-          setReviewError(data.message || "Failed to load reviews")
+          setReviewError(data.message || "Neizdevās ielādēt atsauksmes")
         }
       } catch (e) {
-        console.error("Error loading reviews:", e)
-        setReviewError("Failed to load reviews")
+        console.error("Kļūda ielādējot atsauksmes:", e)
+        setReviewError("Neizdevās ielādēt atsauksmes")
       } finally {
         setLoadingReviews(false)
       }
@@ -283,7 +264,7 @@ export default function DestinationPage() {
       const data = await res.json().catch(() => ({}))
 
       if (!res.ok || !data.success) {
-        const msg = data.message || `Failed to submit review (${res.status})`
+        const msg = data.message || `Neizdevās pievienot atsauksmi (${res.status})`
         setReviewError(msg)
         if (typeof window !== "undefined") alert(msg)
         return
@@ -295,8 +276,8 @@ export default function DestinationPage() {
       setNewComment("")
       setNewRating(5)
     } catch (e) {
-      console.error("Error submitting review:", e)
-      const msg = "Could not submit review. Check your connection."
+      console.error("Kļūda pievienojot atsauksmi:", e)
+      const msg = "Neizdevās pievienot atsauksmi. Pārbaudiet savienojumu."
       setReviewError(msg)
       if (typeof window !== "undefined") alert(msg)
     } finally {
@@ -308,7 +289,7 @@ export default function DestinationPage() {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
         <div className="inline-block h-8 w-8 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin mb-4" />
-        <p className="text-gray-600">Loading destination...</p>
+        <p className="text-gray-600">Ielādē galamērķi...</p>
       </div>
     )
   }
@@ -316,13 +297,13 @@ export default function DestinationPage() {
   if (!destination) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-light mb-4">Destination not found</h1>
-        <p className="mb-8 text-gray-600">The destination you're looking for doesn't exist or has been removed.</p>
+        <h1 className="text-3xl font-light mb-4">Galamērķis nav atrasts</h1>
+        <p className="mb-8 text-gray-600">Meklētais galamērķis neeksistē vai ir izdzēsts.</p>
         <Link
           href="/destinations"
           className="inline-block px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
         >
-          Back to Destinations
+          Atpakaļ uz galamērķiem
         </Link>
       </div>
     )
@@ -342,7 +323,7 @@ export default function DestinationPage() {
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-8">
               <Link href="/destinations" className="text-gray-600 hover:text-gray-800 flex items-center">
-                <span>← Back to Destinations</span>
+                <span>← Atpakaļ uz galamērķiem</span>
               </Link>
               <LikeButton destinationId={destination.id} destinationName={destination.name} />
             </div>
@@ -359,28 +340,27 @@ export default function DestinationPage() {
               ))}
             </div>
 
-            {/* Reviews section — только для направлений из БД (числовой id) */}
             <div className="mt-12 pt-10 border-t border-gray-200">
               <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6 md:p-8">
                 <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
                   <div>
                     <h2 className="text-2xl font-light text-gray-900 flex items-center gap-2">
                       <Star className="h-6 w-6 text-yellow-500" aria-hidden />
-                      Reviews
+                      Atsauksmes
                     </h2>
                     <p className="text-sm text-gray-600 mt-1">
                       {!isNumericDestination
-                        ? "Reviews are available for places from the Destinations list."
+                        ? "Atsauksmes ir pieejamas vietām no Galamērķu saraksta."
                         : reviews.length > 0
                           ? (
                               <>
                                 <span className="font-medium text-gray-900">
                                   {averageRating.toFixed(1)} / 5
                                 </span>{" "}
-                                — {reviews.length} review{reviews.length === 1 ? "" : "s"}
+                                — {reviews.length} atsauksme{reviews.length % 10 === 1 && reviews.length % 100 !== 11 ? "" : "s"}
                               </>
                             )
-                          : "No reviews yet. Be the first to share your experience."}
+                          : "Vēl nav nevienas atsauksmes. Esi pirmais, kas dalās pieredzē!"}
                     </p>
                   </div>
                   <MessageCircle className="h-8 w-8 text-gray-300 shrink-0" aria-hidden />
@@ -388,21 +368,20 @@ export default function DestinationPage() {
 
                 {!isNumericDestination ? (
                   <div className="p-5 rounded-md border border-gray-200 bg-gray-50/80 text-center text-gray-600">
-                    <p className="mb-2">To leave a review, open this place from the <Link href="/destinations" className="text-gray-900 underline">Destinations</Link> list (places from the database).</p>
+                    <p className="mb-2">Lai atstātu atsauksmi, atveriet šo vietu no <Link href="/destinations" className="text-gray-900 underline">Galamērķu</Link> saraksta.</p>
                   </div>
                 ) : (
                   <>
-                {/* Форма отзыва */}
                 <div className="mb-8 p-5 rounded-md border border-gray-200 bg-gray-50/80">
                   {isAuthenticated && user ? (
                     <>
                       <h3 className="text-lg font-medium text-gray-900 mb-4">
-                        Share your experience
+                        Dalies ar savu pieredzi
                       </h3>
                       <form onSubmit={handleSubmitReview} className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Your rating
+                            Tavs vērtējums
                           </label>
                           <div className="flex items-center gap-3">
                             <div className="flex items-center gap-1">
@@ -412,7 +391,7 @@ export default function DestinationPage() {
                                   type="button"
                                   onClick={() => setNewRating(value)}
                                   className="p-1 rounded focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1"
-                                  aria-label={`${value} star${value === 1 ? "" : "s"}`}
+                                  aria-label={`${value} zvaigzne${value === 1 ? "" : "s"}`}
                                 >
                                   <Star
                                     className={`h-6 w-6 transition-colors ${
@@ -432,13 +411,13 @@ export default function DestinationPage() {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Comment
+                            Komentārs
                           </label>
                           <textarea
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                             rows={3}
-                            placeholder="What did you like or dislike about this place?"
+                            placeholder="Kas tev šajā vietā patika vai nepatika?"
                             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                           />
                         </div>
@@ -452,7 +431,7 @@ export default function DestinationPage() {
                           disabled={submitting || !newComment.trim()}
                           className="inline-flex items-center justify-center px-5 py-2.5 rounded-md bg-gray-800 text-white text-sm font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                          {submitting ? "Submitting..." : "Submit review"}
+                          {submitting ? "Nosūta..." : "Iesniegt atsauksmi"}
                         </button>
                       </form>
                     </>
@@ -460,40 +439,39 @@ export default function DestinationPage() {
                     <div className="flex flex-wrap items-center justify-between gap-4">
                       <div>
                         <h3 className="text-lg font-medium text-gray-900">
-                          Want to leave a review?
+                          Vēlies atstāt atsauksmi?
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          Log in to share your experience and help other travelers.
+                          Pieslēdzies, lai dalītos pieredzē un palīdzētu citiem ceļotājiem.
                         </p>
                       </div>
                       <Link
                         href="/login"
                         className="inline-flex items-center justify-center px-5 py-2.5 rounded-md border border-gray-300 text-sm font-medium text-gray-900 bg-white hover:bg-gray-50 transition-colors"
                       >
-                        Log in
+                        Pieslēgties
                       </Link>
                     </div>
                   )}
                 </div>
 
-                {/* Список отзывов */}
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
-                    {reviews.length > 0 ? "What others say" : "Reviews"}
+                    {reviews.length > 0 ? "Ko saka citi" : "Atsauksmes"}
                   </h3>
                   {loadingReviews ? (
                     <div className="flex items-center gap-3 py-6 text-gray-500">
                       <div className="h-4 w-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                      <span className="text-sm">Loading reviews...</span>
+                      <span className="text-sm">Ielādē atsauksmes...</span>
                     </div>
                   ) : reviews.length === 0 ? (
                     <div className="py-8 text-center rounded-md border border-dashed border-gray-200 bg-gray-50/50">
                       <MessageCircle className="h-10 w-10 text-gray-300 mx-auto mb-2" />
                       <p className="text-sm text-gray-500">
-                        There are no reviews yet for this destination.
+                        Šim galamērķim vēl nav nevienas atsauksmes.
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
-                        Log in and be the first to share your experience.
+                        Pieslēdzies un esi pirmais!
                       </p>
                     </div>
                   ) : (
@@ -512,7 +490,7 @@ export default function DestinationPage() {
                             <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-medium text-gray-900">
-                                  {review.user?.name || "Traveler"}
+                                  {review.user?.name || "Ceļotājs"}
                                 </span>
                                 <span className="inline-flex items-center gap-0.5 text-amber-600">
                                   <Star className="h-4 w-4 fill-current" />
@@ -521,7 +499,7 @@ export default function DestinationPage() {
                               </div>
                               {review.createdAt && (
                                 <span className="text-xs text-gray-400">
-                                  {new Date(review.createdAt).toLocaleDateString()}
+                                  {new Date(review.createdAt).toLocaleDateString("lv-LV")}
                                 </span>
                               )}
                             </div>
@@ -540,7 +518,7 @@ export default function DestinationPage() {
             </div>
 
             <div className="mt-12 pt-8 border-t border-gray-200">
-              <h2 className="text-2xl font-light mb-6">Explore More Destinations</h2>
+              <h2 className="text-2xl font-light mb-6">Izpētiet citus galamērķus</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {moreDestinations.map((d: any) => (
                   <Link key={d.id} href={`/destination/${d.id}`} className="group">
@@ -559,11 +537,11 @@ export default function DestinationPage() {
                 ))}
               </div>
               {loadingMore && moreDestinations.length === 0 && (
-                <p className="text-gray-500 text-sm">Loading destinations...</p>
+                <p className="text-gray-500 text-sm">Ielādē galamērķus...</p>
               )}
               {!loadingMore && moreDestinations.length === 0 && (
                 <Link href="/destinations" className="text-blue-600 hover:underline text-sm">
-                  Browse all destinations
+                  Skatīt visus galamērķus
                 </Link>
               )}
             </div>

@@ -25,7 +25,8 @@ export default function AdminPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8 flex items-center justify-center">
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        {/* "Loading..." -> "Ielādē..." */}
+        <p className="text-gray-600 dark:text-gray-400">Ielādē...</p>
       </div>
     )
   }
@@ -36,8 +37,9 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
+      {/* "Admin Dashboard" -> "Administrēšanas panelis" */}
       <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">Administrēšanas panelis</h1>
       <AdminDashboard />
     </div>
   )
-} 
+}

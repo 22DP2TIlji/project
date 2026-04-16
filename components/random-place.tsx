@@ -36,18 +36,18 @@ export default function RandomPlace() {
   return (
     <div className="bg-white p-4 rounded-md border border-gray-200">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-medium text-gray-800">Random place</h3>
+        <h3 className="font-medium text-gray-800">Nejauša vieta</h3>
         <button
           type="button"
           onClick={fetchRandom}
           disabled={loading}
           className="p-2 rounded-md bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
-          title="Get random place"
+          title="Saņemt nejaušu vietu"
         >
           <Shuffle className="h-4 w-4" />
         </button>
       </div>
-      {loading && <p className="text-sm text-gray-500">Loading...</p>}
+      {loading && <p className="text-sm text-gray-500">Ielādē...</p>}
       {!loading && place && (
         <div>
           <Link
@@ -72,7 +72,7 @@ export default function RandomPlace() {
         </div>
       )}
       {!loading && !place && (
-        <p className="text-sm text-gray-500">Click shuffle to discover</p>
+        <p className="text-sm text-gray-500">Spiediet pogu, lai atklātu</p>
       )}
     </div>
   )

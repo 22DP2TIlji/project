@@ -4,15 +4,15 @@ export default function Footer() {
   return (
     <footer className="w-full py-4 border-t text-center text-sm text-gray-600">
       <div className="container mx-auto px-4">
-        <p>All rights reserved.</p>
+        <p>Visas tiesības aizsargātas.</p>
         <p>
-          Created with{" "}
+          Izveidots ar{" "}
           <a href="https://www.webnode.com" className="underline" target="_blank" rel="noopener noreferrer">
             Webnode
           </a>{" "}
           •{" "}
           <Link href="/cookies" className="underline">
-            Cookie Policy
+            Sīkdatņu politika
           </Link>
         </p>
       </div>

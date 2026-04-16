@@ -10,6 +10,17 @@ interface ChecklistItem {
   category: string
 }
 
+// Noklusējuma kategoriju tulkojumi
+const categoryTranslations: Record<string, string> = {
+  Accommodation: "Naktsmītnes",
+  Planning: "Plānošana",
+  Documents: "Dokumenti",
+  Transportation: "Transports",
+  Safety: "Drošība",
+  Electronics: "Elektronika",
+  Custom: "Pielāgots",
+};
+
 const DEFAULT_ITEM_KEYS = [
   { id: "1", key: "bookAccommodation", category: "Accommodation" },
   { id: "2", key: "checkWeather", category: "Planning" },
@@ -22,14 +33,14 @@ const DEFAULT_ITEM_KEYS = [
 ]
 
 const ITEM_LABELS: Record<string, string> = {
-  bookAccommodation: "Book accommodation",
-  checkWeather: "Check weather forecast",
-  packPassport: "Pack passport",
-  bookTransport: "Book transport",
-  downloadMaps: "Download offline maps",
-  informFamily: "Inform family of itinerary",
-  packCharger: "Pack phone charger",
-  getInsurance: "Get travel insurance",
+  bookAccommodation: "Rezervēt naktsmītni",
+  checkWeather: "Pārbaudīt laika ziņas",
+  packPassport: "Ielikt pasi",
+  bookTransport: "Rezervēt transportu",
+  downloadMaps: "Lejupielādēt bezsaistes kartes",
+  informFamily: "Informēt ģimeni par maršrutu",
+  packCharger: "Ielikt tālruņa lādētāju",
+  getInsurance: "Iegādāties ceļojumu apdrošināšanu",
 }
 
 function getItemLabel(text: string): string {
@@ -107,9 +118,9 @@ export default function ChecklistPage() {
     <>
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
-        <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Travel Checklist</h1>
-          <p className="mt-4 text-xl">Stay organized before your trip to Latvia</p>
+        <div className="relative z-10 text-center px-4">
+          <h1 className="text-5xl md:text-6xl font-light">Ceļojuma saraksts</h1>
+          <p className="mt-4 text-xl">Sagatavojies savam braucienam uz Latviju laicīgi</p>
         </div>
       </section>
 
@@ -120,7 +131,7 @@ export default function ChecklistPage() {
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-xl font-light">Progress</h2>
               <span className="text-gray-600">
-                {completedCount} / {totalCount} completed
+                Pabeigts {completedCount} no {totalCount}
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4">
@@ -129,39 +140,39 @@ export default function ChecklistPage() {
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
-            <p className="text-sm text-gray-600 mt-2">{progress}% complete</p>
+            <p className="text-sm text-gray-600 mt-2">{progress}% pabeigts</p>
           </div>
 
           {/* Add new item */}
           <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
-            <h2 className="text-xl font-light mb-4">Add new item</h2>
-            <div className="flex gap-2">
+            <h2 className="text-xl font-light mb-4">Pievienot jaunu vienumu</h2>
+            <div className="flex flex-col md:flex-row gap-2">
               <input
                 type="text"
                 value={newItemText}
                 onChange={(e) => setNewItemText(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && addItem()}
-                placeholder="Enter item..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Ievadiet uzdevumu..."
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               />
               <select
                 value={newItemCategory}
                 onChange={(e) => setNewItemCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               >
-                <option value="Custom">Custom</option>
+                <option value="Custom">Pielāgots</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
-                    {cat}
+                    {categoryTranslations[cat] || cat}
                   </option>
                 ))}
               </select>
               <button
                 onClick={addItem}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               >
                 <Plus className="h-5 w-5" />
-                Add
+                Pievienot
               </button>
             </div>
           </div>
@@ -171,25 +182,25 @@ export default function ChecklistPage() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setFilterCategory("all")}
-                className={`px-3 py-1 rounded-full text-sm ${
+                className={`px-3 py-1 rounded-full text-sm transition-colors ${
                   filterCategory === "all"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >
-                All
+                Visi
               </button>
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setFilterCategory(cat)}
-                  className={`px-3 py-1 rounded-full text-sm ${
+                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
                     filterCategory === cat
                       ? "bg-blue-600 text-white"
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   }`}
                 >
-                  {cat}
+                  {categoryTranslations[cat] || cat}
                 </button>
               ))}
             </div>
@@ -197,13 +208,13 @@ export default function ChecklistPage() {
 
           {/* Checklist items */}
           <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-            <h2 className="text-xl font-light mb-4">Checklist items</h2>
+            <h2 className="text-xl font-light mb-4">Saraksta vienumi</h2>
             {filteredItems.length > 0 ? (
               <div className="space-y-2">
                 {filteredItems.map((item) => (
                   <div
                     key={item.id}
-                    className={`flex items-center gap-3 p-3 rounded-md border ${
+                    className={`flex items-center gap-3 p-3 rounded-md border transition-colors ${
                       item.completed
                         ? "bg-gray-50 border-gray-200"
                         : "bg-white border-gray-300"
@@ -221,17 +232,18 @@ export default function ChecklistPage() {
                     </button>
                     <span
                       className={`flex-1 ${
-                        item.completed ? "line-through text-gray-500" : "text-gray-900"
+                        item.completed ? "line-through text-gray-400" : "text-gray-900"
                       }`}
                     >
                       {getItemLabel(item.text)}
                     </span>
-                    <span className="text-xs px-2 py-1 bg-gray-100 rounded text-gray-600">
-                      {item.category}
+                    <span className="text-xs px-2 py-1 bg-gray-100 rounded text-gray-500">
+                      {categoryTranslations[item.category] || item.category}
                     </span>
                     <button
                       onClick={() => deleteItem(item.id)}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-gray-400 hover:text-red-500 transition-colors"
+                      title="Dzēst"
                     >
                       <Trash2 className="h-5 w-5" />
                     </button>
@@ -239,7 +251,7 @@ export default function ChecklistPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-600 text-center py-8">No items in this category</p>
+              <p className="text-gray-600 text-center py-8">Šajā kategorijā vienumu nav</p>
             )}
           </div>
         </div>

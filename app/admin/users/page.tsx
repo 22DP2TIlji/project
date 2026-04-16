@@ -23,7 +23,8 @@ export default function AdminUsersPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8 flex items-center justify-center">
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        {/* "Loading..." -> "Ielādē..." */}
+        <p className="text-gray-600 dark:text-gray-400">Ielādē...</p>
       </div>
     )
   }
@@ -39,21 +40,21 @@ export default function AdminUsersPage() {
         <table className="min-w-full bg-white dark:bg-gray-800 rounded shadow">
           <thead>
             <tr>
-              <th className="p-2 border">ID</th>
-              <th className="p-2 border">Name</th>
-              <th className="p-2 border">Email</th>
-              <th className="p-2 border">Role</th>
-              <th className="p-2 border">Registered</th>
+              <th className="p-2 border text-gray-900 dark:text-white text-left">ID</th>
+              <th className="p-2 border text-gray-900 dark:text-white text-left">Vārds</th>
+              <th className="p-2 border text-gray-900 dark:text-white text-left">E-pasts</th>
+              <th className="p-2 border text-gray-900 dark:text-white text-left">Loma</th>
+              <th className="p-2 border text-gray-900 dark:text-white text-left">Reģistrēts</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="text-gray-700 dark:text-gray-300">
             {users.map(u => (
               <tr key={u.id}>
                 <td className="p-2 border">{u.id}</td>
                 <td className="p-2 border">{u.name}</td>
                 <td className="p-2 border">{u.email}</td>
                 <td className="p-2 border">{u.role}</td>
-                <td className="p-2 border">{u.created_at ? new Date(u.created_at).toLocaleDateString() : ''}</td>
+                <td className="p-2 border">{u.created_at ? new Date(u.created_at).toLocaleDateString('lv-LV') : ''}</td>
               </tr>
             ))}
           </tbody>
@@ -61,4 +62,4 @@ export default function AdminUsersPage() {
       </div>
     </div>
   )
-} 
+}

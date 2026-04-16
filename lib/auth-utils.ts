@@ -3,11 +3,11 @@ import prisma from './prisma'
 
 export async function getUserFromId(userId: string) {
   try {
-    // Handle special admin case
+    // Apstrādājam speciālo administratora gadījumu
     if (userId === 'admin') {
       return {
         id: 'admin',
-        name: 'Admin',
+        name: 'Administrators',
         email: 'admin@gmail.com',
         role: 'admin',
       }
@@ -32,7 +32,7 @@ export async function getUserFromId(userId: string) {
       id: user.id.toString(),
     }
   } catch (error) {
-    console.error('Error fetching user:', error)
+    console.error('Kļūda, mēģinot iegūt lietotāju:', error)
     return null
   }
 }

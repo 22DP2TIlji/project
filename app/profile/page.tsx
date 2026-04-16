@@ -3,7 +3,7 @@
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
-import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2 } from 'lucide-react'
+import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2 } from 'lucide-center'
 import Link from 'next/link'
 import LikeButton from '@/components/like-button'
 
@@ -74,7 +74,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!mounted) return
     const load = async () => {
-      // Если пользователь залогинен (не admin) — получаем его маршруты из БД
       if (user && user.id && user.id !== 'admin') {
         try {
           const res = await fetch(`/api/itineraries?userId=${user.id}`)
@@ -84,12 +83,9 @@ export default function ProfilePage() {
             setSavedItineraries(data.itineraries)
             return
           }
-        } catch (e) {
-          // если не удалось — просто упадём в гостевой режим ниже
-        }
+        } catch (e) {}
       }
 
-      // Гостевой режим или фоллбек — читаем маршруты из localStorage
       try {
         const raw = localStorage.getItem('savedItineraries')
         setSavedItineraries(raw ? JSON.parse(raw) : [])
@@ -121,7 +117,7 @@ export default function ProfilePage() {
             localStorage.setItem('savedItineraries', JSON.stringify(updated))
           } else {
             setSavedItineraries(savedItineraries)
-            alert(data.message || 'Failed to delete route.')
+            alert(data.message || 'Neizdevās izdzēst maršrutu.')
             return
           }
         }
@@ -132,7 +128,7 @@ export default function ProfilePage() {
       }
     } catch (e) {
       setSavedItineraries(savedItineraries)
-      alert('Failed to delete route.')
+      alert('Neizdevās izdzēst maršrutu.')
     } finally {
       setDeletingId(null)
     }
@@ -145,8 +141,8 @@ export default function ProfilePage() {
       <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
         <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Profile</h1>
-          <p className="mt-4 text-xl">Your account and statistics</p>
+          <h1 className="text-5xl md:text-6xl font-light">Profils</h1>
+          <p className="mt-4 text-xl">Jūsu konts un statistika</p>
         </div>
       </section>
 
@@ -155,19 +151,19 @@ export default function ProfilePage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-1">
               <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                <h2 className="text-2xl font-light mb-6 text-gray-800">Account Info</h2>
+                <h2 className="text-2xl font-light mb-6 text-gray-800">Konta informācija</h2>
                 <div className="mb-4">
-                  <span className="block text-sm text-gray-500">Name:</span>
+                  <span className="block text-sm text-gray-500">Vārds:</span>
                   <span className="text-lg font-medium text-gray-900">{user.name}</span>
                 </div>
                 <div className="mb-4">
-                  <span className="block text-sm text-gray-500">Email</span>
+                  <span className="block text-sm text-gray-500">E-pasts:</span>
                   <span className="text-lg font-medium text-gray-900">{user.email}</span>
                 </div>
                 <div className="mb-6">
-                  <span className="block text-sm text-gray-500">Role</span>
+                  <span className="block text-sm text-gray-500">Loma:</span>
                   <span className="text-lg font-medium text-gray-900">
-                    {isAdmin() ? "Admin" : "User"}
+                    {isAdmin() ? "Administrators" : "Lietotājs"}
                   </span>
                 </div>
                 <button
@@ -175,7 +171,7 @@ export default function ProfilePage() {
                   className="w-full rounded-md bg-red-600 py-3 px-4 text-white transition-colors hover:bg-red-700 flex items-center justify-center gap-2"
                 >
                   <LogOut className="h-4 w-4" />
-                  Log out
+                  Izrakstīties
                 </button>
               </div>
             </div>
@@ -184,17 +180,17 @@ export default function ProfilePage() {
               <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
                 <h2 className="text-2xl font-light mb-6 text-gray-800 flex items-center gap-2">
                   <TrendingUp className="h-6 w-6" />
-                  Your Statistics
+                  Jūsu statistika
                 </h2>
 
                 {loading ? (
-                  <p className="text-gray-600">Loading statistics...</p>
+                  <p className="text-gray-600">Ielādē statistiku...</p>
                 ) : stats ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <div className="p-4 bg-blue-50 rounded-md border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
                         <MapPin className="h-5 w-5 text-blue-600" />
-                        <span className="text-sm text-gray-600">Saved Places</span>
+                        <span className="text-sm text-gray-600">Saglabātās vietas</span>
                       </div>
                       <p className="text-3xl font-light text-blue-600">{stats.savedDestinations}</p>
                     </div>
@@ -202,7 +198,7 @@ export default function ProfilePage() {
                     <div className="p-4 bg-green-50 rounded-md border border-green-200">
                       <div className="flex items-center gap-2 mb-2">
                         <Route className="h-5 w-5 text-green-600" />
-                        <span className="text-sm text-gray-600">Routes created</span>
+                        <span className="text-sm text-gray-600">Izveidotie maršruti</span>
                       </div>
                       <p className="text-3xl font-light text-green-600">{stats.routesCreated}</p>
                     </div>
@@ -210,7 +206,7 @@ export default function ProfilePage() {
                     <div className="p-4 bg-yellow-50 rounded-md border border-yellow-200">
                       <div className="flex items-center gap-2 mb-2">
                         <Star className="h-5 w-5 text-yellow-600" />
-                        <span className="text-sm text-gray-600">Reviews written</span>
+                        <span className="text-sm text-gray-600">Uzrakstītās atsauksmes</span>
                       </div>
                       <p className="text-3xl font-light text-yellow-600">{stats.reviewsWritten}</p>
                     </div>
@@ -218,7 +214,7 @@ export default function ProfilePage() {
                     <div className="p-4 bg-purple-50 rounded-md border border-purple-200">
                       <div className="flex items-center gap-2 mb-2">
                         <Star className="h-5 w-5 text-purple-600" />
-                        <span className="text-sm text-gray-600">Avg. rating</span>
+                        <span className="text-sm text-gray-600">Vidējais vērtējums</span>
                       </div>
                       <p className="text-3xl font-light text-purple-600">
                         {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
@@ -229,7 +225,7 @@ export default function ProfilePage() {
                       <div className="p-4 bg-amber-50 rounded-md border border-amber-200">
                         <div className="flex items-center gap-2 mb-2">
                           <MapPin className="h-5 w-5 text-amber-600" />
-                          <span className="text-sm text-gray-600">Cities visited</span>
+                          <span className="text-sm text-gray-600">Apmeklētās pilsētas</span>
                         </div>
                         <p className="text-3xl font-light text-amber-600">{stats.citiesVisited}</p>
                       </div>
@@ -238,7 +234,7 @@ export default function ProfilePage() {
                       <div className="p-4 bg-teal-50 rounded-md border border-teal-200">
                         <div className="flex items-center gap-2 mb-2">
                           <Route className="h-5 w-5 text-teal-600" />
-                          <span className="text-sm text-gray-600">Total km</span>
+                          <span className="text-sm text-gray-600">Kopā km</span>
                         </div>
                         <p className="text-3xl font-light text-teal-600">{stats.totalKm}</p>
                       </div>
@@ -247,21 +243,21 @@ export default function ProfilePage() {
                       <div className="p-4 bg-emerald-50 rounded-md border border-emerald-200">
                         <div className="flex items-center gap-2 mb-2">
                           <DollarSign className="h-5 w-5 text-emerald-600" />
-                          <span className="text-sm text-gray-600">Total spent</span>
+                          <span className="text-sm text-gray-600">Kopā iztērēts</span>
                         </div>
                         <p className="text-3xl font-light text-emerald-600">{stats.totalSpent}€</p>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <p className="text-gray-600">No statistics yet</p>
+                  <p className="text-gray-600">Statistika vēl nav pieejama</p>
                 )}
               </div>
 
               <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
                 <h3 className="text-xl font-light mb-4 text-gray-800 flex items-center gap-2">
                   <MapPin className="h-5 w-5" />
-                  Saved Places
+                  Saglabātās vietas
                 </h3>
                 {savedPlaces.length > 0 ? (
                   <div className="space-y-3">
@@ -293,7 +289,7 @@ export default function ProfilePage() {
                             href={`/destination/${d.id}`}
                             className="text-blue-600 hover:underline text-sm flex items-center gap-1"
                           >
-                            View
+                            Skatīt
                             <ChevronRight className="h-4 w-4" />
                           </Link>
                         </div>
@@ -302,9 +298,9 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <>
-                    <p className="text-gray-600">No saved places yet</p>
+                    <p className="text-gray-600">Vēl nav nevienas saglabātas vietas</p>
                     <Link href="/destinations" className="inline-block mt-2 text-blue-600 hover:underline text-sm">
-                      Explore destinations
+                      Izpētīt galamērķus
                     </Link>
                   </>
                 )}
@@ -313,7 +309,7 @@ export default function ProfilePage() {
               <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
                 <h3 className="text-xl font-light mb-4 text-gray-800 flex items-center gap-2">
                   <Route className="h-5 w-5" />
-                  Saved Itineraries
+                  Saglabātie maršruti
                 </h3>
                 {savedItineraries.length > 0 ? (
                   <div className="space-y-3">
@@ -329,10 +325,10 @@ export default function ProfilePage() {
                               : `${it.startPoint} → ${it.endPoint}`}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {it.distance} km · {Math.floor(it.time || 0)} h {Math.round(((it.time || 0) % 1) * 60)} min
+                            {it.distance} km · {Math.floor(it.time || 0)} st. {Math.round(((it.time || 0) % 1) * 60)} min.
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
-                            {it.date ? new Date(it.date).toLocaleDateString() : ''}
+                            {it.date ? new Date(it.date).toLocaleDateString('lv-LV') : ''}
                           </p>
                         </Link>
                         <button
@@ -343,8 +339,8 @@ export default function ProfilePage() {
                           }}
                           disabled={deletingId === String(it.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
-                          title="Delete route"
-                          aria-label="Delete route"
+                          title="Dzēst maršrutu"
+                          aria-label="Dzēst maršrutu"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -355,15 +351,15 @@ export default function ProfilePage() {
                         href="/itinerary"
                         className="block text-center text-blue-600 hover:underline text-sm py-2"
                       >
-                        View all {savedItineraries.length} in Itinerary
+                        Skatīt visus {savedItineraries.length} sadaļā Maršruti
                       </Link>
                     )}
                   </div>
                 ) : (
                   <>
-                    <p className="text-gray-600">No saved itineraries yet</p>
+                    <p className="text-gray-600">Vēl nav neviena saglabāta maršruta</p>
                     <Link href="/itinerary" className="inline-block mt-2 text-blue-600 hover:underline text-sm">
-                      Plan a trip
+                      Plānot braucienu
                     </Link>
                   </>
                 )}
@@ -373,7 +369,7 @@ export default function ProfilePage() {
                 <>
                   {stats.favoriteCategory && (
                     <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
-                      <h3 className="text-xl font-light mb-4 text-gray-800">Favorite category</h3>
+                      <h3 className="text-xl font-light mb-4 text-gray-800">Iecienītākā kategorija</h3>
                       <p className="text-2xl text-gray-900">{stats.favoriteCategory}</p>
                       {stats.categoryBreakdown && (
                         <div className="mt-4 space-y-2">
@@ -390,7 +386,7 @@ export default function ProfilePage() {
 
                   {stats.favoriteRegion && (
                     <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
-                      <h3 className="text-xl font-light mb-4 text-gray-800">Favorite region</h3>
+                      <h3 className="text-xl font-light mb-4 text-gray-800">Iecienītākais reģions</h3>
                       <p className="text-2xl text-gray-900">{stats.favoriteRegion}</p>
                       {stats.regionBreakdown && (
                         <div className="mt-4 space-y-2">
@@ -406,28 +402,28 @@ export default function ProfilePage() {
                   )}
 
                   <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                    <h3 className="text-xl font-light mb-4 text-gray-800">Quick actions</h3>
+                    <h3 className="text-xl font-light mb-4 text-gray-800">Ātrās darbības</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Link
                         href="/itinerary"
                         className="p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
                       >
-                        <h4 className="font-medium mb-1">Plan new route</h4>
-                        <p className="text-sm text-gray-600">Create itinerary from your saved routes</p>
+                        <h4 className="font-medium mb-1">Plānot jaunu maršrutu</h4>
+                        <p className="text-sm text-gray-600">Izveidojiet plānu no savām saglabātajām vietām</p>
                       </Link>
                       <Link
                         href="/compare"
                         className="p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
                       >
-                        <h4 className="font-medium mb-1">Compare destinations</h4>
-                        <p className="text-sm text-gray-600">Compare up to 3 destinations</p>
+                        <h4 className="font-medium mb-1">Salīdzināt galamērķus</h4>
+                        <p className="text-sm text-gray-600">Salīdziniet līdz pat 3 vietām</p>
                       </Link>
                       <Link
                         href="/destinations"
                         className="p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
                       >
-                        <h4 className="font-medium mb-1">Explore More</h4>
-                        <p className="text-sm text-gray-600">Discover new destinations</p>
+                        <h4 className="font-medium mb-1">Izpētīt vairāk</h4>
+                        <p className="text-sm text-gray-600">Atklājiet jaunus galamērķus</p>
                       </Link>
                     </div>
                   </div>
