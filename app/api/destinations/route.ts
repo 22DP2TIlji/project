@@ -18,19 +18,29 @@ export async function GET(request: NextRequest) {
 
     const limit = limitParam ? Math.min(Math.max(1, parseInt(limitParam, 10)), 100) : undefined
 
-    const where: Record<string, unknown> = {}
-    
-    if (search) {
-      where.OR = [
-        { name: { contains: search } },
-        { description: { contains: search } },
-      ]
-    }
-    if (category && category !== 'all') {
-      where.category = category
-    }
-    if (region && region !== 'all') {
-      where.region = region
+    const normalizedSearch = search?.toLowerCase()
+    const normalizedCategory = category && category !== 'all' ? category.toLowerCase() : null
+    const normalizedRegion = region && region !== 'all' ? region.toLowerCase() : null
+
+    const matchesFilters = (dest: {
+      name: string
+      description: string | null
+      category: string | null
+      region: string | null
+    }) => {
+      const name = dest.name?.toLowerCase() ?? ''
+      const description = dest.description?.toLowerCase() ?? ''
+      const destCategory = dest.category?.toLowerCase() ?? ''
+      const destRegion = dest.region?.toLowerCase() ?? ''
+
+      const matchesSearch =
+        !normalizedSearch ||
+        name.includes(normalizedSearch) ||
+        description.includes(normalizedSearch)
+      const matchesCategory = !normalizedCategory || destCategory === normalizedCategory
+      const matchesRegion = !normalizedRegion || destRegion === normalizedRegion
+
+      return matchesSearch && matchesCategory && matchesRegion
     }
 
     // Поиск по радиусу (если указаны координаты)
@@ -38,13 +48,15 @@ export async function GET(request: NextRequest) {
       const centerLat = parseFloat(lat)
       const centerLng = parseFloat(lng)
       const radiusKm = parseFloat(radius)
-      
+
       // Получаем все destinations и фильтруем по расстоянию
       const allDestinations = await prisma.destination.findMany({
-        where: Object.keys(where).length ? where : undefined,
+        orderBy: { id: 'desc' },
       })
 
-      const nearbyDestinations = allDestinations.filter((dest) => {
+      const filteredDestinations = allDestinations.filter(matchesFilters)
+
+      const nearbyDestinations = filteredDestinations.filter((dest) => {
         if (!dest.latitude || !dest.longitude) return false
         const destLat = Number(dest.latitude)
         const destLng = Number(dest.longitude)
@@ -78,9 +90,16 @@ export async function GET(request: NextRequest) {
     }
 
     if (countOnly) {
-      const count = await prisma.destination.count({
-        where: Object.keys(where).length ? where : undefined,
+      const rows = await prisma.destination.findMany({
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          category: true,
+          region: true,
+        },
       })
+      const count = rows.filter(matchesFilters).length
       return NextResponse.json(
         { success: true, count },
         { headers: { 'Cache-Control': 'no-store' } }
@@ -88,12 +107,13 @@ export async function GET(request: NextRequest) {
     }
 
     const rows = await prisma.destination.findMany({
-      where: Object.keys(where).length ? where : undefined,
-      take: limit,
       orderBy: { id: 'desc' },
     })
 
-    const destinations = rows.map((d) => ({
+    const filteredRows = rows.filter(matchesFilters)
+    const limitedRows = limit ? filteredRows.slice(0, limit) : filteredRows
+
+    const destinations = limitedRows.map((d) => ({
       id: d.id,
       name: d.name,
       description: d.description,

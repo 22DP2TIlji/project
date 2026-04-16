@@ -3,7 +3,7 @@
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
-import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2 } from 'lucide-center'
+import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import LikeButton from '@/components/like-button'
 
