@@ -93,6 +93,7 @@ interface ForecastDay {
 
 const WEATHER_CITIES = [
   { key: "riga", label: "Rīga", lat: 56.9496, lng: 24.1052 },
+  { key: "jurmala", label: "Jūrmala", lat: 56.9677, lng: 23.7704 },
   { key: "daugavpils", label: "Daugavpils", lat: 55.8747, lng: 26.5362 },
   { key: "liepaja", label: "Liepāja", lat: 56.5047, lng: 21.0108 },
   { key: "jelgava", label: "Jelgava", lat: 56.6511, lng: 23.7213 },

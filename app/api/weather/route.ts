@@ -9,6 +9,7 @@ const MAJOR_CITIES: Record<string, CityConfig> = {
   liepaja: { name: 'Liepāja', lat: 56.5047, lng: 21.0108 },
   jelgava: { name: 'Jelgava', lat: 56.6511, lng: 23.7213 },
   ventspils: { name: 'Ventspils', lat: 57.3937, lng: 21.5647 },
+  jurmala: { name: 'Jūrmala', lat: 56.9677, lng: 23.7704 },
 }
 
 export async function GET(request: NextRequest) {
@@ -33,11 +34,11 @@ export async function GET(request: NextRequest) {
     if (city) {
       const cityConfig = MAJOR_CITIES[city]
       if (!cityConfig) {
-        return NextResponse.json(
-          { success: false, message: 'Neatbalstīta pilsēta. Izmanto: riga, daugavpils, liepaja, jelgava, ventspils' },
-          { status: 400 }
-        )
-      }
+  return NextResponse.json(
+    { success: false, message: 'Neatbalstīta pilsēta. Izmanto: riga, daugavpils, liepaja, jelgava, ventspils, jurmala' },
+    { status: 400 }
+  )
+}
       latitude = cityConfig.lat
       longitude = cityConfig.lng
       locationName = cityConfig.name
