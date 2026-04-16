@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -14,14 +15,13 @@ export async function GET(request: NextRequest) {
     const countOnly = searchParams.get('countOnly') === 'true'
     const lat = searchParams.get('lat')
     const lng = searchParams.get('lng')
-    const radius = searchParams.get('radius')
+    const radius = searchParams.get('radius') // в километрах
 
     const limit = limitParam ? Math.min(Math.max(1, parseInt(limitParam, 10)), 100) : undefined
 
     const normalizedSearch = search?.toLowerCase()
     const normalizedCategory = category && category !== 'all' ? category.toLowerCase() : null
     const normalizedRegion = region && region !== 'all' ? region.toLowerCase() : null
-
     const matchesFilters = (dest: {
       name: string
       description: string | null
@@ -34,26 +34,30 @@ export async function GET(request: NextRequest) {
       const destRegion = dest.region?.toLowerCase() ?? ''
 
       const matchesSearch =
-        !normalizedSearch || name.includes(normalizedSearch) || description.includes(normalizedSearch)
+        !normalizedSearch ||
+        name.includes(normalizedSearch) ||
+        description.includes(normalizedSearch)
       const matchesCategory = !normalizedCategory || destCategory === normalizedCategory
       const matchesRegion = !normalizedRegion || destRegion === normalizedRegion
 
       return matchesSearch && matchesCategory && matchesRegion
     }
 
+    // Поиск по радиусу (если указаны координаты)
+    const allDestinations = await loadAllDestinations()
+
     if (lat && lng && radius) {
       const centerLat = parseFloat(lat)
       const centerLng = parseFloat(lng)
       const radiusKm = parseFloat(radius)
 
-      const allDestinations = await prisma.destination.findMany({
-        orderBy: { id: 'desc' },
-      })
-
       const filteredDestinations = allDestinations.filter(matchesFilters)
+
       const nearbyDestinations = filteredDestinations.filter((dest) => {
         if (!dest.latitude || !dest.longitude) return false
-        const distance = calculateDistance(centerLat, centerLng, Number(dest.latitude), Number(dest.longitude))
+        const destLat = Number(dest.latitude)
+        const destLng = Number(dest.longitude)
+        const distance = calculateDistance(centerLat, centerLng, destLat, destLng)
         return distance <= radiusKm
       })
 
@@ -74,9 +78,8 @@ export async function GET(request: NextRequest) {
         region: d.region,
         latitude: d.latitude ? Number(d.latitude) : null,
         longitude: d.longitude ? Number(d.longitude) : null,
-        image_url: normalizeImageUrl(d.imageUrl),
+        image_url: normalizeImageUrl(d.imageRaw ?? null),
       }))
-
       return NextResponse.json(
         { success: true, count: nearbyDestinations.length, destinations },
         { headers: { 'Cache-Control': 'no-store' } }
@@ -84,15 +87,14 @@ export async function GET(request: NextRequest) {
     }
 
     if (countOnly) {
-      const rows = await prisma.destination.findMany({
-        select: { id: true, name: true, description: true, category: true, region: true },
-      })
-      const count = rows.filter(matchesFilters).length
-      return NextResponse.json({ success: true, count }, { headers: { 'Cache-Control': 'no-store' } })
+      const count = allDestinations.filter(matchesFilters).length
+      return NextResponse.json(
+        { success: true, count },
+        { headers: { 'Cache-Control': 'no-store' } }
+      )
     }
 
-    const rows = await prisma.destination.findMany({ orderBy: { id: 'desc' } })
-    const filteredRows = rows.filter(matchesFilters)
+    const filteredRows = allDestinations.filter(matchesFilters)
     const limitedRows = limit ? filteredRows.slice(0, limit) : filteredRows
 
     const destinations = limitedRows.map((d) => ({
@@ -104,46 +106,140 @@ export async function GET(request: NextRequest) {
       region: d.region,
       latitude: d.latitude ? Number(d.latitude) : null,
       longitude: d.longitude ? Number(d.longitude) : null,
-      image_url: normalizeImageUrl(d.imageUrl),
+      image_url: normalizeImageUrl(d.imageRaw ?? null),
     }))
 
-    return NextResponse.json({ success: true, destinations }, { headers: { 'Cache-Control': 'no-store' } })
+    return NextResponse.json(
+      { success: true, destinations },
+      { headers: { 'Cache-Control': 'no-store' } }
+    )
   } catch (error) {
+    if (
+      (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2021') ||
+      (error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2010' &&
+        String((error.meta as { message?: string } | undefined)?.message || '').toLowerCase().includes("doesn't exist"))
+    ) {
+      // Таблица destinations не создана в текущей БД — возвращаем безопасный пустой ответ
+      return NextResponse.json(
+        { success: true, destinations: [], count: 0, message: 'Tabula destinations nav atrasta datubāzē' },
+        { headers: { 'Cache-Control': 'no-store' } }
+      )
+    }
+
     console.error('Error fetching destinations:', error)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
 }
 
+async function loadAllDestinations(): Promise<Array<{
+  id: number
+  name: string
+  description: string | null
+  city: string | null
+  category: string | null
+  region: string | null
+  latitude: number | null
+  longitude: number | null
+  imageRaw: string | null
+}>> {
+  try {
+    const rows = await prisma.$queryRawUnsafe<
+      Array<{
+        id: number
+        name: string
+        description: string | null
+        city: string | null
+        category: string | null
+        region: string | null
+        latitude: number | null
+        longitude: number | null
+        imageRaw: string | null
+      }>
+    >(
+      `SELECT id, name, description, city, category, region, latitude, longitude, image_url AS imageRaw
+       FROM destinations
+       ORDER BY id DESC`
+    )
+    return rows.map((row) => ({
+      ...row,
+      id: Number(row.id),
+      latitude: row.latitude != null ? Number(row.latitude) : null,
+      longitude: row.longitude != null ? Number(row.longitude) : null,
+    }))
+  } catch {
+    try {
+      const rows = await prisma.$queryRawUnsafe<
+        Array<{
+          id: number
+          name: string
+          description: string | null
+          city: string | null
+          category: string | null
+          region: string | null
+          latitude: number | null
+          longitude: number | null
+          imageRaw: string | null
+        }>
+      >(
+        `SELECT id, name, description, city, category, region, latitude, longitude, imageUrl AS imageRaw
+         FROM destinations
+         ORDER BY id DESC`
+      )
+      return rows.map((row) => ({
+        ...row,
+        id: Number(row.id),
+        latitude: row.latitude != null ? Number(row.latitude) : null,
+        longitude: row.longitude != null ? Number(row.longitude) : null,
+      }))
+    } catch {
+      throw new Error('Unable to query destinations with either image_url or imageUrl column')
+    }
+  }
+}
+
 function normalizeImageUrl(value: string | null): string | null {
   if (!value) return null
+
   let raw = value.trim()
   if (!raw) return null
-  if (raw.startsWith('{') || raw.startsWith('[')) {
+
+  // Иногда в БД может оказаться сериализованный JSON (массив/объект) вместо чистой ссылки
+  if (raw.startsWith("{") || raw.startsWith("[")) {
     try {
       const parsed = JSON.parse(raw)
       const candidate =
-        (Array.isArray(parsed) ? parsed.find((item) => typeof item === 'string') : null) ||
-        (typeof parsed?.url === 'string' ? parsed.url : null) ||
-        (typeof parsed?.source === 'string' ? parsed.source : null) ||
-        (typeof parsed?.thumbnail?.source === 'string' ? parsed.thumbnail.source : null) ||
-        (typeof parsed?.originalimage?.source === 'string' ? parsed.originalimage.source : null)
-      if (typeof candidate === 'string' && candidate.trim()) raw = candidate.trim()
-    } catch {}
+        (Array.isArray(parsed) ? parsed.find((item) => typeof item === "string") : null) ||
+        (typeof parsed?.url === "string" ? parsed.url : null) ||
+        (typeof parsed?.source === "string" ? parsed.source : null) ||
+        (typeof parsed?.thumbnail?.source === "string" ? parsed.thumbnail.source : null) ||
+        (typeof parsed?.originalimage?.source === "string" ? parsed.originalimage.source : null)
+
+      if (typeof candidate === "string" && candidate.trim()) {
+        raw = candidate.trim()
+      }
+    } catch {
+      // оставляем исходное значение
+    }
   }
-  if (raw.startsWith('//')) return `https:${raw}`
-  if (raw.startsWith('http://')) return raw.replace('http://', 'https://')
+
+  if (raw.startsWith("//")) return `https:${raw}`
+  if (raw.startsWith("http://")) return raw.replace("http://", "https://")
   return raw
 }
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371
+  const R = 6371 // Радиус Земли в километрах
   const dLat = deg2rad(lat2 - lat1)
   const dLon = deg2rad(lon2 - lon1)
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
-  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const distance = R * c
+  return distance
 }
+
 function deg2rad(deg: number): number {
   return deg * (Math.PI / 180)
 }

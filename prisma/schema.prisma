@@ -34,7 +34,7 @@ model Destination {
   description          String   @db.Text
   category             String?  @db.VarChar(50)
   region               String?  @db.VarChar(50)
-  imageUrl             String?  @map("image_url") @db.LongText
+  imageUrl String? @map("image_url") @db.LongText
   averageCost          Decimal? @db.Decimal(10, 2) @map("average_cost")
   averageVisitMinutes  Int?     @map("average_visit_minutes")
   rating               Decimal? @db.Decimal(3, 2)
