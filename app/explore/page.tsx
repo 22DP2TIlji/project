@@ -11,17 +11,17 @@ const EVENTS = [
     date: "2025. gada jūlijs",
     location: "Rīga",
     description:
-      "Dziesmu un deju svētki ir vērienīgs kultūras notikums, kas notiek reizi piecos gados. Tūkstošiem dziedātāju un dejotāju no visas Latvijas izpilda tradicionālās dziesmas un dejas.",
-    highlights: ["UNESCO Cilvēces nemateriālā kultūras mantojuma saraksts", "Tūkstošiem dalībnieku", "Nedēļu ilgas svinības"],
+      "Latvijas Dziesmu un deju svētki ir vērienīgs kultūras notikums, kas notiek reizi piecos gados. Tūkstošiem dziedātāju un dejotāju no visas Latvijas izpilda tradicionālās dziesmas un dejas.",
+    highlights: ["UNESCO Nemateriālais kultūras mantojums", "Tūkstošiem dalībnieku", "Nedēļu ilgas svinības"],
     image: "/images/song-festival.jpg",
   },
   {
     id: "riga-festival",
     name: "Rīgas svētki",
-    date: "Jūnijs",
+    date: "Augusts",
     location: "Rīga",
     description:
-      "Ikgadējs kultūras festivāls, kurā tiek piedāvāta mūzika, teātris un māksla. Festivāls pulcē vietējos un ārzemju māksliniekus dinamiskām kultūras svinībām.",
+      "Ikgadējs kultūras festivāls, kurā tiek piedāvāta mūzika, teātris un māksla. Festivāls pulcē vietējos un starptautiskos māksliniekus dinamiskām kultūras svinībām.",
     highlights: ["Mūzikas koncerti", "Teātra izrādes", "Mākslas izstādes"],
     image: "/images/riga-festival.jpg",
   },
@@ -31,7 +31,7 @@ const EVENTS = [
     date: "Decembris",
     location: "Rīga",
     description:
-      "Tradicionālie Ziemassvētku tirdziņi pašā Rīgas sirdī – Vecrīgā. Amatnieku dāvanas, latviešu delikateses un svētku atmosfēra.",
+      "Tradicionālie Ziemassvētku tirdziņi pašā Rīgas vecpilsētas sirdī. Amatnieku dāvanas, latviešu delikateses un svētku atmosfēra.",
     highlights: ["Amatnieku izstrādājumi", "Tradicionālie ēdieni", "Svētku izklaides"],
     image: "/images/christmas-markets.jpg",
   },
@@ -42,21 +42,21 @@ const DISHES = [
     id: "rye-bread",
     name: "Rupjmaize",
     description:
-      "Tradicionāla latviešu rudzu maize – tumša, blīva un nedaudz skābena. Latvijas virtuves pamatvērtība.",
+      "Tradicionālā latviešu rudzu maize – tumša, blīva un nedaudz skābena. Latvijas virtuves pamatvērtība.",
     details: ["Gatavota no rudzu miltiem", "Cepta malkas krāsnī", "Saglabājas svaiga nedēļām ilgi"],
   },
   {
     id: "grey-peas",
     name: "Pelēkie zirņi ar speķi",
     description:
-      "Klasisks latviešu svētku ēdiens. Pelēkie zirņi tiek pasniegti ar ceptu speķi un sīpoliem.",
+      "Klasisks latviešu ēdiens, īpaši iecienīts Ziemassvētkos un Jaunajā gadā. Pelēkie zirņi pasniegti ar ceptu speķi un sīpoliem.",
     details: ["Tradicionāls svētku ēdiens", "Bagāts ar olbaltumvielām", "Bieži pasniedz ar kefīru"],
   },
   {
     id: "black-balsam",
     name: "Rīgas Melnais balzams",
     description:
-      "Rūgts liķieris, kas pagatavots no 24 dabīgām sastāvdaļām, tostarp zālītēm, saknēm un ogām. Latvijas nacionālais dzēriens.",
+      "Rūgts liķieris, kas gatavots no 24 dabīgām sastāvdaļām, tostarp zaļumiem, saknēm un ogām. Latvijas nacionālais dzēriens.",
     details: ["Radīts 1752. gadā", "45% alkohola saturs", "Bieži izmanto kokteiļos"],
   },
 ]
@@ -91,9 +91,18 @@ interface ForecastDay {
   dt_txt?: string
 }
 
+const WEATHER_CITIES = [
+  { key: "riga", label: "Rīga", lat: 56.9496, lng: 24.1052 },
+  { key: "daugavpils", label: "Daugavpils", lat: 55.8747, lng: 26.5362 },
+  { key: "liepaja", label: "Liepāja", lat: 56.5047, lng: 21.0108 },
+  { key: "jelgava", label: "Jelgava", lat: 56.6511, lng: 23.7213 },
+  { key: "ventspils", label: "Ventspils", lat: 57.3937, lng: 21.5647 },
+]
+
 function ExploreWeather() {
   const [current, setCurrent] = useState<CurrentWeather | null>(null)
   const [forecast, setForecast] = useState<ForecastDay[]>([])
+  const [selectedCity, setSelectedCity] = useState(WEATHER_CITIES[0])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -102,9 +111,7 @@ function ExploreWeather() {
       try {
         setLoading(true)
         setError(null)
-        const lat = 56.9496
-        const lng = 24.1052
-        const res = await fetch(`/api/weather?lat=${lat}&lng=${lng}`, { cache: "no-store" })
+        const res = await fetch(`/api/weather?lat=${selectedCity.lat}&lng=${selectedCity.lng}`, { cache: "no-store" })
         const data = await res.json()
 
         if (!res.ok) {
@@ -136,22 +143,22 @@ function ExploreWeather() {
             feels_like: w.temperature,
             humidity: w.humidity ?? 0,
             pressure: 0,
-            weather: [{ main: "Weather", description: w.note || "Pašreizējie apstākļi", icon: "01d" }],
+            weather: [{ main: "Laikapstākļi", description: w.note || "Pašreizējie apstākļi", icon: "01d" }],
             wind_speed: w.windSpeed != null ? +(w.windSpeed / 3.6).toFixed(1) : 0,
           })
           setForecast([])
           return
         }
 
-        throw new Error("Nezināma atbilde no servera")
+        throw new Error("Nezināma laikapstākļu atbilde")
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Neizdevās ielādēt datus.")
+        setError(err instanceof Error ? err.message : "Neizdevās ielādēt laikapstākļu datus.")
       } finally {
         setLoading(false)
       }
     }
     fetchWeather()
-  }, [])
+  }, [selectedCity])
 
   const getDayName = (timestamp: number) =>
     new Date(timestamp * 1000).toLocaleDateString("lv-LV", { weekday: "long" })
@@ -174,8 +181,10 @@ function ExploreWeather() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-2">Laikapstākļi (Rīga)</h3>
-                <p className="text-gray-600 dark:text-gray-300">
+                <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-2">
+                  Pašreizējie laikapstākļi ({selectedCity.label})
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 capitalize">
                   {new Date().toLocaleDateString("lv-LV", {
                     weekday: "long",
                     year: "numeric",
@@ -189,6 +198,23 @@ function ExploreWeather() {
                 alt={current.weather[0].description}
                 className="w-20 h-20"
               />
+            </div>
+            <div className="mb-6">
+              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">Pilsēta</label>
+              <select
+                value={selectedCity.key}
+                onChange={(e) => {
+                  const next = WEATHER_CITIES.find((c) => c.key === e.target.value)
+                  if (next) setSelectedCity(next)
+                }}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                {WEATHER_CITIES.map((city) => (
+                  <option key={city.key} value={city.key}>
+                    {city.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex items-center space-x-3">
@@ -242,16 +268,16 @@ function ExploreWeather() {
                   className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-lg font-medium text-gray-900 dark:text-white capitalize">{getDayName(day.dt)}</h4>
+                    <h4 className="text-lg font-medium text-gray-900 dark:text-white">{getDayName(day.dt)}</h4>
                     <img
                       src={`https://openweathermap.org/img/wn/${day.weather[0].icon}.png`}
                       alt={day.weather[0].description}
                       className="w-10 h-10"
                     />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">{Math.round(day.main.temp)}°C</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Temp. {Math.round(day.main.temp)}°C</p>
                   <p className="text-sm text-gray-600 dark:text-gray-300 capitalize">{day.weather[0].description}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Vējš: {day.wind.speed} m/s</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Vējš {day.wind.speed} m/s</p>
                 </div>
               ))}
             </div>
@@ -265,19 +291,6 @@ function ExploreWeather() {
 export default function ExplorePage() {
   const [eventQuery, setEventQuery] = useState("")
   const [dishQuery, setDishQuery] = useState("")
-
-  const filteredEvents = EVENTS.filter(
-    (e) =>
-      e.name.toLowerCase().includes(eventQuery.toLowerCase()) ||
-      e.location.toLowerCase().includes(eventQuery.toLowerCase()) ||
-      e.description.toLowerCase().includes(eventQuery.toLowerCase())
-  )
-
-  const filteredDishes = DISHES.filter(
-    (d) =>
-      d.name.toLowerCase().includes(dishQuery.toLowerCase()) ||
-      d.description.toLowerCase().includes(dishQuery.toLowerCase())
-  )
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -305,7 +318,7 @@ export default function ExplorePage() {
               href="#weather"
               className="px-4 py-2 rounded-md bg-white/90 dark:bg-gray-800/90 shadow border border-gray-200 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-700"
             >
-              Laiks
+              Laikapstākļi
             </a>
           </nav>
         </div>
@@ -325,7 +338,12 @@ export default function ExplorePage() {
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredEvents.map((event) => (
+            {EVENTS.filter(
+              (e) =>
+                e.name.toLowerCase().includes(eventQuery.toLowerCase()) ||
+                e.location.toLowerCase().includes(eventQuery.toLowerCase()) ||
+                e.description.toLowerCase().includes(eventQuery.toLowerCase())
+            ).map((event) => (
               <div
                 key={event.id}
                 className="group border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden hover:shadow-md bg-white dark:bg-gray-800"
@@ -341,7 +359,7 @@ export default function ExplorePage() {
                 </div>
                 <div className="p-6">
                   <p className="text-gray-600 dark:text-gray-300 mb-4">{event.description}</p>
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Spilgtākie momenti</h4>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Svarīgākais</h4>
                   <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 text-sm">
                     {event.highlights.map((h, i) => (
                       <li key={i}>{h}</li>
@@ -356,7 +374,7 @@ export default function ExplorePage() {
 
       <section id="cuisine" className="scroll-mt-20 py-12 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light text-center mb-2 text-gray-900 dark:text-white">Latvijas virtuve</h2>
+          <h2 className="text-3xl font-light text-center mb-2 text-gray-900 dark:text-white">Latviešu virtuve</h2>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Tradicionālie ēdieni un kur tos nobaudīt</p>
           <div className="max-w-2xl mx-auto mb-10">
             <input
@@ -368,7 +386,11 @@ export default function ExplorePage() {
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-            {filteredDishes.map((dish) => (
+            {DISHES.filter(
+              (d) =>
+                d.name.toLowerCase().includes(dishQuery.toLowerCase()) ||
+                d.description.toLowerCase().includes(dishQuery.toLowerCase())
+            ).map((dish) => (
               <div
                 key={dish.id}
                 className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden bg-white dark:bg-gray-800 p-6"
@@ -410,7 +432,7 @@ export default function ExplorePage() {
           <ExploreWeather />
           <p className="text-center mt-10">
             <Link href="/destinations" className="text-blue-600 dark:text-blue-400 hover:underline">
-              Apskatīt galamērķus →
+              Skatīt galamērķus →
             </Link>
           </p>
         </div>

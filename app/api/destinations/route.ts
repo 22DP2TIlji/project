@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const countOnly = searchParams.get('countOnly') === 'true'
     const lat = searchParams.get('lat')
     const lng = searchParams.get('lng')
-    const radius = searchParams.get('radius') // в километрах
+    const radius = searchParams.get('radius')
 
     const limit = limitParam ? Math.min(Math.max(1, parseInt(limitParam, 10)), 100) : undefined
 
@@ -34,33 +34,26 @@ export async function GET(request: NextRequest) {
       const destRegion = dest.region?.toLowerCase() ?? ''
 
       const matchesSearch =
-        !normalizedSearch ||
-        name.includes(normalizedSearch) ||
-        description.includes(normalizedSearch)
+        !normalizedSearch || name.includes(normalizedSearch) || description.includes(normalizedSearch)
       const matchesCategory = !normalizedCategory || destCategory === normalizedCategory
       const matchesRegion = !normalizedRegion || destRegion === normalizedRegion
 
       return matchesSearch && matchesCategory && matchesRegion
     }
 
-    // Поиск по радиусу (если указаны координаты)
     if (lat && lng && radius) {
       const centerLat = parseFloat(lat)
       const centerLng = parseFloat(lng)
       const radiusKm = parseFloat(radius)
 
-      // Получаем все destinations и фильтруем по расстоянию
       const allDestinations = await prisma.destination.findMany({
         orderBy: { id: 'desc' },
       })
 
       const filteredDestinations = allDestinations.filter(matchesFilters)
-
       const nearbyDestinations = filteredDestinations.filter((dest) => {
         if (!dest.latitude || !dest.longitude) return false
-        const destLat = Number(dest.latitude)
-        const destLng = Number(dest.longitude)
-        const distance = calculateDistance(centerLat, centerLng, destLat, destLng)
+        const distance = calculateDistance(centerLat, centerLng, Number(dest.latitude), Number(dest.longitude))
         return distance <= radiusKm
       })
 
@@ -83,6 +76,7 @@ export async function GET(request: NextRequest) {
         longitude: d.longitude ? Number(d.longitude) : null,
         image_url: normalizeImageUrl(d.imageUrl),
       }))
+
       return NextResponse.json(
         { success: true, count: nearbyDestinations.length, destinations },
         { headers: { 'Cache-Control': 'no-store' } }
@@ -91,25 +85,13 @@ export async function GET(request: NextRequest) {
 
     if (countOnly) {
       const rows = await prisma.destination.findMany({
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          category: true,
-          region: true,
-        },
+        select: { id: true, name: true, description: true, category: true, region: true },
       })
       const count = rows.filter(matchesFilters).length
-      return NextResponse.json(
-        { success: true, count },
-        { headers: { 'Cache-Control': 'no-store' } }
-      )
+      return NextResponse.json({ success: true, count }, { headers: { 'Cache-Control': 'no-store' } })
     }
 
-    const rows = await prisma.destination.findMany({
-      orderBy: { id: 'desc' },
-    })
-
+    const rows = await prisma.destination.findMany({ orderBy: { id: 'desc' } })
     const filteredRows = rows.filter(matchesFilters)
     const limitedRows = limit ? filteredRows.slice(0, limit) : filteredRows
 
@@ -125,10 +107,7 @@ export async function GET(request: NextRequest) {
       image_url: normalizeImageUrl(d.imageUrl),
     }))
 
-    return NextResponse.json(
-      { success: true, destinations },
-      { headers: { 'Cache-Control': 'no-store' } }
-    )
+    return NextResponse.json({ success: true, destinations }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
     console.error('Error fetching destinations:', error)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
@@ -137,46 +116,34 @@ export async function GET(request: NextRequest) {
 
 function normalizeImageUrl(value: string | null): string | null {
   if (!value) return null
-
   let raw = value.trim()
   if (!raw) return null
-
-  // Иногда в БД может оказаться сериализованный JSON (массив/объект) вместо чистой ссылки
-  if (raw.startsWith("{") || raw.startsWith("[")) {
+  if (raw.startsWith('{') || raw.startsWith('[')) {
     try {
       const parsed = JSON.parse(raw)
       const candidate =
-        (Array.isArray(parsed) ? parsed.find((item) => typeof item === "string") : null) ||
-        (typeof parsed?.url === "string" ? parsed.url : null) ||
-        (typeof parsed?.source === "string" ? parsed.source : null) ||
-        (typeof parsed?.thumbnail?.source === "string" ? parsed.thumbnail.source : null) ||
-        (typeof parsed?.originalimage?.source === "string" ? parsed.originalimage.source : null)
-
-      if (typeof candidate === "string" && candidate.trim()) {
-        raw = candidate.trim()
-      }
-    } catch {
-      // оставляем исходное значение
-    }
+        (Array.isArray(parsed) ? parsed.find((item) => typeof item === 'string') : null) ||
+        (typeof parsed?.url === 'string' ? parsed.url : null) ||
+        (typeof parsed?.source === 'string' ? parsed.source : null) ||
+        (typeof parsed?.thumbnail?.source === 'string' ? parsed.thumbnail.source : null) ||
+        (typeof parsed?.originalimage?.source === 'string' ? parsed.originalimage.source : null)
+      if (typeof candidate === 'string' && candidate.trim()) raw = candidate.trim()
+    } catch {}
   }
-
-  if (raw.startsWith("//")) return `https:${raw}`
-  if (raw.startsWith("http://")) return raw.replace("http://", "https://")
+  if (raw.startsWith('//')) return `https:${raw}`
+  if (raw.startsWith('http://')) return raw.replace('http://', 'https://')
   return raw
 }
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371 // Радиус Земли в километрах
+  const R = 6371
   const dLat = deg2rad(lat2 - lat1)
   const dLon = deg2rad(lon2 - lon1)
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  const distance = R * c
-  return distance
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
 }
-
 function deg2rad(deg: number): number {
   return deg * (Math.PI / 180)
 }

@@ -290,7 +290,17 @@ export default function DestinationPage() {
       <div className="container mx-auto px-4 py-16 text-center">
         <div className="inline-block h-8 w-8 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin mb-4" />
         <p className="text-gray-600">Ielādē galamērķi...</p>
-      </div>
+
+<h1 className="text-3xl font-light mb-4">Galamērķis nav atrasts</h1>
+<p className="mb-8 text-gray-600">Meklētais galamērķis neeksistē vai ir noņemts.</p>
+
+<Link
+  href="/destinations"
+  className="inline-block px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+>
+  Atpakaļ uz galamērķiem
+</Link>
+</div>
     )
   }
 
