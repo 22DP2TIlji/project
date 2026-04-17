@@ -166,16 +166,7 @@ export default function ComparePage() {
               <h2 className="text-2xl font-light mb-6 text-gray-900">Salīdzināšanas tabula</h2>
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b bg-gray-50">
-                      <th className="text-left p-4 font-semibold text-gray-700">Īpašība</th>
-                      {selectedDestinations.map((dest) => (
-                        <th key={dest.id} className="text-left p-4 font-semibold text-gray-900">
-                          {dest.name}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
+                  
                   <tbody className="divide-y divide-gray-200">
                     <tr>
                       <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Nosaukums</td>

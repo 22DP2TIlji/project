@@ -16,7 +16,8 @@
     "db:create": "node scripts/create-database.js",
     "db:seed": "node scripts/seed-latvia-places.js",
     "create-admin": "node scripts/create-admin.js",
-    "images:autofill": "node scripts/fill-destination-images.js"
+    "images:autofill": "node scripts/fill-destination-images.js",
+    "images:autofill:files": "node scripts/fill-destination-images.js --files"
   },
   "prisma": {
     "seed": "node scripts/seed-latvia-places.js"

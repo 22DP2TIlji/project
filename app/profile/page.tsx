@@ -7,6 +7,7 @@ import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Tras
 import Link from 'next/link'
 import LikeButton from '@/components/like-button'
 
+
 type SavedDestination = { id: number | string; name: string; description?: string; image_url?: string }
 
 export default function ProfilePage() {
@@ -425,6 +426,7 @@ export default function ProfilePage() {
                         <h4 className="font-medium mb-1">Izpētīt vairāk</h4>
                         <p className="text-sm text-gray-600">Atklājiet jaunus galamērķus</p>
                       </Link>
+                      
                     </div>
                   </div>
                 </>

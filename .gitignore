@@ -31,3 +31,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
+# generated helper files
+scripts/image-missing.json
