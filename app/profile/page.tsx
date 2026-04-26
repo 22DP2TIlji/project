@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import LikeButton from '@/components/like-button'
+import RandomPlace from '@/components/random-place'
 
 
 type SavedDestination = { id: number | string; name: string; description?: string; image_url?: string }
@@ -17,6 +18,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [savedPlaces, setSavedPlaces] = useState<SavedDestination[]>([])
   const [savedItineraries, setSavedItineraries] = useState<any[]>([])
+  const [visitedDestinations, setVisitedDestinations] = useState<SavedDestination[]>([])
+  const [likedRoutes, setLikedRoutes] = useState<Array<{ id: number; name: string }>>([])
   const [mounted, setMounted] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -57,11 +60,35 @@ export default function ProfilePage() {
         } else {
           setSavedPlaces([])
         }
+
+        const visitedRes = await fetch(
+          `/api/users/visited-destinations?userId=${encodeURIComponent(user.id)}`
+        )
+        const visitedData = await visitedRes.json()
+        if (visitedData.success && Array.isArray(visitedData.visitedDestinations)) {
+          setVisitedDestinations(
+            visitedData.visitedDestinations.map((d: { id: number; name: string; description?: string }) => ({
+              id: d.id,
+              name: d.name,
+              description: d.description,
+            }))
+          )
+        } else {
+          setVisitedDestinations([])
+        }
+
+        const likedRoutesRes = await fetch(`/api/users/liked-routes?userId=${encodeURIComponent(user.id)}`)
+        const likedRoutesData = await likedRoutesRes.json()
+        setLikedRoutes(likedRoutesData.success ? likedRoutesData.routes || [] : [])
       } else {
         setSavedPlaces([])
+        setVisitedDestinations([])
+        setLikedRoutes([])
       }
     } catch {
       setSavedPlaces([])
+      setVisitedDestinations([])
+      setLikedRoutes([])
     } finally {
       setLoading(false)
     }
@@ -139,8 +166,8 @@ export default function ProfilePage() {
 
   return (
     <>
-      <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
+      <section className="relative h-[40vh] bg-gradient-to-br from-indigo-100 via-sky-50 to-emerald-100 flex items-center justify-center">
+        <div className="absolute inset-0 overflow-hidden bg-white/20"></div>
         <div className="relative z-10 text-center">
           <h1 className="text-5xl md:text-6xl font-light">Profils</h1>
           <p className="mt-4 text-xl">Jūsu konts un statistika</p>
@@ -252,6 +279,35 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <p className="text-gray-600">Statistika vēl nav pieejama</p>
+                )}
+              </div>
+              <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
+                <h3 className="text-xl font-light mb-4 text-gray-800">Jau apmeklēti galamērķi</h3>
+                {visitedDestinations.length > 0 ? (
+                  <div className="space-y-2">
+                    {visitedDestinations.slice(0, 6).map((d) => (
+                      <Link key={d.id} href={`/destination/${d.id}`} className="block text-sm text-blue-600 hover:underline">
+                        {d.name}
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600">Vēl nav atzīmētu apmeklētu vietu.</p>
+                )}
+              </div>
+
+              <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
+                <h3 className="text-xl font-light mb-4 text-gray-800">Maršruti, kas jums patīk</h3>
+                {likedRoutes.length > 0 ? (
+                  <div className="space-y-2">
+                    {likedRoutes.slice(0, 6).map((r) => (
+                      <Link key={r.id} href={`/itinerary?route=${r.id}`} className="block text-sm text-blue-600 hover:underline">
+                        {r.name}
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600">Jūs vēl neesat atzīmējis nevienu publisko maršrutu ar “patīk”.</p>
                 )}
               </div>
 
@@ -426,7 +482,9 @@ export default function ProfilePage() {
                         <h4 className="font-medium mb-1">Izpētīt vairāk</h4>
                         <p className="text-sm text-gray-600">Atklājiet jaunus galamērķus</p>
                       </Link>
-                      
+                      <div className="md:col-span-2">
+                        <RandomPlace />
+                      </div>
                     </div>
                   </div>
                 </>
