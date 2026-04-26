@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { MapPin, Calendar, Wallet, Heart, Loader2, Save } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
@@ -29,6 +29,7 @@ const CATEGORIES = [
 export default function TripPlannerPage() {
   const { user, isAuthenticated } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [tripName, setTripName] = useState("")
   const [days, setDays] = useState(2)
   const [interests, setInterests] = useState<string[]>([])
@@ -37,6 +38,23 @@ export default function TripPlannerPage() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [trip, setTrip] = useState<any>(null)
+  const routeIdFromUrl = searchParams.get("route")
+
+  useEffect(() => {
+    if (!routeIdFromUrl) return
+    const numericId = parseInt(routeIdFromUrl, 10)
+    if (!Number.isFinite(numericId)) return
+
+    fetch(`/api/itineraries/${numericId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.itinerary?.kind === "tripPlan") {
+          setTrip(data.itinerary)
+          setTripName(data.itinerary.tripName || "")
+        }
+      })
+      .catch((error) => console.error("Neizdevās ielādēt maršrutu:", error))
+  }, [routeIdFromUrl])
 
   const toggleInterest = (id: string) => {
     setInterests((prev) =>
@@ -114,8 +132,8 @@ export default function TripPlannerPage() {
 
   return (
     <>
-      <section className="relative h-[35vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200" />
+      <section className="relative h-[35vh] bg-gradient-to-br from-blue-100 via-sky-50 to-emerald-100 flex items-center justify-center">
+        <div className="absolute inset-0 overflow-hidden bg-gradient-to-r from-white/30 to-white/10" />
         <div className="relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl font-light">Viedais ceļojumu plānotājs</h1>
           <p className="mt-3 text-lg text-gray-600">
@@ -126,7 +144,7 @@ export default function TripPlannerPage() {
 
       <section className="py-12">
         <div className="container mx-auto px-4 max-w-4xl">
-          <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-8">
+          <div className="bg-white p-6 rounded-2xl shadow-lg border border-blue-100 mb-8">
             <h2 className="text-xl font-light mb-4 flex items-center gap-2">
               <Calendar className="h-5 w-5" />
               Ceļojuma uzstādījumi
@@ -199,7 +217,7 @@ export default function TripPlannerPage() {
               <button
                 onClick={generate}
                 disabled={loading}
-                className="px-6 py-3 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
               >
                 {loading ? (
                   <>
@@ -217,7 +235,7 @@ export default function TripPlannerPage() {
           </div>
 
           {trip && (
-            <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 animate-in fade-in duration-500">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-blue-100 animate-in fade-in duration-500">
               <h2 className="text-xl font-light mb-4">Jūsu maršruts</h2>
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -272,7 +290,7 @@ export default function TripPlannerPage() {
                   type="button"
                   onClick={saveTrip}
                   disabled={saving}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition-colors"
                 >
                   {saving ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
