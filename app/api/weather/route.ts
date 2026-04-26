@@ -12,6 +12,25 @@ const MAJOR_CITIES: Record<string, CityConfig> = {
   jurmala: { name: 'Jūrmala', lat: 56.9677, lng: 23.7704 },
 }
 
+async function resolveCityCoordinates(city: string): Promise<CityConfig | null> {
+  const predefined = MAJOR_CITIES[city]
+  if (predefined) return predefined
+
+  const geoRes = await fetch(
+    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=lv&format=json`,
+    { cache: 'no-store' }
+  )
+  if (!geoRes.ok) return null
+  const geoData = await geoRes.json()
+  const first = geoData?.results?.[0]
+  if (!first?.latitude || !first?.longitude) return null
+  return {
+    name: first.name || city,
+    lat: Number(first.latitude),
+    lng: Number(first.longitude),
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -32,13 +51,13 @@ export async function GET(request: NextRequest) {
     let locationName: string | null = null
 
     if (city) {
-      const cityConfig = MAJOR_CITIES[city]
+      const cityConfig = await resolveCityCoordinates(city)
       if (!cityConfig) {
-  return NextResponse.json(
-    { success: false, message: 'Neatbalstīta pilsēta. Izmanto: riga, daugavpils, liepaja, jelgava, ventspils, jurmala' },
-    { status: 400 }
-  )
-}
+        return NextResponse.json(
+          { success: false, message: 'Neizdevās atrast pilsētu laikapstākļu pieprasījumam' },
+          { status: 400 }
+        )
+      }
       latitude = cityConfig.lat
       longitude = cityConfig.lng
       locationName = cityConfig.name
