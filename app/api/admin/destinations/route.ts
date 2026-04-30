@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
     if (!name || !description) {
       return NextResponse.json(
-        { success: false, message: 'Name and description are required' },
+        { success: false, message: 'Nepieciešams nosaukums un apraksts' },
         { status: 400 },
       )
     }
@@ -36,9 +36,14 @@ export async function POST(request: Request) {
       imageUrl: destination.imageUrl,
     })
   } catch (err) {
-    console.error('Error in POST /api/admin/destinations:', err)
+    console.error('Kļūda POST /api/admin/destinations:', err)
+
     return NextResponse.json(
-      { success: false, message: 'Internal server error', error: String(err) },
+      {
+        success: false,
+        message: 'Iekšēja servera kļūda',
+        error: String(err),
+      },
       { status: 500 },
     )
   }

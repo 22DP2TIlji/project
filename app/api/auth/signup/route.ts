@@ -7,10 +7,13 @@ export async function POST(request: Request) {
     const { name, email, password } = await request.json()
 
     if (!email || !password) {
-      return NextResponse.json({ success: false, message: 'Missing email or password' }, { status: 400 })
+      return NextResponse.json(
+        { success: false, message: 'Trūkst e-pasta vai paroles' },
+        { status: 400 }
+      )
     }
 
-    // хешируем пароль
+    // šifrējam paroli
     const hashed = await bcrypt.hash(password, 10)
 
     const user = await prisma.user.create({
@@ -28,18 +31,27 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       user: {
         ...user,
         id: user.id.toString(),
-      }
+      },
     })
   } catch (err: any) {
-    console.error('Error in signup:', err)
-    if (err.code === 'P2002') { // Prisma unique constraint violation
-      return NextResponse.json({ success: false, message: 'Email already exists' }, { status: 409 })
+    console.error('Kļūda reģistrācijas laikā:', err)
+
+    // Prisma unikālā ierobežojuma pārkāpums
+    if (err.code === 'P2002') {
+      return NextResponse.json(
+        { success: false, message: 'E-pasts jau eksistē' },
+        { status: 409 }
+      )
     }
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+
+    return NextResponse.json(
+      { success: false, message: 'Iekšēja servera kļūda' },
+      { status: 500 }
+    )
   }
 }

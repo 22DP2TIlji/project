@@ -7,16 +7,19 @@ export async function POST(request: Request) {
     const { email, password } = await request.json()
 
     if (!email || !password) {
-      return NextResponse.json({ success: false, message: 'Missing email or password' }, { status: 400 })
+      return NextResponse.json(
+        { success: false, message: 'Trūkst e-pasta vai paroles' },
+        { status: 400 }
+      )
     }
 
-    // Special hard-coded admin account
+    // Speciāls iepriekš definēts administratora konts
     if (email === 'admin@gmail.com' && password === 'adminpassword') {
       return NextResponse.json({
         success: true,
         user: {
           id: 'admin',
-          name: 'Admin',
+          name: 'Administrators',
           email: 'admin@gmail.com',
           role: 'admin',
           savedDestinations: [],
@@ -30,13 +33,19 @@ export async function POST(request: Request) {
     })
 
     if (!user) {
-      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
+      return NextResponse.json(
+        { success: false, message: 'Lietotājs nav atrasts' },
+        { status: 404 }
+      )
     }
 
     const valid = await bcrypt.compare(password, user.password)
 
     if (!valid) {
-      return NextResponse.json({ success: false, message: 'Invalid credentials' }, { status: 401 })
+      return NextResponse.json(
+        { success: false, message: 'Nepareizi piekļuves dati' },
+        { status: 401 }
+      )
     }
 
     const likedRows = await prisma.userLikedDestination.findMany({
@@ -57,7 +66,11 @@ export async function POST(request: Request) {
       },
     })
   } catch (err) {
-    console.error('Error in login:', err)
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+    console.error('Kļūda autorizācijas laikā:', err)
+
+    return NextResponse.json(
+      { success: false, message: 'Iekšēja servera kļūda' },
+      { status: 500 }
+    )
   }
 }

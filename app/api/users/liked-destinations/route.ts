@@ -1,82 +1,121 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { getUserFromId } from '@/lib/auth-utils';
+import { NextRequest, NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
+import { getUserFromId } from '@/lib/auth-utils'
 
 // GET /api/users/liked-destinations?userId=123
 export async function GET(request: NextRequest) {
   try {
-    const userId = new URL(request.url).searchParams.get('userId');
+    const userId = new URL(request.url).searchParams.get('userId')
+
     if (!userId) {
-      return NextResponse.json({ success: false, message: 'User ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: 'Nepieciešams lietotāja ID' },
+        { status: 400 }
+      )
     }
 
-    const user = await getUserFromId(userId);
+    const user = await getUserFromId(userId)
+
     if (!user) {
-      console.log('GET liked destinations: User not authenticated or found');
-      return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
-    }
-    console.log('User found for GET liked destinations:', user.id);
+      console.log('GET patīkamie galamērķi: lietotājs nav autorizēts vai nav atrasts')
 
-    // Handle admin user (no liked destinations for admin)
+      return NextResponse.json(
+        { success: false, message: 'Lietotājs nav autorizēts' },
+        { status: 401 }
+      )
+    }
+
+    console.log('Lietotājs atrasts GET patīkamajiem galamērķiem:', user.id)
+
+    // Apstrādājam administratora lietotāju — administratoram nav patīkamo galamērķu
     if (user.id === 'admin') {
-      return NextResponse.json({ success: true, likedDestinations: [] });
+      return NextResponse.json({ success: true, likedDestinations: [] })
     }
 
-    console.log('Fetching liked destination IDs...');
+    console.log('Iegūstam patīkamo galamērķu ID...')
+
     const likedRows = await prisma.userLikedDestination.findMany({
       where: { userId: parseInt(user.id) },
       select: { destinationId: true },
-    });
+    })
 
-    const ids = likedRows.map((r) => r.destinationId);
+    const ids = likedRows.map((r) => r.destinationId)
 
     if (!ids.length) {
-      return NextResponse.json({ success: true, likedDestinations: [] });
+      return NextResponse.json({ success: true, likedDestinations: [] })
     }
 
-    console.log('Fetching destination details...');
+    console.log('Iegūstam galamērķu informāciju...')
+
     const destinations = await prisma.destination.findMany({
       where: { id: { in: ids } },
-    });
+    })
 
-    return NextResponse.json({ success: true, likedDestinations: destinations ?? [] });
+    return NextResponse.json({ success: true, likedDestinations: destinations ?? [] })
   } catch (error) {
-    console.error('Error fetching liked destinations:', error);
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+    console.error('Kļūda, iegūstot patīkamos galamērķus:', error)
+
+    return NextResponse.json(
+      { success: false, message: 'Iekšēja servera kļūda' },
+      { status: 500 }
+    )
   }
 }
 
-// POST /api/users/liked-destinations - Add a liked destination for the current user
+// POST /api/users/liked-destinations - pievieno pašreizējam lietotājam patīkamo galamērķi
 export async function POST(request: Request) {
-  console.log('Received POST request to add liked destination');
-  try {
-    // Get user ID and destination ID from request body
-    const { userId, destinationId } = await request.json();
-    console.log('POST liked destination: userId =', userId, ', destinationId =', destinationId);
+  console.log('Saņemts POST pieprasījums patīkamā galamērķa pievienošanai')
 
-    const user = await getUserFromId(userId);
+  try {
+    // Iegūstam lietotāja ID un galamērķa ID no pieprasījuma satura
+    const { userId, destinationId } = await request.json()
+
+    console.log('POST patīkamais galamērķis: userId =', userId, ', destinationId =', destinationId)
+
+    const user = await getUserFromId(userId)
+
     if (!user) {
-      console.log('POST liked destination: User not authenticated or found');
-      return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
+      console.log('POST patīkamais galamērķis: lietotājs nav autorizēts vai nav atrasts')
+
+      return NextResponse.json(
+        { success: false, message: 'Lietotājs nav autorizēts' },
+        { status: 401 }
+      )
     }
-     console.log('User found for POST liked destination:', user.id);
+
+    console.log('Lietotājs atrasts POST patīkamajam galamērķim:', user.id)
 
     if (destinationId === undefined || destinationId === null) {
-      return NextResponse.json({ success: false, message: 'Destination ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: 'Nepieciešams galamērķa ID' },
+        { status: 400 }
+      )
     }
 
-    const destIdNum = typeof destinationId === 'number' ? destinationId : parseInt(String(destinationId), 10)
+    const destIdNum =
+      typeof destinationId === 'number' ? destinationId : parseInt(String(destinationId), 10)
+
     if (!Number.isFinite(destIdNum)) {
-      return NextResponse.json({ success: false, message: 'Destination ID must be a number (save places from the Destinations list)' }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Galamērķa ID jābūt skaitlim. Saglabājiet vietas no galamērķu saraksta.',
+        },
+        { status: 400 }
+      )
     }
 
-    // Handle admin user (admin can't like destinations)
+    // Apstrādājam administratora lietotāju — administrators nevar atzīmēt galamērķus kā patīkamus
     if (user.id === 'admin') {
-      return NextResponse.json({ success: false, message: 'Admin user cannot like destinations' }, { status: 403 });
+      return NextResponse.json(
+        { success: false, message: 'Administrators nevar atzīmēt galamērķus kā patīkamus' },
+        { status: 403 }
+      )
     }
 
-    // Check if already liked (optional, database primary key also prevents duplicates)
-    console.log('Checking if destination is already liked...');
+    // Pārbaudām, vai galamērķis jau ir atzīmēts kā patīkams
+    console.log('Pārbaudām, vai galamērķis jau ir atzīmēts kā patīkams...')
+
     const existing = await prisma.userLikedDestination.findUnique({
       where: {
         userId_destinationId: {
@@ -84,10 +123,13 @@ export async function POST(request: Request) {
           destinationId: destIdNum,
         },
       },
-    });
+    })
 
     if (existing) {
-      return NextResponse.json({ success: false, message: 'Destination already liked' }, { status: 409 });
+      return NextResponse.json(
+        { success: false, message: 'Galamērķis jau ir atzīmēts kā patīkams' },
+        { status: 409 }
+      )
     }
 
     await prisma.userLikedDestination.create({
@@ -95,15 +137,24 @@ export async function POST(request: Request) {
         userId: parseInt(user.id),
         destinationId: destIdNum,
       },
-    });
+    })
 
-    console.log('Successfully added liked destination');
-    return NextResponse.json({ success: true });
+    console.log('Patīkamais galamērķis veiksmīgi pievienots')
+
+    return NextResponse.json({ success: true })
   } catch (error: any) {
-    console.error('Error adding liked destination:', error);
+    console.error('Kļūda, pievienojot patīkamo galamērķi:', error)
+
     if (error.code === 'P2002') {
-      return NextResponse.json({ success: false, message: 'Destination already liked' }, { status: 409 });
+      return NextResponse.json(
+        { success: false, message: 'Galamērķis jau ir atzīmēts kā patīkams' },
+        { status: 409 }
+      )
     }
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+
+    return NextResponse.json(
+      { success: false, message: 'Iekšēja servera kļūda' },
+      { status: 500 }
+    )
   }
-} 
+}

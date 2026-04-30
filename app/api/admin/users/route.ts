@@ -9,7 +9,7 @@ interface UserData {
   createdAt: Date
 }
 
-// Get all users for admin panel
+// Iegūst visus lietotājus administratora panelim
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
@@ -25,7 +25,7 @@ export async function GET() {
       },
     }) as UserData[]
 
-    // Convert id to string for consistency
+    // Pārveidojam ID par tekstu, lai saglabātu vienotu formātu
     const usersWithStringIds = users.map((user: UserData) => ({
       ...user,
       id: user.id.toString(),
@@ -36,21 +36,32 @@ export async function GET() {
 
     return NextResponse.json({ success: true, users: usersWithStringIds, totalRoutes })
   } catch (error) {
-    console.error('GET /api/admin/users error:', error)
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+    console.error('GET /api/admin/users kļūda:', error)
+
+    return NextResponse.json(
+      { success: false, message: 'Iekšēja servera kļūda' },
+      { status: 500 }
+    )
   }
 }
 
-// Update a user's role
+// Atjaunina lietotāja lomu
 export async function PUT(request: Request) {
   const { id, role } = await request.json()
+
   if (!id || !role) {
-    return NextResponse.json({ success: false, message: 'User ID and role are required' }, { status: 400 })
+    return NextResponse.json(
+      { success: false, message: 'Nepieciešams lietotāja ID un loma' },
+      { status: 400 }
+    )
   }
 
-  // Cannot update admin user role
+  // Administratora lietotāja lomu nedrīkst mainīt
   if (id === 'admin') {
-    return NextResponse.json({ success: false, message: 'Cannot modify admin user' }, { status: 403 })
+    return NextResponse.json(
+      { success: false, message: 'Administratora lietotāju nedrīkst mainīt' },
+      { status: 403 }
+    )
   }
 
   try {
@@ -61,10 +72,18 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    console.error('Error updating user role:', error)
+    console.error('Kļūda, atjauninot lietotāja lomu:', error)
+
     if (error.code === 'P2025') {
-      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
+      return NextResponse.json(
+        { success: false, message: 'Lietotājs nav atrasts' },
+        { status: 404 }
+      )
     }
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+
+    return NextResponse.json(
+      { success: false, message: 'Iekšēja servera kļūda' },
+      { status: 500 }
+    )
   }
-} 
+}
