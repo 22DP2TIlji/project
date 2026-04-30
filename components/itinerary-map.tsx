@@ -127,16 +127,11 @@ export default function ItineraryMap({ route, destinations, nearbyPlaces = [] }:
           places.forEach((place) => {
             const lat = Number(place.latitude)
             const lng = Number(place.longitude)
-            
-            let iconColor = "blue"
-            let typeLabel = place.type
-            if (place.type === "accommodation") {
-                iconColor = "orange"
-                typeLabel = "Naktsmītne"
-            } else if (place.type === "event") {
-                iconColor = "violet"
-                typeLabel = "Pasākums"
-            }
+            if (Number.isNaN(lat) || Number.isNaN(lng)) return
+
+            const isEvent = place.type === "event"
+            const iconColor = isEvent ? "violet" : "blue"
+            const typeLabel = isEvent ? "Pasākums" : "Galamērķis"
 
             L.marker([lat, lng], {
               icon: L.icon({
@@ -148,7 +143,7 @@ export default function ItineraryMap({ route, destinations, nearbyPlaces = [] }:
             })
               .addTo(map)
               .bindPopup(
-                `<strong>${place.name}</strong><br/>${typeLabel}<br/>${place.distance?.toFixed(1) || 0} km attālumā`
+                `<strong>${place.name}</strong><br/>${typeLabel}<br/>${(place.distance ?? 0).toFixed(1)} km attālumā`
               )
           })
 
@@ -160,12 +155,15 @@ export default function ItineraryMap({ route, destinations, nearbyPlaces = [] }:
           } else {
             bounds.push(route.startCoords as [number, number], route.endCoords as [number, number])
           }
+
           destinations.forEach((d) => {
             bounds.push(d.coordinates as [number, number])
           })
+
           places.forEach((p: any) => {
             bounds.push([Number(p.latitude), Number(p.longitude)])
           })
+
           if (bounds.length > 0) {
             map.fitBounds(bounds as any, { padding: [50, 50] })
           }

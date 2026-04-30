@@ -8,7 +8,7 @@ interface RoutePoint {
   id: number;
   routeId: number;
   objectId: number;
-  objectType: 'attraction' | 'event' | 'accommodation';
+  objectType: 'attraction' | 'event';
   sequence: number;
   createdAt: string; 
 }
@@ -90,7 +90,7 @@ export default function ItineraryPage() {
             <li key={point.id} className="text-gray-800">
               {/* Šeit parasti tiktu ielādēta detalizēta informācija katram objectId */}
               Punkts {index + 1}: {point.objectType === 'attraction' ? 'Apskates objekts' : 
-                                 point.objectType === 'event' ? 'Pasākums' : 'Naktsmītne'} 
+                                 'Pasākums'} 
               (ID: {point.objectId})
             </li>
           ))}

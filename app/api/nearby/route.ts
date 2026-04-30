@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
 // API для поиска мест рядом с маршрутом или точкой
-// Параметры: lat, lng, radius (км), type (destinations|accommodations|events|all)
+// Параметры: lat, lng, radius (км), type (destinations|events|all)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const lat = searchParams.get('lat')
     const lng = searchParams.get('lng')
     const radius = searchParams.get('radius') || '50' // по умолчанию 50 км
-    const type = searchParams.get('type') || 'all' // destinations, accommodations, events, all
+    const type = searchParams.get('type') || 'all' // destinations, events, all
     const routeStartLat = searchParams.get('routeStartLat')
     const routeStartLng = searchParams.get('routeStartLng')
     const routeEndLat = searchParams.get('routeEndLat')
@@ -31,11 +31,9 @@ export async function GET(request: NextRequest) {
 
     const results: {
       destinations: any[]
-      accommodations: any[]
       events: any[]
     } = {
       destinations: [],
-      accommodations: [],
       events: [],
     }
 
@@ -78,19 +76,6 @@ export async function GET(request: NextRequest) {
           .sort((a, b) => a.distance - b.distance)
       }
 
-      if (type === 'all' || type === 'accommodations') {
-        const allAccommodations = await prisma.accommodation.findMany()
-        results.accommodations = allAccommodations
-          .map((acc) => {
-            const accLat = Number(acc.latitude)
-            const accLng = Number(acc.longitude)
-            const distance = distanceToLineSegment(accLat, accLng, startLat, startLng, endLat, endLng)
-            return { ...acc, distance }
-          })
-          .filter((acc) => acc.distance <= radiusKm)
-          .sort((a, b) => a.distance - b.distance)
-      }
-
       if (type === 'all' || type === 'events') {
         const allEvents = await prisma.event.findMany()
         results.events = allEvents
@@ -118,22 +103,6 @@ export async function GET(request: NextRequest) {
           .map((d) => ({
             ...d,
             distance: calculateDistance(centerLat, centerLng, Number(d.latitude), Number(d.longitude)),
-          }))
-          .sort((a, b) => a.distance - b.distance)
-      }
-
-      if (type === 'all' || type === 'accommodations') {
-        const allAccommodations = await prisma.accommodation.findMany()
-        results.accommodations = allAccommodations
-          .filter((acc) => {
-            const accLat = Number(acc.latitude)
-            const accLng = Number(acc.longitude)
-            const distance = calculateDistance(centerLat, centerLng, accLat, accLng)
-            return distance <= radiusKm
-          })
-          .map((acc) => ({
-            ...acc,
-            distance: calculateDistance(centerLat, centerLng, Number(acc.latitude), Number(acc.longitude)),
           }))
           .sort((a, b) => a.distance - b.distance)
       }
