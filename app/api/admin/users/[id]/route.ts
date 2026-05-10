@@ -1,20 +1,36 @@
-import { NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 function parseId(id: string): number | null {
-  const n = Number(id)
-  return Number.isFinite(n) ? n : null
+  const n = Number(id);
+  return Number.isFinite(n) ? n : null;
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-  const userId = parseId(params.id)
+export async function DELETE(
+  _: Request,
+  { params }: { params: { id: string } },
+) {
+  const userId = parseId(params.id);
   if (userId == null) {
-    return NextResponse.json({ success: false, message: 'Invalid user id' }, { status: 400 })
+    return NextResponse.json(
+      { success: false, message: "Nederīgs lietotāja ID" },
+      { status: 400 },
+    );
   }
 
   try {
-    const routes = await prisma.route.findMany({ where: { userId }, select: { id: true } })
-    const routeIds = routes.map((r) => r.id)
+    const routes = await prisma.route.findMany({
+      where: { userId },
+      select: { id: true },
+    });
+    const routeIds = routes.map((r) => r.id);
+
+    await prisma
+      .$executeRawUnsafe(
+        "DELETE FROM user_visited_destinations WHERE user_id = ?",
+        userId,
+      )
+      .catch(() => undefined);
 
     await prisma.$transaction([
       prisma.routePoint.deleteMany({ where: { routeId: { in: routeIds } } }),
@@ -22,15 +38,24 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
       prisma.review.deleteMany({ where: { userId } }),
       prisma.userLikedDestination.deleteMany({ where: { userId } }),
       prisma.user.delete({ where: { id: userId } }),
-    ])
+    ]);
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true });
   } catch (err: unknown) {
-    console.error('DELETE /api/admin/users/[id] error:', err)
-    const code = err && typeof err === 'object' && 'code' in err ? (err as { code: string }).code : null
-    if (code === 'P2025') {
-      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
+    console.error("DELETE /api/admin/users/[id] error:", err);
+    const code =
+      err && typeof err === "object" && "code" in err
+        ? (err as { code: string }).code
+        : null;
+    if (code === "P2025") {
+      return NextResponse.json(
+        { success: false, message: "Lietotājs nav atrasts" },
+        { status: 404 },
+      );
     }
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { success: false, message: "Iekšēja servera kļūda" },
+      { status: 500 },
+    );
   }
 }

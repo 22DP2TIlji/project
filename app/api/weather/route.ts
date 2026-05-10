@@ -3,6 +3,27 @@ import prisma from '@/lib/prisma'
 
 type CityConfig = { name: string; lat: number; lng: number }
 
+async function fetchJsonWithRetry(url: string, attempts = 3, timeoutMs = 8000) {
+  let lastError: unknown
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), timeoutMs)
+    try {
+      const res = await fetch(url, { cache: 'no-store', signal: controller.signal })
+      if (!res.ok) throw new Error(`Pieprasījuma kļūda ${res.status}`)
+      return await res.json()
+    } catch (error) {
+      lastError = error
+      if (attempt < attempts) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 300))
+      }
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+  throw lastError
+}
+
 const MAJOR_CITIES: Record<string, CityConfig> = {
   riga: { name: 'Rīga', lat: 56.9496, lng: 24.1052 },
   daugavpils: { name: 'Daugavpils', lat: 55.8747, lng: 26.5362 },
@@ -16,12 +37,11 @@ async function resolveCityCoordinates(city: string): Promise<CityConfig | null> 
   const predefined = MAJOR_CITIES[city]
   if (predefined) return predefined
 
-  const geoRes = await fetch(
+  const geoData = await fetchJsonWithRetry(
     `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=lv&format=json`,
-    { cache: 'no-store' }
-  )
-  if (!geoRes.ok) return null
-  const geoData = await geoRes.json()
+    2
+  ).catch(() => null)
+  if (!geoData) return null
   const first = geoData?.results?.[0]
   if (!first?.latitude || !first?.longitude) return null
   return {
@@ -85,14 +105,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Nederīgas koordinātes' }, { status: 400 })
     }
 
-    const meteoRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,surface_pressure,wind_speed_10m,weather_code&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto&forecast_days=6`,
-      { cache: 'no-store' }
+    const meteoData = await fetchJsonWithRetry(
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,surface_pressure,wind_speed_10m,precipitation,weather_code&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto&forecast_days=6`
     )
-
-    if (!meteoRes.ok) throw new Error(`Open-Meteo error ${meteoRes.status}`)
-
-    const meteoData = await meteoRes.json()
     const current = meteoData?.current
     const hourly = meteoData?.hourly
     if (!current || !hourly?.time) throw new Error('Invalid weather response')
@@ -126,14 +141,38 @@ export async function GET(request: NextRequest) {
         windSpeed: Number(current.wind_speed_10m),
         windDirection: null,
         pressure: Number(current.surface_pressure),
-        precipitation: null,
+        precipitation: Number(current.precipitation ?? 0),
         timestamp: new Date(),
         note: `${weatherInfo.description} • Open-Meteo`,
       },
     })
   } catch (error) {
     console.error('Error fetching weather:', error)
-    return NextResponse.json({ success: false, message: 'Iekšējā servera kļūda' }, { status: 500 })
+
+    const destinationId = new URL(request.url).searchParams.get('destinationId')
+    if (destinationId) {
+      const cached = await prisma.weatherData.findFirst({
+        where: { locationId: parseInt(destinationId, 10) },
+        orderBy: { timestamp: 'desc' },
+      })
+      if (cached) {
+        return NextResponse.json({
+          success: true,
+          weather: {
+            temperature: Number(cached.temperature),
+            humidity: cached.humidity == null ? null : Number(cached.humidity),
+            windSpeed: cached.windSpeed == null ? null : Number(cached.windSpeed),
+            windDirection: cached.windDirection,
+            pressure: cached.pressure == null ? null : Number(cached.pressure),
+            precipitation: cached.precipitation == null ? null : Number(cached.precipitation),
+            timestamp: cached.timestamp,
+            note: 'Rādīti pēdējie saglabātie laikapstākļu dati.',
+          },
+        })
+      }
+    }
+
+    return NextResponse.json({ success: false, message: 'Laikapstākļi pašlaik nav pieejami. Lūdzu, mēģiniet vēlreiz pēc brīža.' }, { status: 503 })
   }
 }
 

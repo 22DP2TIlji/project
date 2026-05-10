@@ -20,6 +20,9 @@ export default function SignupPage() {
     return null
   }
 
+  const isStrongPassword = (value: string) =>
+    /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(value)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -34,8 +37,8 @@ export default function SignupPage() {
       return
     }
 
-    if (password.length < 6) {
-      setError('Parolei jābūt vismaz 6 rakstzīmes garai')
+    if (!isStrongPassword(password)) {
+      setError('Parolei jābūt vismaz 8 rakstzīmes garai, ar vienu lielo burtu, vienu ciparu un vienu speciālo simbolu.')
       return
     }
 
@@ -105,6 +108,9 @@ export default function SignupPage() {
               placeholder="••••••••"
               required
             />
+            <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+              Parolei jābūt vismaz 8 rakstzīmes garai, ar vismaz vienu lielo burtu, vienu ciparu un vienu speciālo simbolu (piemēram, punktu).
+            </p>
           </div>
 
           <div className="mb-6">

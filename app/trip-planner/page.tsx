@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
 import { MapPin, Calendar, Wallet, Heart, Loader2 } from "lucide-react"
 
 const CITIES = [
@@ -16,21 +18,24 @@ const CITIES = [
 ]
 
 const CATEGORIES = [
-  { id: "nature", name: "Nature" },
-  { id: "castle", name: "Castles" },
-  { id: "park", name: "Parks" },
-  { id: "beach", name: "Beaches" },
-  { id: "city", name: "City" },
-  { id: "viewing_tower", name: "Viewing towers" },
+  { id: "nature", name: "Daba" },
+  { id: "castle", name: "Pilis" },
+  { id: "park", name: "Parki" },
+  { id: "beach", name: "Pludmales" },
+  { id: "city", name: "Pilsēta" },
+  { id: "viewing_tower", name: "Skatu torņi" },
 ]
 
 export default function TripPlannerPage() {
+  const { user } = useAuth()
+  const router = useRouter()
   const [days, setDays] = useState(2)
   const [interests, setInterests] = useState<string[]>([])
   const [budget, setBudget] = useState("")
   const [startCity, setStartCity] = useState("riga")
   const [loading, setLoading] = useState(false)
   const [trip, setTrip] = useState<any>(null)
+  const [saving, setSaving] = useState(false)
 
   const toggleInterest = (id: string) => {
     setInterests((prev) =>
@@ -56,13 +61,46 @@ export default function TripPlannerPage() {
       if (data.success && data.trip) {
         setTrip(data.trip)
       } else {
-        alert(data.message || "Failed to generate trip")
+        alert(data.message || "Neizdevās izveidot ceļojumu")
       }
     } catch (e) {
       console.error(e)
-      alert("Failed to generate trip")
+      alert("Neizdevās izveidot ceļojumu")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const saveAndPlanOnMap = async () => {
+    if (!trip) return
+    if (!user?.id || user.id === "admin") {
+      alert("Lūdzu, piesakieties, lai saglabātu ceļojumu.")
+      return
+    }
+
+    setSaving(true)
+    try {
+      const res = await fetch("/api/trip-planner/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          tripName: `Ceļojums no ${CITIES.find((c) => c.id === startCity)?.name || "Latvijas"}`,
+          trip,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success || !data.routeId) {
+        alert(data.message || "Neizdevās saglabāt ceļojumu.")
+        return
+      }
+      window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
+      router.push(`/itinerary?route=${data.routeId}&openMap=1`)
+    } catch (error) {
+      console.error(error)
+      alert("Neizdevās saglabāt ceļojumu.")
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -71,9 +109,9 @@ export default function TripPlannerPage() {
       <section className="relative h-[35vh] bg-gray-100 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden bg-gray-200" />
         <div className="relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-light">Smart Trip Planner</h1>
+          <h1 className="text-4xl md:text-5xl font-light">Gudrais ceļojuma plānotājs</h1>
           <p className="mt-3 text-lg text-gray-600">
-            Build your route by days, interests, and budget
+            Veidojiet maršrutu pēc dienām, interesēm un budžeta
           </p>
         </div>
       </section>
@@ -83,12 +121,12 @@ export default function TripPlannerPage() {
           <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-8">
             <h2 className="text-xl font-light mb-4 flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Trip options
+              Ceļojuma iestatījumi
             </h2>
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Number of days
+                  Dienu skaits
                 </label>
                 <input
                   type="number"
@@ -101,7 +139,7 @@ export default function TripPlannerPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Start city
+                  Sākuma pilsēta
                 </label>
                 <select
                   value={startCity}
@@ -117,7 +155,7 @@ export default function TripPlannerPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Interests (optional)
+                  Intereses (nav obligāti)
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {CATEGORIES.map((c) => (
@@ -139,12 +177,12 @@ export default function TripPlannerPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
                   <Wallet className="h-4 w-4" />
-                  Max budget (€, optional)
+                  Maksimālais budžets (€)
                 </label>
                 <input
                   type="number"
                   min={0}
-                  placeholder="e.g. 200"
+                  placeholder="piem. 200"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
                   className="w-full max-w-[150px] p-2 border border-gray-300 rounded-md"
@@ -158,12 +196,12 @@ export default function TripPlannerPage() {
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating…
+                    Veido...
                   </>
                 ) : (
                   <>
                     <MapPin className="h-4 w-4" />
-                    Generate route
+                    Izveidot maršrutu
                   </>
                 )}
               </button>
@@ -172,9 +210,9 @@ export default function TripPlannerPage() {
 
           {trip && (
             <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-              <h2 className="text-xl font-light mb-4">Your route</h2>
+              <h2 className="text-xl font-light mb-4">Jūsu maršruts</h2>
               <div className="flex flex-wrap gap-4 mb-6 text-sm text-gray-600">
-                <span>{trip.totalPlaces} places</span>
+                <span>{trip.totalPlaces} vietas</span>
                 <span>~{trip.totalDistance} km</span>
                 {trip.estimatedCost > 0 && (
                   <span>~{trip.estimatedCost}€</span>
@@ -184,7 +222,7 @@ export default function TripPlannerPage() {
                 {trip.tripDays.map((day: any) => (
                   <div key={day.dayNumber} className="border-l-2 border-blue-200 pl-4">
                     <h3 className="font-medium text-gray-800 mb-2">
-                      Day {day.dayNumber}
+                      Diena {day.dayNumber}
                     </h3>
                     <ul className="space-y-1">
                       {day.places.map((p: any, i: number) => (
@@ -209,12 +247,14 @@ export default function TripPlannerPage() {
                   </div>
                 ))}
               </div>
-              <Link
-                href="/itinerary"
-                className="inline-block mt-6 text-blue-600 hover:underline"
+              <button
+                type="button"
+                onClick={saveAndPlanOnMap}
+                disabled={saving}
+                className="inline-block mt-6 text-blue-600 hover:underline disabled:opacity-50"
               >
-                Save and plan on map →
-              </Link>
+                {saving ? "Saglabā..." : "Saglabāt un plānot kartē →"}
+              </button>
             </div>
           )}
         </div>

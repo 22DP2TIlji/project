@@ -13,6 +13,13 @@ export async function POST(request: Request) {
       )
     }
 
+    if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
+      return NextResponse.json(
+        { success: false, message: 'Parolei jābūt vismaz 8 rakstzīmes garai, ar vienu lielo burtu, vienu ciparu un vienu speciālo simbolu.' },
+        { status: 400 }
+      )
+    }
+
     // šifrējam paroli
     const hashed = await bcrypt.hash(password, 10)
 

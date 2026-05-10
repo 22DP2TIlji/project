@@ -13,7 +13,7 @@ const CITY_CENTERS: Record<string, [number, number]> = {
   ventspils: [57.3894, 21.5606],
 }
 
-const DEFAULT_AVERAGE_COST = 5 // EUR, если не указано
+const DEFAULT_AVERAGE_COST = 5 // EUR, ja cena nav norādīta
 const DEFAULT_VISIT_MINUTES = 60
 const PLACES_PER_DAY = 3 // оптимальное кол-во мест в день
 const MAX_PLACES_CAP = 30
@@ -123,21 +123,29 @@ export async function POST(request: NextRequest) {
         }
       })
 
-    // Фильтр по бюджету (если указан)
-    if (budget > 0) {
-      const maxPerPlace = budget / targetCount
-      places = places.filter((p) => p.averageCost <= maxPerPlace)
-    }
-
-    // Сортируем по близости к стартовой точке, берём топ
-    places = places
+    const sortedByDistance = places
       .map((p) => ({
         ...p,
         dist: haversine(startLat, startLng, p.latitude, p.longitude),
       }))
       .sort((a, b) => a.dist - b.dist)
-      .slice(0, targetCount)
-      .map(({ dist, ...rest }) => rest)
+
+    if (budget > 0) {
+      let remainingBudget = budget
+      places = []
+      for (const place of sortedByDistance) {
+        const cost = Number(place.averageCost || 0)
+        if (cost <= remainingBudget && places.length < targetCount) {
+          const { dist, ...rest } = place
+          places.push(rest)
+          remainingBudget -= cost
+        }
+      }
+    } else {
+      places = sortedByDistance
+        .slice(0, targetCount)
+        .map(({ dist, ...rest }) => rest)
+    }
 
     const { ordered, totalDistance } = optimizeRoute(places, startLat, startLng)
 
@@ -176,6 +184,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Trip planner error:', error)
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ success: false, message: 'Servera kļūda' }, { status: 500 })
   }
 }

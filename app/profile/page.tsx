@@ -3,7 +3,7 @@
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
-import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2 } from 'lucide-react'
+import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2, KeyRound } from 'lucide-react'
 import Link from 'next/link'
 import LikeButton from '@/components/like-button'
 import RandomPlace from '@/components/random-place'
@@ -22,6 +22,12 @@ export default function ProfilePage() {
   const [likedRoutes, setLikedRoutes] = useState<Array<{ id: number; name: string }>>([])
   const [mounted, setMounted] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [passwordMessage, setPasswordMessage] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -162,6 +168,50 @@ export default function ProfilePage() {
     }
   }
 
+  const isStrongPassword = (value: string) =>
+    /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(value)
+
+  const changePassword = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setPasswordMessage('')
+    setPasswordError('')
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      setPasswordError('Lūdzu, aizpildiet visus paroles laukus.')
+      return
+    }
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError('Jaunās paroles nesakrīt.')
+      return
+    }
+    if (!isStrongPassword(newPassword)) {
+      setPasswordError('Jaunajai parolei jābūt vismaz 8 rakstzīmes garai, ar vienu lielo burtu, vienu ciparu un vienu speciālo simbolu.')
+      return
+    }
+
+    setChangingPassword(true)
+    try {
+      const res = await fetch('/api/users/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?.id, currentPassword, newPassword }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setPasswordError(data.message || 'Neizdevās nomainīt paroli.')
+        return
+      }
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmNewPassword('')
+      setPasswordMessage(data.message || 'Parole veiksmīgi nomainīta.')
+    } catch {
+      setPasswordError('Neizdevās nomainīt paroli.')
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
   if (!user) return null
 
   return (
@@ -202,6 +252,35 @@ export default function ProfilePage() {
                   Izrakstīties
                 </button>
               </div>
+
+              {user.id !== 'admin' && (
+                <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mt-6">
+                  <h2 className="text-xl font-light mb-4 text-gray-800 flex items-center gap-2">
+                    <KeyRound className="h-5 w-5" />
+                    Mainīt paroli
+                  </h2>
+                  <form onSubmit={changePassword} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="currentPassword">Pašreizējā parole</label>
+                      <input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full rounded-md border border-gray-300 p-3" required />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="newPassword">Jaunā parole</label>
+                      <input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full rounded-md border border-gray-300 p-3" required />
+                      <p className="mt-2 text-xs text-gray-600">Vismaz 8 rakstzīmes, viens lielais burts, viens cipars un viens speciālais simbols.</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="confirmNewPassword">Atkārtojiet jauno paroli</label>
+                      <input id="confirmNewPassword" type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} className="w-full rounded-md border border-gray-300 p-3" required />
+                    </div>
+                    {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
+                    {passwordMessage && <p className="text-sm text-green-600">{passwordMessage}</p>}
+                    <button type="submit" disabled={changingPassword} className="w-full rounded-md bg-gray-800 py-3 px-4 text-white transition-colors hover:bg-gray-700 disabled:opacity-50">
+                      {changingPassword ? 'Maina paroli...' : 'Nomainīt paroli'}
+                    </button>
+                  </form>
+                </div>
+              )}
             </div>
 
             <div className="md:col-span-2">

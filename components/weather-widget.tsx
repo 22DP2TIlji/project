@@ -20,6 +20,7 @@ type WidgetWeather = {
 export default function WeatherWidget({ destinationId, lat, lng }: WeatherWidgetProps) {
   const [weather, setWeather] = useState<WidgetWeather | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -36,8 +37,14 @@ export default function WeatherWidget({ destinationId, lat, lng }: WeatherWidget
           return
         }
 
-        const res = await fetch(url, { cache: "no-store" })
-        const data = await res.json()
+        setError("")
+        let data: any = null
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          const res = await fetch(url, { cache: "no-store" })
+          data = await res.json().catch(() => null)
+          if (res.ok && data) break
+          if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 400))
+        }
 
         // ✅ 1. formāts: specifiskais logrīka { success, weather }
         if (data?.success && data?.weather) {
@@ -60,9 +67,11 @@ export default function WeatherWidget({ destinationId, lat, lng }: WeatherWidget
         }
 
         setWeather(null)
+        setError(data?.message || "Laikapstākļi pašlaik nav pieejami.")
       } catch (error) {
         console.error("Kļūda ielādējot laikapstākļus:", error)
         setWeather(null)
+        setError("Laikapstākļi pašlaik nav pieejami. Mēģiniet vēlreiz vēlāk.")
       } finally {
         setLoading(false)
       }
@@ -79,7 +88,11 @@ export default function WeatherWidget({ destinationId, lat, lng }: WeatherWidget
     )
   }
 
-  if (!weather) return null
+  if (!weather) {
+    return error ? (
+      <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-sm text-amber-800">{error}</div>
+    ) : null
+  }
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-md p-6">

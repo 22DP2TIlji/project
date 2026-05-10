@@ -13,6 +13,7 @@ type PublicRoute = {
   likesCount: number
   commentsCount: number
   createdAt: string
+  likedByCurrentUser?: boolean
 }
 
 export default function PublicRoutesPage() {
@@ -27,10 +28,17 @@ export default function PublicRoutesPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch("/api/routes/public?limit=20")
+        const params = new URLSearchParams({ limit: "20" })
+        if (user?.id && user.id !== "admin") params.set("userId", user.id)
+        const res = await fetch(`/api/routes/public?${params}`)
         const data = await res.json()
         if (data.success && data.routes) {
           setRoutes(data.routes)
+          setLikedState(
+            Object.fromEntries(
+              data.routes.map((route: PublicRoute) => [route.id, !!route.likedByCurrentUser])
+            )
+          )
         }
       } catch (e) {
         console.error(e)
@@ -39,7 +47,7 @@ export default function PublicRoutesPage() {
       }
     }
     load()
-  }, [])
+  }, [user?.id])
 
   const toggleLike = async (routeId: number) => {
     if (!user?.id || user.id === "admin") {
@@ -174,11 +182,11 @@ export default function PublicRoutesPage() {
                       {cloning === r.id ? "Kopē..." : "Kopēt sev"}
                     </button>
                     <Link
-                      href={`/trip-planner?route=${r.id}`}
+                      href={`/itinerary?route=${r.id}&openMap=1`}
                       className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                     >
                       <MapPin className="h-4 w-4" />
-                      Skatīt detalizēti
+                      Apskatīt detalizēti
                     </Link>
                   </div>
                   <div className="mt-3 border-t border-gray-100 pt-3">

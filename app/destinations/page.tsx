@@ -223,7 +223,7 @@ export default function DestinationsPage() {
 
           {loading ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-300">Ielādē...</p>
+              <p className="text-gray-500 dark:text-gray-300"></p>
             </div>
           ) : displayedDestinations.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

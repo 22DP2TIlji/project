@@ -1,226 +1,271 @@
-import { NextRequest, NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
-import { Prisma } from "@prisma/client"
-import { getUserFromId } from "@/lib/auth-utils"
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getUserFromId } from "@/lib/auth-utils";
 
 type ItineraryPayload = {
-  id?: string
-  startPoint?: string
-  endPoint?: string
-  distance?: number
-  time?: number
-  date?: string
-  // любые дополнительные поля маршрута
-  [key: string]: any
+  id?: string;
+  startPoint?: string;
+  endPoint?: string;
+  distance?: number;
+  time?: number;
+  date?: string;
+  tripName?: string;
+  isPublic?: boolean;
+  startCoords?: [number, number];
+  endCoords?: [number, number];
+  [key: string]: any;
+};
+
+function parseRouteDescription(description: string | null): ItineraryPayload {
+  if (!description) return {};
+
+  try {
+    return JSON.parse(description) as ItineraryPayload;
+  } catch {
+    return {};
+  }
 }
 
-// GET /api/itineraries?userId=123 - получить сохранённые маршруты конкретного пользователя
+function serializeRoute(route: {
+  id: number;
+  name: string;
+  description: string | null;
+  createdAt: Date;
+  isPublic?: boolean;
+}) {
+  const parsed = parseRouteDescription(route.description);
+  const {
+    id: _ignoredParsedId,
+    date: parsedDate,
+    startPoint: parsedStartPoint,
+    endPoint: parsedEndPoint,
+    distance: parsedDistance,
+    time: parsedTime,
+    ...parsedRest
+  } = parsed;
+
+  return {
+    id: route.id.toString(),
+    startPoint: parsedStartPoint ?? route.name,
+    endPoint: parsedEndPoint ?? "",
+    distance: parsedDistance ?? 0,
+    time: parsedTime ?? 0,
+    date: parsedDate ?? route.createdAt.toISOString(),
+    ...parsedRest,
+    isPublic: route.isPublic ?? false,
+  };
+}
+
+// GET /api/itineraries?userId=123 - iegūt saglabātos lietotāja maršrutus
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get("userId")
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
 
     if (!userId) {
-      return NextResponse.json({ success: false, message: "User ID is required" }, { status: 400 })
+      return NextResponse.json(
+        { success: false, message: "Nepieciešams lietotāja ID" },
+        { status: 400 },
+      );
     }
 
-    // Для админа пока не храним персональные маршруты
     if (userId === "admin") {
-      return NextResponse.json({ success: true, itineraries: [] })
+      return NextResponse.json({ success: true, itineraries: [] });
     }
 
-    const user = await getUserFromId(userId)
-    if (!user || !user.id || user.id === "admin") {
-      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 })
+    const user = await getUserFromId(userId);
+    if (!user?.id || user.id === "admin") {
+      return NextResponse.json(
+        { success: false, message: "Lietotājs nav atrasts" },
+        { status: 404 },
+      );
     }
 
-    const numericUserId = parseInt(user.id)
-    if (isNaN(numericUserId)) {
-      return NextResponse.json({ success: false, message: "Invalid user ID" }, { status: 400 })
+    const numericUserId = parseInt(user.id, 10);
+    if (!Number.isFinite(numericUserId)) {
+      return NextResponse.json(
+        { success: false, message: "Nederīgs lietotāja ID" },
+        { status: 400 },
+      );
     }
 
     const routes = await prisma.route.findMany({
       where: { userId: numericUserId },
       orderBy: { createdAt: "desc" },
-    })
+    });
 
-    const itineraries: ItineraryPayload[] = routes.map((route) => {
-      let parsed: ItineraryPayload = {} as ItineraryPayload
-      if (route.description) {
-        try {
-          parsed = JSON.parse(route.description) as ItineraryPayload
-        } catch {
-          // если не получилось распарсить, просто игнорируем
-        }
-      }
-const {
-        id: _ignoredParsedId,
-        date: parsedDate,
-        startPoint: parsedStartPoint,
-        endPoint: parsedEndPoint,
-        distance: parsedDistance,
-        time: parsedTime,
-        ...parsedRest
-      } = parsed
-
-      return {
-        id: route.id.toString(),
-        startPoint: parsedStartPoint ?? route.name,
-        endPoint: parsedEndPoint ?? "",
-        distance: parsedDistance ?? 0,
-        time: parsedTime ?? 0,
-        date: parsedDate ?? route.createdAt.toISOString(),
-        ...parsedRest,
-        isPublic: (route as { isPublic?: boolean }).isPublic ?? false,
-      }
-    })
-
-    return NextResponse.json({ success: true, itineraries })
+    return NextResponse.json({
+      success: true,
+      itineraries: routes.map((route) =>
+        serializeRoute({
+          id: route.id,
+          name: route.name,
+          description: route.description,
+          createdAt: route.createdAt,
+          isPublic: (route as { isPublic?: boolean }).isPublic,
+        }),
+      ),
+    });
   } catch (error) {
-    console.error("Error fetching itineraries:", error)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+    console.error("Error fetching itineraries:", error);
+    return NextResponse.json(
+      { success: false, message: "Servera kļūda" },
+      { status: 500 },
+    );
   }
 }
 
-// POST /api/itineraries - сохранить маршрут за конкретным пользователем
+// POST /api/itineraries - saglabāt maršrutu lietotājam
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const body = await request.json();
     const { userId, itinerary } = body as {
-      userId?: string
-      itinerary?: ItineraryPayload
-    }
+      userId?: string;
+      itinerary?: ItineraryPayload;
+    };
 
     if (!userId || !itinerary) {
-      return NextResponse.json({ success: false, message: "User ID and itinerary are required" }, { status: 400 })
+      return NextResponse.json(
+        { success: false, message: "Nepieciešams lietotāja ID un maršruts" },
+        { status: 400 },
+      );
     }
 
     if (userId === "admin") {
       return NextResponse.json(
-        { success: false, message: "Admin user cannot save itineraries" },
-        { status: 403 }
-      )
+        {
+          success: false,
+          message: "Administrators nevar saglabāt personīgos maršrutus",
+        },
+        { status: 403 },
+      );
     }
 
-    const user = await getUserFromId(userId)
-    if (!user || !user.id || user.id === "admin") {
-      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 })
+    const user = await getUserFromId(userId);
+    if (!user?.id || user.id === "admin") {
+      return NextResponse.json(
+        { success: false, message: "Lietotājs nav atrasts" },
+        { status: 404 },
+      );
     }
 
-    const numericUserId = parseInt(user.id)
-    if (isNaN(numericUserId)) {
-      return NextResponse.json({ success: false, message: "Invalid user ID" }, { status: 400 })
+    const numericUserId = parseInt(user.id, 10);
+    if (!Number.isFinite(numericUserId)) {
+      return NextResponse.json(
+        { success: false, message: "Nederīgs lietotāja ID" },
+        { status: 400 },
+      );
     }
 
-    const name =
-      itinerary.startPoint && itinerary.endPoint
+    const name = itinerary.tripName
+      ? String(itinerary.tripName)
+      : itinerary.startPoint && itinerary.endPoint
         ? `${itinerary.startPoint} → ${itinerary.endPoint}`
-        : "Saved route"
+        : "Saglabāts maršruts";
 
-    const description = JSON.stringify(itinerary)
-    const isPublic = !!itinerary.isPublic
-
-    const startCoords = itinerary.startCoords as [number, number] | undefined
-    const endCoords = itinerary.endCoords as [number, number] | undefined
-    const startLat = startCoords?.[0] ?? 0
-    const startLng = startCoords?.[1] ?? 0
-    const endLat = endCoords?.[0] ?? 0
-    const endLng = endCoords?.[1] ?? 0
+    const startCoords = itinerary.startCoords;
+    const endCoords = itinerary.endCoords;
 
     const created = await prisma.route.create({
       data: {
         userId: numericUserId,
         name,
-        description,
-        startLat,
-        startLng,
-        endLat,
-        endLng,
-        isPublic,
-      } as Prisma.RouteUncheckedCreateInput,
-    })
+        description: JSON.stringify(itinerary),
+        startLat: startCoords?.[0] ?? 0,
+        startLng: startCoords?.[1] ?? 0,
+        endLat: endCoords?.[0] ?? 0,
+        endLng: endCoords?.[1] ?? 0,
+        isPublic: !!itinerary.isPublic,
+      } as any,
+    });
 
-    return NextResponse.json({ success: true, routeId: created.id })
+    return NextResponse.json({ success: true, routeId: created.id });
   } catch (error) {
-    console.error("Error saving itinerary:", error)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+    console.error("Error saving itinerary:", error);
+    return NextResponse.json(
+      { success: false, message: "Servera kļūda" },
+      { status: 500 },
+    );
   }
 }
 
-// DELETE /api/itineraries - удалить маршрут пользователя
+// DELETE /api/itineraries - dzēst lietotāja maršrutu
 export async function DELETE(request: NextRequest) {
   try {
-    console.log("DELETE /api/itineraries called")
-    const body = await request.json()
-console.log("DELETE body:", body)
+    const body = await request.json();
+    const { userId, routeId } = body as {
+      userId?: string;
+      routeId?: string | number;
+    };
 
-const { userId, routeId } = body as { userId?: string; routeId?: string | number }
     if (!userId || routeId === undefined || routeId === null) {
       return NextResponse.json(
-        { success: false, message: "User ID and route ID are required" },
-        { status: 400 }
-      )
+        { success: false, message: "Nepieciešams lietotāja ID un maršruta ID" },
+        { status: 400 },
+      );
     }
 
     if (userId === "admin") {
       return NextResponse.json(
-        { success: false, message: "Admin user cannot delete itineraries" },
-        { status: 403 }
-      )
+        {
+          success: false,
+          message: "Administrators nevar dzēst personīgos maršrutus",
+        },
+        { status: 403 },
+      );
     }
 
-    const user = await getUserFromId(userId)
-    if (!user || !user.id || user.id === "admin") {
-      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 })
+    const user = await getUserFromId(userId);
+    if (!user?.id || user.id === "admin") {
+      return NextResponse.json(
+        { success: false, message: "Lietotājs nav atrasts" },
+        { status: 404 },
+      );
     }
 
-    const numericUserId = parseInt(user.id)
+    const numericUserId = parseInt(user.id, 10);
     const numericRouteId =
-      typeof routeId === "string" ? parseInt(routeId, 10) : Number(routeId)
-      console.log("numericUserId:", numericUserId)
-console.log("numericRouteId:", numericRouteId)
+      typeof routeId === "string" ? parseInt(routeId, 10) : Number(routeId);
 
-    if (isNaN(numericUserId) || isNaN(numericRouteId)) {
-      return NextResponse.json({ success: false, message: "Invalid IDs" }, { status: 400 })
+    if (!Number.isFinite(numericUserId) || !Number.isFinite(numericRouteId)) {
+      return NextResponse.json(
+        { success: false, message: "Nederīgi identifikatori" },
+        { status: 400 },
+      );
     }
 
     const existing = await prisma.route.findUnique({
       where: { id: numericRouteId },
       select: { id: true, userId: true },
-    })
-    console.log("existing route:", existing)
+    });
 
     if (!existing) {
       return NextResponse.json(
-        { success: false, message: "Route not found" },
-        { status: 404 }
-      )
+        { success: false, message: "Maršruts nav atrasts" },
+        { status: 404 },
+      );
     }
 
     if (existing.userId !== numericUserId) {
       return NextResponse.json(
-        { success: false, message: "Access denied" },
-        { status: 403 }
-      )
+        { success: false, message: "Piekļuve liegta" },
+        { status: 403 },
+      );
     }
 
-    const tx = prisma as unknown as {
-      routePoint: { deleteMany: (args: object) => Promise<{ count: number }> }
-      routeComment: { deleteMany: (args: object) => Promise<{ count: number }> }
-      routeLike: { deleteMany: (args: object) => Promise<{ count: number }> }
-      tripBudget: { deleteMany: (args: object) => Promise<{ count: number }> }
-      route: { delete: (args: object) => Promise<unknown> }
-    }
-    await prisma.routePoint.deleteMany({
-  where: { routeId: numericRouteId },
-})
+    const db = prisma as any;
+    await db.routeComment?.deleteMany?.({ where: { routeId: numericRouteId } });
+    await db.routeLike?.deleteMany?.({ where: { routeId: numericRouteId } });
+    await db.tripBudget?.deleteMany?.({ where: { routeId: numericRouteId } });
+    await prisma.routePoint.deleteMany({ where: { routeId: numericRouteId } });
+    await prisma.route.delete({ where: { id: numericRouteId } });
 
-await prisma.route.delete({
-  where: { id: numericRouteId },
-})
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting itinerary:", error)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+    console.error("Error deleting itinerary:", error);
+    return NextResponse.json(
+      { success: false, message: "Servera kļūda" },
+      { status: 500 },
+    );
   }
 }
