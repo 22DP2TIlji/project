@@ -149,7 +149,12 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching weather:', error)
 
-    const destinationId = new URL(request.url).searchParams.get('destinationId')
+    const { searchParams } = new URL(request.url)
+    const destinationId = searchParams.get('destinationId')
+    let fallbackLatitude: number | null = null
+    let fallbackLongitude: number | null = null
+    let fallbackName: string | null = null
+
     if (destinationId) {
       const cached = await prisma.weatherData.findFirst({
         where: { locationId: parseInt(destinationId, 10) },
@@ -170,12 +175,78 @@ export async function GET(request: NextRequest) {
           },
         })
       }
+       const destination = await prisma.destination.findUnique({
+        where: { id: parseInt(destinationId, 10) },
+        select: { latitude: true, longitude: true, city: true, name: true },
+      }).catch(() => null)
+      if (destination?.latitude && destination?.longitude) {
+        fallbackLatitude = Number(destination.latitude)
+        fallbackLongitude = Number(destination.longitude)
+        fallbackName = destination.city || destination.name
+      }
+    }
+
+    if (fallbackLatitude == null || fallbackLongitude == null) {
+      const latParam = searchParams.get('lat')
+      const lngParam = searchParams.get('lng')
+      fallbackLatitude = latParam ? Number(latParam) : null
+      fallbackLongitude = lngParam ? Number(lngParam) : null
+    }
+
+    if ((fallbackLatitude == null || fallbackLongitude == null) && searchParams.get('city')) {
+      const cityConfig = await resolveCityCoordinates(searchParams.get('city')!.trim().toLowerCase()).catch(() => null)
+      if (cityConfig) {
+        fallbackLatitude = cityConfig.lat
+        fallbackLongitude = cityConfig.lng
+        fallbackName = cityConfig.name
+      }
+    }
+
+    if (fallbackLatitude != null && fallbackLongitude != null && Number.isFinite(fallbackLatitude) && Number.isFinite(fallbackLongitude)) {
+      return NextResponse.json(buildFallbackWeather(fallbackLatitude, fallbackLongitude, fallbackName))
     }
 
     return NextResponse.json({ success: false, message: 'Laikapstākļi pašlaik nav pieejami. Lūdzu, mēģiniet vēlreiz pēc brīža.' }, { status: 503 })
   }
 }
+function buildFallbackWeather(latitude: number, longitude: number, locationName?: string | null) {
+  const month = new Date().getMonth()
+  const seasonalBase = [0, 0, 3, 8, 15, 18, 21, 20, 15, 9, 4, 1][month] ?? 8
+  const coastalAdjustment = longitude < 22.5 ? -1 : 0
+  const temperature = seasonalBase + coastalAdjustment
+  const humidity = month >= 10 || month <= 2 ? 82 : 68
+  const windSpeed = longitude < 23 ? 18 : 12
 
+  return {
+    success: true,
+    location: {
+      name: locationName || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+      lat: latitude,
+      lng: longitude,
+    },
+    current: {
+      main: {
+        temp: temperature,
+        feels_like: temperature - 1,
+        humidity,
+        pressure: 1013,
+      },
+      weather: [{ main: 'Aptuveni dati', description: 'aptuvena prognoze', icon: '02d' }],
+      wind: { speed: Number((windSpeed / 3.6).toFixed(1)) },
+    },
+    forecast: { list: [] },
+    weather: {
+      temperature,
+      humidity,
+      windSpeed,
+      windDirection: null,
+      pressure: 1013,
+      precipitation: 0,
+      timestamp: new Date(),
+      note: 'Laikapstākļu serviss īslaicīgi neatbildēja, tāpēc rādīti aptuveni dati šai atrašanās vietai.',
+    },
+  }
+}
 function buildForecastList(hourly: {
   time: string[]
   temperature_2m: number[]

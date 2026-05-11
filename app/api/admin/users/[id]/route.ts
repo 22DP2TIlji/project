@@ -23,7 +23,7 @@ export async function DELETE(
       where: { userId },
       select: { id: true },
     });
-    const routeIds = routes.map((r) => r.id);
+    const routeIds = routes.map((r:{id: number }) => r.id);
 
     await prisma
       .$executeRawUnsafe(
@@ -33,8 +33,12 @@ export async function DELETE(
       .catch(() => undefined);
 
     await prisma.$transaction([
+      prisma.routeComment.deleteMany({ where: { routeId: { in: routeIds } } }),
+      prisma.routeLike.deleteMany({ where: { routeId: { in: routeIds } } }),
       prisma.routePoint.deleteMany({ where: { routeId: { in: routeIds } } }),
       prisma.route.deleteMany({ where: { userId } }),
+      prisma.routeComment.deleteMany({ where: { userId } }),
+      prisma.routeLike.deleteMany({ where: { userId } }),
       prisma.review.deleteMany({ where: { userId } }),
       prisma.userLikedDestination.deleteMany({ where: { userId } }),
       prisma.user.delete({ where: { id: userId } }),

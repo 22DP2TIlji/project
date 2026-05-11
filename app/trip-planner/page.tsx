@@ -35,6 +35,7 @@ export default function TripPlannerPage() {
   const [startCity, setStartCity] = useState("riga")
   const [loading, setLoading] = useState(false)
   const [trip, setTrip] = useState<any>(null)
+  const [tripNotice, setTripNotice] = useState('')
   const [saving, setSaving] = useState(false)
 
   const toggleInterest = (id: string) => {
@@ -46,6 +47,7 @@ export default function TripPlannerPage() {
   const generate = async () => {
     setLoading(true)
     setTrip(null)
+    setTripNotice('')
     try {
       const res = await fetch("/api/trip-planner", {
         method: "POST",
@@ -60,6 +62,11 @@ export default function TripPlannerPage() {
       const data = await res.json()
       if (data.success && data.trip) {
         setTrip(data.trip)
+         if (Number(data.trip.totalPlaces || 0) === 0) {
+          setTripNotice('Norādītajā budžetā neizdevās atrast piemērotas vietas. Palieliniet budžetu vai samaziniet dienu skaitu.')
+        } else if (budget && Number(data.trip.estimatedCost || 0) <= Number(budget)) {
+          setTripNotice(`Maršruts iekļaujas norādītajā budžetā: ~${data.trip.estimatedCost}€ no ${budget}€.`)
+        }
       } else {
         alert(data.message || "Neizdevās izveidot ceļojumu")
       }
@@ -207,6 +214,11 @@ export default function TripPlannerPage() {
               </button>
             </div>
           </div>
+          {tripNotice && (
+            <div className="mb-6 rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+              {tripNotice}
+            </div>
+          )}
 
           {trip && (
             <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
@@ -216,6 +228,9 @@ export default function TripPlannerPage() {
                 <span>~{trip.totalDistance} km</span>
                 {trip.estimatedCost > 0 && (
                   <span>~{trip.estimatedCost}€</span>
+                )}
+                 {budget && (
+                  <span>Budžets: {budget}€</span>
                 )}
               </div>
               <div className="space-y-6">

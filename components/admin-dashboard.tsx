@@ -5,29 +5,42 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 
 interface UserStats {
-  totalUsers: number;
-  activeUsers: number;
-  totalDestinations: number;
-  totalItineraries: number;
+  totalUsers: number
+  activeUsers: number
+  totalDestinations: number
+  totalItineraries: number
 }
 
 interface User {
-  id: string | number;
-  name: string;
-  email: string;
-  role: 'user' | 'admin';
-  lastLogin?: string;
+  id: string | number
+  name: string
+  email: string
+  role: 'user' | 'admin'
+  lastLogin?: string
 }
 
 interface Destination {
-  id: number;
-  name: string;
-  description: string;
-  category?: string | null;
-  region?: string | null;
-  image_url?: string | null;
+  id: number
+  name: string
+  description: string
+  category?: string | null
+  region?: string | null
+  image_url?: string | null
 }
 
+interface Review {
+  id: number
+  userId: number
+  userName: string
+  userEmail: string
+  objectId: number
+  destinationName: string
+  rating: number
+  comment: string | null
+  createdAt: string
+}
+
+const PASSWORD_REQUIREMENTS = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 export default function AdminDashboard() {
   const { user, isAdmin, updateUserRole } = useAuth()
   const router = useRouter()
@@ -35,59 +48,67 @@ export default function AdminDashboard() {
     totalUsers: 0,
     activeUsers: 0,
     totalDestinations: 0,
-    totalItineraries: 0
+    totalItineraries: 0,
   })
   const [users, setUsers] = useState<User[]>([])
   const [destinations, setDestinations] = useState<Destination[]>([])
+  const [reviews, setReviews] = useState<Review[]>([])
   const [editingDestination, setEditingDestination] = useState<Destination | null>(null)
   const [editForm, setEditForm] = useState({
     name: '',
     description: '',
     category: '',
     region: '',
-    imageUrl: ''
+    imageUrl: '',
   })
   const [destName, setDestName] = useState('')
   const [destDesc, setDestDesc] = useState('')
   const [destImageFile, setDestImageFile] = useState<File | null>(null)
   const [editImageFile, setEditImageFile] = useState<File | null>(null)
   const [destMsg, setDestMsg] = useState('')
+const [userForm, setUserForm] = useState({ name: '', email: '', password: '', role: 'user' as 'user' | 'admin' })
+  const [userMsg, setUserMsg] = useState('')
+  const [userError, setUserError] = useState('')
+  const [reviewForm, setReviewForm] = useState({ destinationId: '', userId: '', rating: '5', comment: '' })
+  const [editingReviewId, setEditingReviewId] = useState<number | null>(null)
+  const [reviewMsg, setReviewMsg] = useState('')
+  const [reviewError, setReviewError] = useState('')
+
+  const loadAdminData = async () => {
+    try {
+      const [usersRes, destinationsRes, reviewsRes] = await Promise.all([
+        fetch('/api/admin/users'),
+        fetch('/api/destinations'),
+        fetch('/api/admin/reviews'),
+      ])
+
+      const usersData = await usersRes.json()
+      const destinationsData = await destinationsRes.json()
+      const reviewsData = await reviewsRes.json()
+
+      const loadedUsers = usersData.users || []
+      const loadedDestinations = destinationsData.destinations || []
+      setUsers(loadedUsers)
+      setDestinations(loadedDestinations)
+      setReviews(reviewsData.success ? reviewsData.reviews || [] : [])
+
+      setStats({
+        totalUsers: loadedUsers.length,
+        activeUsers: loadedUsers.filter((u: User) => u.lastLogin).length,
+        totalDestinations: loadedDestinations.length,
+        totalItineraries: typeof usersData.totalRoutes === 'number' ? usersData.totalRoutes : 0,
+      })
+    } catch (error) {
+      console.error('Kļūda ielādējot administratora datus:', error)
+    }
+  }
 
   useEffect(() => {
     if (!isAdmin()) {
       router.push('/')
       return
     }
-
-    // Ielādēt administratora datus
-    const loadAdminData = async () => {
-      try {
-        const [usersRes, destinationsRes] = await Promise.all([
-          fetch('/api/admin/users'),
-          fetch('/api/destinations')
-        ])
-        
-        const usersData = await usersRes.json()
-        const destinationsData = await destinationsRes.json()
-        
-        setUsers(usersData.users || [])
-        setDestinations(destinationsData.destinations || [])
-        
-        setStats((prevStats: UserStats) => ({
-          ...prevStats,
-          totalUsers: usersData.users?.length || 0,
-          activeUsers: usersData.users?.filter((u: User) => u.lastLogin)?.length || 0,
-          totalDestinations: destinationsData.destinations?.length || 0,
-          totalItineraries:
-            typeof usersData.totalRoutes === 'number'
-              ? usersData.totalRoutes
-              : 0,
-        }))
-      } catch (error) {
-        console.error('Kļūda ielādējot administratora datus:', error)
-      }
-    }
-
+    
     loadAdminData()
   }, [isAdmin, router])
 
@@ -98,7 +119,7 @@ export default function AdminDashboard() {
       description: destination.description,
       category: destination.category || '',
       region: destination.region || '',
-      imageUrl: destination.image_url || ''
+      imageUrl: destination.image_url || '',
     })
   }
 
@@ -130,32 +151,29 @@ export default function AdminDashboard() {
       const res = await fetch(`/api/admin/destinations/${editingDestination.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...editForm, imageUrl })
+        body: JSON.stringify({ ...editForm, imageUrl }),
       })
 
       const data = await res.json()
       if (data.success) {
-        const updatedDestinations = destinations.map((d: Destination) => 
-          d.id === editingDestination.id 
-            ? { ...d, ...editForm, image_url: imageUrl }
-            : d
+        const updatedDestinations = destinations.map((d: Destination) =>
+          d.id === editingDestination.id ? { ...d, ...editForm, image_url: imageUrl } : d
         )
         setDestinations(updatedDestinations)
         setStats((prevStats: UserStats) => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
         setEditingDestination(null)
+        setEditImageFile(null)
       }
     } catch (error) {
       console.error('Kļūda atjauninot galamērķi:', error)
     }
   }
 
-  const handleDelete = async (destinationId: number) => {
+  const handleDeleteDestination = async (destinationId: number) => {
     if (!confirm('Vai tiešām vēlaties dzēst šo galamērķi?')) return
 
     try {
-      const res = await fetch(`/api/admin/destinations/${destinationId}`, {
-        method: 'DELETE'
-      })
+      const res = await fetch(`/api/admin/destinations/${destinationId}`, { method: 'DELETE' })
 
       const data = await res.json()
       if (data.success) {
@@ -171,27 +189,78 @@ export default function AdminDashboard() {
   const handleToggleRole = async (userId: string | number, currentRole: 'user' | 'admin') => {
     const newRole = currentRole === 'admin' ? 'user' : 'admin'
     try {
-      const res = await fetch(`/api/admin/users`, {
+      const res = await fetch('/api/admin/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: userId, role: newRole })
+        body: JSON.stringify({ id: userId, role: newRole }),
       })
 
       const data = await res.json()
       if (data.success) {
-        setUsers(users.map((u: User) => 
-          u.id === userId 
-            ? { ...u, role: newRole }
-            : u
-        ))
-        if (user && user.id === userId) {
+        setUsers(users.map((u: User) => (u.id === userId ? { ...u, role: newRole } : u)))
+        if (user && String(user.id) === String(userId)) {
           updateUserRole(userId, newRole)
         }
       } else {
-        console.error('Neizdevās atjaunināt lietotāja lomu:', data.message)
+        alert(data.message || 'Neizdevās atjaunināt lietotāja lomu.')
       }
     } catch (error) {
       console.error('Kļūda atjauninot lietotāja lomu:', error)
+      alert('Neizdevās atjaunināt lietotāja lomu.')
+    }
+  }
+
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setUserMsg('')
+    setUserError('')
+
+    if (!PASSWORD_REQUIREMENTS.test(userForm.password)) {
+      setUserError('Parolei jābūt vismaz 8 rakstzīmes garai, ar vienu lielo burtu, vienu ciparu un vienu speciālo simbolu.')
+      return
+    }
+
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userForm),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setUserError(data.message || 'Neizdevās pievienot lietotāju.')
+        return
+      }
+      const updated = [data.user, ...users]
+      setUsers(updated)
+      setStats((prev) => ({ ...prev, totalUsers: updated.length }))
+      setUserForm({ name: '', email: '', password: '', role: 'user' })
+      setUserMsg('Lietotājs veiksmīgi pievienots.')
+    } catch {
+      setUserError('Neizdevās pievienot lietotāju.')
+    }
+  }
+
+  const handleDeleteUser = async (userId: string | number) => {
+    if (String(user?.id) === String(userId)) {
+      alert('Jūs nevarat dzēst savu kontu administratora panelī.')
+      return
+    }
+    if (!confirm('Vai tiešām vēlaties dzēst šo lietotāju un viņa datus?')) return
+
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        alert(data.message || 'Neizdevās dzēst lietotāju.')
+        return
+      }
+      const updated = users.filter((u) => String(u.id) !== String(userId))
+      setUsers(updated)
+      setReviews((prev) => prev.filter((r) => String(r.userId) !== String(userId)))
+      setStats((prev) => ({ ...prev, totalUsers: updated.length }))
+    } catch {
+      alert('Neizdevās dzēst lietotāju.')
     }
   }
 
@@ -212,12 +281,20 @@ export default function AdminDashboard() {
       const res = await fetch('/api/admin/destinations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: destName, description: destDesc, imageUrl })
+        body: JSON.stringify({ name: destName, description: destDesc, imageUrl }),
       })
 
       const data = await res.json()
       if (data.success) {
-        const newDestination: Destination = { id: data.id, name: destName, description: destDesc, category: null, region: null, image_url: imageUrl }
+        const newDestination: Destination = {
+          id: data.id,
+          name: destName,
+          description: destDesc,
+          category: null,
+          region: null,
+          image_url: imageUrl,
+        }
+        
         const updatedDestinations = [...destinations, newDestination]
         setDestinations(updatedDestinations)
         setStats((prevStats: UserStats) => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
@@ -232,12 +309,99 @@ export default function AdminDashboard() {
       setDestMsg(`Kļūda: ${error.message || 'Nezināma kļūda'}`)
     }
   }
+const resetReviewForm = () => {
+    setReviewForm({ destinationId: '', userId: '', rating: '5', comment: '' })
+    setEditingReviewId(null)
+  }
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setReviewMsg('')
+    setReviewError('')
+
+    const payload = {
+      destinationId: reviewForm.destinationId,
+      userId: reviewForm.userId,
+      rating: Number(reviewForm.rating),
+      comment: reviewForm.comment,
+    }
+
+    try {
+      const res = await fetch(editingReviewId ? `/api/admin/reviews/${editingReviewId}` : '/api/admin/reviews', {
+        method: editingReviewId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setReviewError(data.message || 'Neizdevās saglabāt komentāru.')
+        return
+      }
+
+      if (editingReviewId) {
+        const selectedDestination = destinations.find((d) => String(d.id) === String(reviewForm.destinationId))
+        const selectedUser = users.find((u) => String(u.id) === String(reviewForm.userId))
+        setReviews((prev) =>
+          prev.map((review) =>
+            review.id === editingReviewId
+              ? {
+                  ...review,
+                  objectId: Number(reviewForm.destinationId),
+                  destinationName: selectedDestination?.name || review.destinationName,
+                  userId: Number(reviewForm.userId),
+                  userName: selectedUser?.name || review.userName,
+                  userEmail: selectedUser?.email || review.userEmail,
+                  rating: Number(reviewForm.rating),
+                  comment: reviewForm.comment,
+                }
+              : review
+          )
+        )
+        setReviewMsg('Komentārs veiksmīgi atjaunināts.')
+      } else {
+        setReviews((prev) => [data.review, ...prev])
+        setReviewMsg('Komentārs veiksmīgi pievienots.')
+      }
+      resetReviewForm()
+    } catch {
+      setReviewError('Neizdevās saglabāt komentāru.')
+    }
+  }
+
+  const handleEditReview = (review: Review) => {
+    setEditingReviewId(review.id)
+    setReviewForm({
+      destinationId: String(review.objectId),
+      userId: String(review.userId),
+      rating: String(review.rating),
+      comment: review.comment || '',
+    })
+    setReviewMsg('')
+    setReviewError('')
+  }
+
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!confirm('Vai tiešām vēlaties dzēst šo komentāru?')) return
+
+    try {
+      const res = await fetch(`/api/admin/reviews/${reviewId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        alert(data.message || 'Neizdevās dzēst komentāru.')
+        return
+      }
+      setReviews((prev) => prev.filter((review) => review.id !== reviewId))
+    } catch {
+      alert('Neizdevās dzēst komentāru.')
+    }
+  }
+
 
   if (!isAdmin()) return null
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Statistikas pārskats */}
+   
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Lietotāji kopā</h3>
@@ -257,7 +421,50 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Lietotāju pārvaldība */}
+  <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
+        <div className="p-6">
+          <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Pievienot lietotāju</h2>
+          <form onSubmit={handleAddUser} className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <input
+              value={userForm.name}
+              onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
+              placeholder="Vārds"
+              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              required
+            />
+            <input
+              type="email"
+              value={userForm.email}
+              onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+              placeholder="E-pasts"
+              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              required
+            />
+            <div>
+              <input
+                type="password"
+                value={userForm.password}
+                onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                placeholder="Parole"
+                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                required
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">8+ rakstzīmes, lielais burts, cipars un speciālais simbols.</p>
+            </div>
+            <select
+              value={userForm.role}
+              onChange={(e) => setUserForm({ ...userForm, role: e.target.value as 'user' | 'admin' })}
+              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            >
+              <option value="user">Lietotājs</option>
+              <option value="admin">Administrators</option>
+            </select>
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Pievienot</button>
+          </form>
+          {userError && <p className="mt-2 text-sm text-red-600">{userError}</p>}
+          {userMsg && <p className="mt-2 text-sm text-green-600">{userMsg}</p>}
+        </div>
+      </div>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
         <div className="p-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Lietotāju pārvaldība</h2>
@@ -279,12 +486,19 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.role === 'admin' ? 'Administrators' : 'Lietotājs'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
                       <button
                         onClick={() => handleToggleRole(u.id, u.role)}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                       >
-                        {u.role === 'admin' ? 'Padarīt par lietotāju' : 'Padarīt par adminu'}
+                        {u.role === 'admin' ? 'Padarīt par lietotāju' : 'Paaugstināt par administratoru'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(u.id)}
+                        disabled={String(user?.id) === String(u.id)}
+                        className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        Dzēst
                       </button>
                     </td>
                   </tr>
@@ -295,7 +509,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Pievienot galamērķi */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
         <div className="p-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Pievienot galamērķi</h2>
@@ -306,7 +519,7 @@ export default function AdminDashboard() {
                 type="text"
                 placeholder="Galamērķa nosaukums"
                 value={destName}
-                onChange={e => setDestName(e.target.value)}
+                onChange={(e) => setDestName(e.target.value)}
                 className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 required
               />
@@ -316,7 +529,7 @@ export default function AdminDashboard() {
               <textarea
                 placeholder="Apraksts"
                 value={destDesc}
-                onChange={e => setDestDesc(e.target.value)}
+                onChange={(e) => setDestDesc(e.target.value)}
                 className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 required
               />
@@ -336,7 +549,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Galamērķu pārvaldība */}
+
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow mt-8">
         <div className="p-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Galamērķu pārvaldība</h2>
@@ -368,7 +581,7 @@ export default function AdminDashboard() {
                         Labot
                       </button>
                       <button
-                        onClick={() => handleDelete(destination.id)}
+                         onClick={() => handleDeleteDestination(destination.id)}
                         className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
                       >
                         Dzēst
@@ -382,7 +595,97 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Labošanas modālais logs */}
+<div className="bg-white dark:bg-gray-800 rounded-lg shadow mt-8">
+        <div className="p-6">
+          <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Galamērķu komentāru pārvaldība</h2>
+          <form onSubmit={handleReviewSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
+            <select
+              value={reviewForm.destinationId}
+              onChange={(e) => setReviewForm({ ...reviewForm, destinationId: e.target.value })}
+              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              required
+            >
+              <option value="">Izvēlieties galamērķi</option>
+              {destinations.map((destination) => (
+                <option key={destination.id} value={destination.id}>{destination.name}</option>
+              ))}
+            </select>
+            <select
+              value={reviewForm.userId}
+              onChange={(e) => setReviewForm({ ...reviewForm, userId: e.target.value })}
+              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              required
+            >
+              <option value="">Izvēlieties lietotāju</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+              ))}
+            </select>
+            <select
+              value={reviewForm.rating}
+              onChange={(e) => setReviewForm({ ...reviewForm, rating: e.target.value })}
+              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            >
+              {[5, 4, 3, 2, 1].map((rating) => (
+                <option key={rating} value={rating}>{rating} zvaigznes</option>
+              ))}
+            </select>
+            <textarea
+              value={reviewForm.comment}
+              onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+              placeholder="Komentārs"
+              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              required
+            />
+            <div className="flex gap-2">
+              <button type="submit" className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                {editingReviewId ? 'Saglabāt' : 'Pievienot'}
+              </button>
+              {editingReviewId && (
+                <button type="button" onClick={resetReviewForm} className="px-4 py-2 rounded border dark:border-gray-600 dark:text-white">
+                  Atcelt
+                </button>
+              )}
+            </div>
+          </form>
+          {reviewError && <p className="mb-3 text-sm text-red-600">{reviewError}</p>}
+          {reviewMsg && <p className="mb-3 text-sm text-green-600">{reviewMsg}</p>}
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead>
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Galamērķis</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lietotājs</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Vērtējums</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Komentārs</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Darbības</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {reviews.map((review) => (
+                  <tr key={review.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{review.destinationName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{review.userName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{review.rating}/5</td>
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-lg">{review.comment}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                      <button onClick={() => handleEditReview(review)} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                        Labot
+                      </button>
+                      <button onClick={() => handleDeleteReview(review.id)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
+                        Dzēst
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {reviews.length === 0 && <p className="py-4 text-sm text-gray-600 dark:text-gray-300">Komentāru vēl nav.</p>}
+          </div>
+        </div>
+      </div>
+
       {editingDestination && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">

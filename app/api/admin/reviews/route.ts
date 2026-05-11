@@ -22,14 +22,13 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const destinationIds = Array.from(new Set(reviews.map((r) => r.objectId)));
+    const destinationIds = Array.from(new Set(reviews.map((r: any) => r.objectId)));
     const destinations = await prisma.destination.findMany({
       where: { id: { in: destinationIds } },
       select: { id: true, name: true },
     });
-    const destMap = Object.fromEntries(destinations.map((d) => [d.id, d.name]));
-
-    const list = reviews.map((r) => ({
+    const destMap = Object.fromEntries(destinations.map((d: any) => [d.id, d.name]));
+    const list = reviews.map((r:any) => ({
       id: r.id,
       userId: r.userId,
       userName: r.user.name,

@@ -13,7 +13,8 @@ const prisma = new PrismaClient()
 
 async function createAdmin() {
   try {
-    const adminEmail = 'admin@gmail.com'
+
+    const adminEmail = 'admin@admin.lv'
     const adminPassword = 'adminpassword'
     const adminName = 'Admin'
 
@@ -22,21 +23,25 @@ async function createAdmin() {
       where: { email: adminEmail },
     })
 
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(adminPassword, 10)
+
     if (existingAdmin) {
       console.log('Administrators jau eksistē!')
-      console.log('Atjaunināšana uz administratora lomu...')
+
+      console.log('Atjaunināšana uz administratora lomu un noklusējuma paroli...')
       
       await prisma.user.update({
         where: { email: adminEmail },
-        data: { role: 'admin' },
+        data: { role: 'admin', password: hashedPassword },
       })
       
-      console.log('✅ Administratora loma veiksmīgi atjaunināta!')
+      console.log('✅ Administratora loma un parole veiksmīgi atjaunināta!')
+      console.log('Email:', adminEmail)
+      console.log('Password:', adminPassword)
       return
     }
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(adminPassword, 10)
 
     // Create admin user
     const admin = await prisma.user.create({
@@ -62,4 +67,3 @@ async function createAdmin() {
 }
 
 createAdmin()
-

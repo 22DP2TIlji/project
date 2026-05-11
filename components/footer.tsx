@@ -6,11 +6,6 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <p>Visas tiesības aizsargātas.</p>
         <p>
-          Izveidots ar{" "}
-          <a href="https://www.webnode.com" className="underline" target="_blank" rel="noopener noreferrer">
-            Webnode
-          </a>{" "}
-          •{" "}
           <Link href="/cookies" className="underline">
             Sīkdatņu politika
           </Link>

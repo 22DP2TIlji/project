@@ -163,7 +163,12 @@ export default function PublicRoutesPage() {
                   <h3 className="font-medium text-gray-900">{r.name}</h3>
                   <p className="text-sm text-gray-500 mt-1">autors: {r.userName}</p>
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                    <button onClick={() => toggleLike(r.id)} className="flex items-center gap-1" title="Patīk">
+                    <button
+                      onClick={() => toggleLike(r.id)}
+                      className={`flex items-center gap-1 transition-colors ${likedState[r.id] ? "text-red-600" : "text-gray-600"}`}
+                      title="Patīk"
+                      aria-pressed={!!likedState[r.id]}
+                    >
                       <Heart className={`h-4 w-4 ${likedState[r.id] ? "fill-red-500 text-red-500" : ""}`} />
                       {r.likesCount}
                     </button>
@@ -184,6 +189,7 @@ export default function PublicRoutesPage() {
                     <Link
                       href={`/itinerary?route=${r.id}&openMap=1`}
                       className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                      title="Atvērt šo maršrutu sadaļā Plānot ceļojumu"
                     >
                       <MapPin className="h-4 w-4" />
                       Apskatīt detalizēti
