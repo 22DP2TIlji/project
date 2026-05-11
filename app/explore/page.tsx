@@ -6,34 +6,53 @@ import { Cloud, Wind, Thermometer, Droplets, Calendar } from "lucide-react"
 
 const EVENTS = [
   {
-    id: "song-festival",
-    name: "Vispārējie latviešu Dziesmu un Deju svētki",
-    date: "2025. gada jūlijs",
+    id: "summer-solstice",
+    name: "Jāņi (Līgo svētki)",
+    date: "23.–24. jūnijs 2026",
+    location: "Visa Latvija",
+    description:
+      "Jāņi ir vieni no nozīmīgākajiem latviešu tradicionālajiem svētkiem. Cilvēki svin vasaras saulgriežus ar dziesmām, ugunskuriem, vainagiem un tradicionālajiem ēdieniem.",
+    highlights: ["Ugunskuri un tradīcijas", "Līgo dziesmas", "Siers un alus"],
+    image: "https://bauskasdzive.lv/wp-content/uploads/2025/07/pexels_mids.jpg"},
+  {
+    id: "posivitus-2026",
+    name: "Positivus festivāls 2026",
+    date: "jūlijs 2026",
     location: "Rīga",
     description:
-      "Latvijas Dziesmu un deju svētki ir vērienīgs kultūras notikums, kas notiek reizi piecos gados. Tūkstošiem dziedātāju un dejotāju no visas Latvijas izpilda tradicionālās dziesmas un dejas.",
-    highlights: ["UNESCO Nemateriālais kultūras mantojums", "Tūkstošiem dalībnieku", "Nedēļu ilgas svinības"],
-    image: "/images/song-festival.jpg",
+      "Positivus ir lielākais mūzikas festivāls Baltijā, kurā uzstājas starptautiski un vietējie mākslinieki. Festivāls piedāvā dažādu žanru mūziku un vasarīgu atmosfēru.",
+    highlights: ["Starptautiski mākslinieki", "Vasaras festivāla atmosfēra", "Dažādi mūzikas žanri"],
+    image: "https://www.rentalapartments.lv/uploads/2026/05/positivus-festivals-1080x720.png",
   },
   {
-    id: "riga-festival",
-    name: "Rīgas svētki",
-    date: "Augusts",
-    location: "Rīga",
+    id: "sea-festival",
+    name: "Jūras svētki",
+    date: "jūlijs 2026",
+    location: "Jūrmala / Liepāja / Ventspils",
     description:
-      "Ikgadējs kultūras festivāls, kurā tiek piedāvāta mūzika, teātris un māksla. Festivāls pulcē vietējos un starptautiskos māksliniekus dinamiskām kultūras svinībām.",
-    highlights: ["Mūzikas koncerti", "Teātra izrādes", "Mākslas izstādes"],
-    image: "/images/riga-festival.jpg",
+      "Jūras svētki ir tradicionāls vasaras pasākums piekrastes pilsētās, kas veltīts jūrniecībai. Programmā koncerti, tirgi, kuģi un izklaides visai ģimenei.",
+    highlights: ["Koncerti pie jūras", "Kuģu apskate", "Tirgus un izklaides"],
+    image: "https://www.ventasbalss.lv/upload/news/52550/aa9dc36259c31dd69aaca93275b0aca9.jpg?1750060832",
   },
   {
-    id: "christmas-markets",
-    name: "Ziemassvētku tirdziņi",
-    date: "Decembris",
+    id: "riga-city-festival",
+    name: "Rīgas svētki 2026",
+    date: "augusts 2026",
     location: "Rīga",
     description:
-      "Tradicionālie Ziemassvētku tirdziņi pašā Rīgas vecpilsētas sirdī. Amatnieku dāvanas, latviešu delikateses un svētku atmosfēra.",
-    highlights: ["Amatnieku izstrādājumi", "Tradicionālie ēdieni", "Svētku izklaides"],
-    image: "/images/christmas-markets.jpg",
+      "Rīgas svētki ir viens no lielākajiem pilsētas kultūras notikumiem ar koncertiem, izrādēm, parādēm un aktivitātēm visā pilsētā.",
+    highlights: ["Koncerti un pasākumi", "Ielu kultūra", "Ģimenes aktivitātes"],
+    image: "https://www.latvia.travel/sites/default/files/styles/mobile_promo/public/media_image/events/20730483046_d3c2b036b9_k_0.jpg?itok=E4AWRYCr",
+  },
+  {
+    id: "sunset-festival",
+    name: "Saulrieta koncerti Dzintaros",
+    date: "jūlijs–augusts 2026",
+    location: "Jūrmala",
+    description:
+      "Dzintaru koncertzālē vasaras sezonā notiek dažādi koncerti — no klasiskās mūzikas līdz pop un džezam.",
+    highlights: ["Dzīvā mūzika", "Koncerti pie jūras", "Starptautiski mākslinieki"],
+    image: "https://www.jurmala.lv/sites/jurmala/files/styles/meta_image/public/gallery_images/saullekta-koncerts_artis-veigurs-46.jpg?itok=-2kAF-Mb",
   },
 ]
 
@@ -42,35 +61,37 @@ const DISHES = [
     id: "rye-bread",
     name: "Rupjmaize",
     description:
-      "Tradicionālā latviešu rudzu maize – tumša, blīva un nedaudz skābena. Latvijas virtuves pamatvērtība.",
-    details: ["Gatavota no rudzu miltiem", "Cepta malkas krāsnī", "Saglabājas svaiga nedēļām ilgi"],
+      "Rupjmaize ir viena no latviešu virtuves pamatvērtībām. Tā ir tumša rudzu maize ar izteiktu garšu un nozīmīgu vietu Latvijas ēšanas tradīcijās.",
+    details: ["Gatavota no rudzu miltiem", "Svarīga latviešu uztura sastāvdaļa", "Bieži pasniedz ar sviestu, sieru vai zupu"],
   },
   {
     id: "grey-peas",
     name: "Pelēkie zirņi ar speķi",
     description:
-      "Klasisks latviešu ēdiens, īpaši iecienīts Ziemassvētkos un Jaunajā gadā. Pelēkie zirņi pasniegti ar ceptu speķi un sīpoliem.",
-    details: ["Tradicionāls svētku ēdiens", "Bagāts ar olbaltumvielām", "Bieži pasniedz ar kefīru"],
+      "Pelēkie zirņi ar speķi ir tradicionāls latviešu ēdiens, īpaši populārs ziemas svētkos. Tas ir sātīgs ēdiens ar zirņiem, ceptu speķi un sīpoliem.",
+    details: ["Tradicionāls svētku ēdiens", "Bagāts ar olbaltumvielām", "Bieži pasniedz ar kefīru vai rūgušpienu"],
   },
   {
-    id: "black-balsam",
-    name: "Rīgas Melnais balzams",
+    id: "sklandrausis",
+    name: "Sklandrausis",
     description:
-      "Rūgts liķieris, kas gatavots no 24 dabīgām sastāvdaļām, tostarp zaļumiem, saknēm un ogām. Latvijas nacionālais dzēriens.",
-    details: ["Radīts 1752. gadā", "45% alkohola saturs", "Bieži izmanto kokteiļos"],
+      "Sklandrausis ir tradicionāls kurzemnieku saldais pīrāgs ar rudzu mīklas pamatni un burkānu vai kartupeļu pildījumu.",
+    details: ["Latviešu tradicionālais ēdiens", "Saistīts ar Kurzemes kulināro mantojumu", "Salds pīrāgs ar dārzeņu pildījumu"],
   },
 ]
 
 const PLACES = [
   {
-    name: "Restorāni Rīgā",
-    description: "Atklājiet tradicionālos latviešu restorānus galvaspilsētā.",
-    options: ["Lido", "1221", "Folkklubs Ala"],
+    name: "Rīgas Centrāltirgus",
+    description:
+      "Viena no labākajām vietām, kur iepazīt Latvijas garšas — kūpinātas zivis, rupjmaizi, sierus, ogas, medu un sezonālos produktus.",
+    options: ["Kūpinātas zivis", "Vietējais medus un siers", "Sezonas ogas un dārzeņi"],
   },
   {
-    name: "Centrāltirgus",
-    description: "Lielākais tirgus Eiropā. Svaiga produkcija un vietējie gardumi.",
-    options: ["Rīgas Centrāltirgus", "Nogaršojiet kūpinātas zivis", "Svaigas ogas sezonā"],
+    name: "Latviešu virtuves restorāni Rīgā",
+    description:
+      "Rīgā iespējams nogaršot gan tradicionālos latviešu ēdienus, gan mūsdienīgas vietējās virtuves interpretācijas.",
+    options: ["Folkklubs Ala", "Lido", "Milda"],
   },
 ]
 
@@ -329,15 +350,7 @@ export default function ExplorePage() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-light text-center mb-2 text-gray-900 dark:text-white">Pasākumi Latvijā</h2>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Atklājiet festivālus un notikumus</p>
-          <div className="max-w-2xl mx-auto mb-10">
-            <input
-              type="text"
-              placeholder="Meklēt pasākumus…"
-              value={eventQuery}
-              onChange={(e) => setEventQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-white"
-            />
-          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {EVENTS.filter(
               (e) =>
@@ -349,15 +362,22 @@ export default function ExplorePage() {
                 key={event.id}
                 className="group border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden hover:shadow-md bg-white dark:bg-gray-800"
               >
-                <div className="relative h-48 bg-gray-200 dark:bg-gray-700">
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent" />
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <h3 className="text-xl font-medium text-white">{event.name}</h3>
-                    <p className="text-gray-200 text-sm">
-                      {event.date} · {event.location}
-                    </p>
-                  </div>
-                </div>
+                <div className="relative h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden">
+  <img
+    src={event.image}
+    alt={event.name}
+    className="w-full h-full object-cover"
+  />
+
+  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-transparent" />
+
+  <div className="absolute bottom-4 left-4 right-4">
+    <h3 className="text-xl font-medium text-white">{event.name}</h3>
+    <p className="text-gray-200 text-sm">
+      {event.date} · {event.location}
+    </p>
+  </div>
+</div>
                 <div className="p-6">
                   <p className="text-gray-600 dark:text-gray-300 mb-4">{event.description}</p>
                   <h4 className="font-medium text-gray-900 dark:text-white mb-2">Svarīgākais</h4>
@@ -377,15 +397,7 @@ export default function ExplorePage() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-light text-center mb-2 text-gray-900 dark:text-white">Latviešu virtuve</h2>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Tradicionālie ēdieni un kur tos nobaudīt</p>
-          <div className="max-w-2xl mx-auto mb-10">
-            <input
-              type="text"
-              placeholder="Meklēt ēdienus…"
-              value={dishQuery}
-              onChange={(e) => setDishQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-white"
-            />
-          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {DISHES.filter(
               (d) =>
