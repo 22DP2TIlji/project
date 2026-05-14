@@ -3,7 +3,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import AdminRouteComments from './admin-route-comments'
 
 interface UserStats {
   totalUsers: number
@@ -102,6 +101,7 @@ export default function AdminDashboard() {
   const [routeCommentText, setRouteCommentText] = useState('')
   const [routeCommentMsg, setRouteCommentMsg] = useState('')
   const [routeCommentError, setRouteCommentError] = useState('')
+  const [error, setError] = useState('')
   const loadAdminData = async () => {
     try {
       const [usersRes, destinationsRes, reviewsRes, routeCommentsRes] = await Promise.all([
@@ -109,12 +109,18 @@ export default function AdminDashboard() {
   fetch('/api/destinations'),
   fetch('/api/admin/reviews'),
   fetch('/api/admin/route-comments'),
-   fetch('/api/admin/route-comments'),
 ])
+      const usersData = await usersRes.json()
+      const destinationsData = await destinationsRes.json()
+      const reviewsData = await reviewsRes.json()
       const routeCommentsData = await routeCommentsRes.json()
-setRouteComments(routeCommentsData.success ? routeCommentsData.comments || [] : [])
+      setRouteComments(routeCommentsData)
+    } catch (err) {
+      setError("Neizdevās ielādēt datus")
+    }
+  }
 
-const handleEditRouteComment = (comment: RouteComment) => {
+  const handleEditRouteComment = (comment: RouteComment) => {
   setEditingRouteCommentId(comment.id)
   setRouteCommentText(comment.text)
   setRouteCommentMsg("")
