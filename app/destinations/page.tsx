@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, Filter, Navigation } from 'lucide-react'
+import { CheckCircle2, Search, MapPin, Filter, Navigation } from 'lucide-react'
 import LikeButton from "@/components/like-button"
+import { useAuth } from "@/lib/auth-context"
 
 // Tulkotas kategorijas un reģioni
 const categories = ["all", "city", "nature", "beach", "palace"]
@@ -18,6 +19,7 @@ const categoryTranslations: Record<string, string> = {
 };
 
 export default function DestinationsPage() {
+  const { user } = useAuth()
   const [destinations, setDestinations] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
@@ -27,6 +29,7 @@ export default function DestinationsPage() {
   const [filterLat, setFilterLat] = useState("")
   const [filterLng, setFilterLng] = useState("")
   const [filterRadius, setFilterRadius] = useState("50")
+  const [visitedDestinationIds, setVisitedDestinationIds] = useState<number[]>([])
 
   useEffect(() => {
     setLoading(true);
@@ -61,6 +64,55 @@ export default function DestinationsPage() {
         setDestinations([]);
       })
   }, [searchTerm, selectedCategory, selectedRegion, useLocationFilter, filterLat, filterLng, filterRadius])
+  useEffect(() => {
+    if (!user?.id || user.id === 'admin') {
+      setVisitedDestinationIds([])
+      return
+    }
+
+    fetch(`/api/users/visited-destinations?userId=${encodeURIComponent(user.id)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.visitedDestinations)) {
+          setVisitedDestinationIds(
+            data.visitedDestinations
+              .map((destination: { id: number }) => Number(destination.id))
+              .filter((id: number) => Number.isFinite(id))
+          )
+        } else {
+          setVisitedDestinationIds([])
+        }
+      })
+      .catch(() => setVisitedDestinationIds([]))
+  }, [user?.id])
+
+  const toggleVisitedDestination = async (destinationId: number) => {
+    if (!user?.id || user.id === 'admin') {
+      alert('Lūdzu, piesakieties, lai atzīmētu apmeklētās vietas.')
+      return
+    }
+
+    const isVisited = visitedDestinationIds.includes(destinationId)
+    const res = await fetch(
+      isVisited
+        ? `/api/users/visited-destinations/${destinationId}`
+        : '/api/users/visited-destinations',
+      {
+        method: isVisited ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, destinationId }),
+      }
+    )
+    const data = await res.json()
+    if (!res.ok || !data.success) {
+      alert(data.message || 'Neizdevās atjaunināt apmeklējuma statusu.')
+      return
+    }
+
+    setVisitedDestinationIds((prev) =>
+      isVisited ? prev.filter((id) => id !== destinationId) : [...prev, destinationId]
+    )
+  }
 
   const handleGetCurrentLocation = () => {
     if (navigator.geolocation) {
@@ -102,7 +154,7 @@ export default function DestinationsPage() {
                 </div>
                 <input
                   type="text"
-                  placeholder="Meklēt galamērķus..."
+                  placeholder="Meklēt galamērķus pēc nosaukuma..."
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -241,8 +293,16 @@ export default function DestinationsPage() {
                       />
                     )}
                   </div>
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-2xl font-medium text-gray-900 dark:text-white">{destination.name}</h3>
+                  <div className="flex justify-between items-start gap-3">
+                    <div>
+                      <h3 className="text-2xl font-medium text-gray-900 dark:text-white">{destination.name}</h3>
+                      {visitedDestinationIds.includes(Number(destination.id)) && (
+                        <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Jau apmeklēts
+                        </span>
+                      )}
+                    </div>
                     <LikeButton destinationId={destination.id} destinationName={destination.name} />
                   </div>
                   <p className="mt-2 text-gray-600 dark:text-gray-200 line-clamp-3">{destination.description}</p>
@@ -259,12 +319,29 @@ export default function DestinationsPage() {
                         </span>
                       )}
                     </div>
-                    <Link 
-                      href={`/destination/${destination.id}`}
-                      className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
-                    >
-                      Skatīt vairāk
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      {user?.id && user.id !== 'admin' && (
+                        <button
+                          type="button"
+                          onClick={() => toggleVisitedDestination(Number(destination.id))}
+                          className={`text-sm hover:underline ${
+                            visitedDestinationIds.includes(Number(destination.id))
+                              ? 'text-emerald-700 dark:text-emerald-300'
+                              : 'text-gray-600 dark:text-gray-300'
+                          }`}
+                        >
+                          {visitedDestinationIds.includes(Number(destination.id))
+                            ? 'Noņemt apmeklējumu'
+                            : 'Atzīmēt kā apmeklētu'}
+                        </button>
+                      )}
+                      <Link
+                        href={`/destination/${destination.id}`}
+                        className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+                      >
+                        Skatīt vairāk
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}

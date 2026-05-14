@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
+import AdminRouteComments from './admin-route-comments'
 
 interface UserStats {
   totalUsers: number
@@ -40,6 +41,19 @@ interface Review {
   createdAt: string
 }
 
+interface RouteComment {
+  id: number
+  routeId: number
+  routeName: string
+  isPublicRoute: boolean
+  userId: number
+  userName: string
+  userEmail: string
+  text: string
+  createdAt: string
+}
+
+
 const PASSWORD_REQUIREMENTS = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 export default function AdminDashboard() {
   const { user, isAdmin, updateUserRole } = useAuth()
@@ -53,6 +67,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [destinations, setDestinations] = useState<Destination[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
+  const [routeComments, setRouteComments] = useState<RouteComment[]>([])
   const [editingDestination, setEditingDestination] = useState<Destination | null>(null)
   const [editForm, setEditForm] = useState({
     name: '',
@@ -66,31 +81,105 @@ export default function AdminDashboard() {
   const [destImageFile, setDestImageFile] = useState<File | null>(null)
   const [editImageFile, setEditImageFile] = useState<File | null>(null)
   const [destMsg, setDestMsg] = useState('')
-const [userForm, setUserForm] = useState({ name: '', email: '', password: '', role: 'user' as 'user' | 'admin' })
+  const [userForm, setUserForm] = useState({ name: '', email: '', password: '', role: 'user' as 'user' | 'admin' })
   const [userMsg, setUserMsg] = useState('')
   const [userError, setUserError] = useState('')
   const [reviewForm, setReviewForm] = useState({ destinationId: '', userId: '', rating: '5', comment: '' })
   const [editingReviewId, setEditingReviewId] = useState<number | null>(null)
   const [reviewMsg, setReviewMsg] = useState('')
   const [reviewError, setReviewError] = useState('')
-
+  const [editingRouteCommentId, setEditingRouteCommentId] = useState<number | null>(null)
+  const [routeCommentText, setRouteCommentText] = useState('')
+  const [routeCommentMsg, setRouteCommentMsg] = useState('')
+  const [routeCommentError, setRouteCommentError] = useState('')
   const loadAdminData = async () => {
     try {
-      const [usersRes, destinationsRes, reviewsRes] = await Promise.all([
-        fetch('/api/admin/users'),
-        fetch('/api/destinations'),
-        fetch('/api/admin/reviews'),
-      ])
+      const [usersRes, destinationsRes, reviewsRes, routeCommentsRes] = await Promise.all([
+  fetch('/api/admin/users'),
+  fetch('/api/destinations'),
+  fetch('/api/admin/reviews'),
+  fetch('/api/admin/route-comments'),
+   fetch('/api/admin/route-comments'),
+])
+      const routeCommentsData = await routeCommentsRes.json()
+setRouteComments(routeCommentsData.success ? routeCommentsData.comments || [] : [])
 
+const handleEditRouteComment = (comment: RouteComment) => {
+  setEditingRouteCommentId(comment.id)
+  setRouteCommentText(comment.text)
+  setRouteCommentMsg("")
+  setRouteCommentError("")
+}
+
+const handleCancelRouteCommentEdit = () => {
+  setEditingRouteCommentId(null)
+  setRouteCommentText("")
+}
+
+const handleSaveRouteComment = async () => {
+  if (!editingRouteCommentId) return
+
+  setRouteCommentMsg("")
+  setRouteCommentError("")
+
+  try {
+    const res = await fetch(`/api/admin/route-comments/${editingRouteCommentId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: routeCommentText }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok || !data.success) {
+      setRouteCommentError(data.message || "Neizdevās saglabāt komentāru.")
+      return
+    }
+
+    setRouteComments((prev) =>
+      prev.map((comment) =>
+        comment.id === editingRouteCommentId ? data.comment : comment
+      )
+    )
+
+    setRouteCommentMsg("Komentārs veiksmīgi atjaunināts.")
+    handleCancelRouteCommentEdit()
+  } catch {
+    setRouteCommentError("Neizdevās saglabāt komentāru.")
+  }
+}
+
+const handleDeleteRouteComment = async (commentId: number) => {
+  if (!confirm("Vai tiešām vēlaties dzēst šo maršruta komentāru?")) return
+
+  try {
+    const res = await fetch(`/api/admin/route-comments/${commentId}`, {
+      method: "DELETE",
+    })
+
+    const data = await res.json()
+
+    if (!res.ok || !data.success) {
+      alert(data.message || "Neizdevās dzēst komentāru.")
+      return
+    }
+
+    setRouteComments((prev) => prev.filter((comment) => comment.id !== commentId))
+  } catch {
+    alert("Neizdevās dzēst komentāru.")
+  }
+}
       const usersData = await usersRes.json()
       const destinationsData = await destinationsRes.json()
       const reviewsData = await reviewsRes.json()
+      const routeCommentsData = await routeCommentsRes.json()
 
       const loadedUsers = usersData.users || []
       const loadedDestinations = destinationsData.destinations || []
       setUsers(loadedUsers)
       setDestinations(loadedDestinations)
       setReviews(reviewsData.success ? reviewsData.reviews || [] : [])
+      setRouteComments(routeCommentsData.success ? routeCommentsData.comments || [] : [])
 
       setStats({
         totalUsers: loadedUsers.length,
@@ -258,6 +347,7 @@ const [userForm, setUserForm] = useState({ name: '', email: '', password: '', ro
       const updated = users.filter((u) => String(u.id) !== String(userId))
       setUsers(updated)
       setReviews((prev) => prev.filter((r) => String(r.userId) !== String(userId)))
+      setRouteComments((prev) => prev.filter((comment) => String(comment.userId) !== String(userId)))
       setStats((prev) => ({ ...prev, totalUsers: updated.length }))
     } catch {
       alert('Neizdevās dzēst lietotāju.')
@@ -380,6 +470,24 @@ const resetReviewForm = () => {
     setReviewError('')
   }
 
+  interface RouteComment {
+  id: number
+  userId: number
+  userName: string
+  userEmail: string
+  routeId: number
+  routeName: string
+  isPublic: boolean
+  text: string
+  createdAt: string
+}
+
+const [routeComments, setRouteComments] = useState<RouteComment[]>([])
+const [editingRouteCommentId, setEditingRouteCommentId] = useState<number | null>(null)
+const [routeCommentText, setRouteCommentText] = useState("")
+const [routeCommentMsg, setRouteCommentMsg] = useState("")
+const [routeCommentError, setRouteCommentError] = useState("")
+
   const handleDeleteReview = async (reviewId: number) => {
     if (!confirm('Vai tiešām vēlaties dzēst šo komentāru?')) return
 
@@ -393,6 +501,65 @@ const resetReviewForm = () => {
       setReviews((prev) => prev.filter((review) => review.id !== reviewId))
     } catch {
       alert('Neizdevās dzēst komentāru.')
+    }
+  }
+  const handleEditRouteComment = (comment: RouteComment) => {
+    setEditingRouteCommentId(comment.id)
+    setRouteCommentText(comment.text)
+    setRouteCommentMsg('')
+    setRouteCommentError('')
+  }
+
+  const resetRouteCommentForm = () => {
+    setEditingRouteCommentId(null)
+    setRouteCommentText('')
+    setRouteCommentMsg('')
+    setRouteCommentError('')
+  }
+
+  const handleSaveRouteComment = async (commentId: number) => {
+    const text = routeCommentText.trim()
+    if (!text) {
+      setRouteCommentError('Komentārs nedrīkst būt tukšs.')
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/admin/route-comments/${commentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setRouteCommentError(data.message || 'Neizdevās atjaunināt maršruta komentāru.')
+        return
+      }
+      setRouteComments((prev) =>
+        prev.map((comment) => (comment.id === commentId ? data.comment : comment))
+      )
+      setRouteCommentMsg('Maršruta komentārs veiksmīgi atjaunināts.')
+      setEditingRouteCommentId(null)
+      setRouteCommentText('')
+    } catch {
+      setRouteCommentError('Neizdevās atjaunināt maršruta komentāru.')
+    }
+  }
+
+  const handleDeleteRouteComment = async (commentId: number) => {
+    if (!confirm('Vai tiešām vēlaties dzēst šo maršruta komentāru?')) return
+
+    try {
+      const res = await fetch(`/api/admin/route-comments/${commentId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        alert(data.message || 'Neizdevās dzēst maršruta komentāru.')
+        return
+      }
+      setRouteComments((prev) => prev.filter((comment) => comment.id !== commentId))
+      if (editingRouteCommentId === commentId) resetRouteCommentForm()
+    } catch {
+      alert('Neizdevās dzēst maršruta komentāru.')
     }
   }
 
@@ -685,6 +852,74 @@ const resetReviewForm = () => {
           </div>
         </div>
       </div>
+      
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mt-8">
+        <div className="p-6">
+          <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Publisko maršrutu komentāru pārvaldība</h2>
+          <p className="mb-4 text-sm text-gray-600 dark:text-gray-300">
+            Šeit administrators var labot vai dzēst komentārus, ko lietotāji ir atstājuši publiskajiem maršrutiem.
+          </p>
+          {routeCommentError && <p className="mb-3 text-sm text-red-600">{routeCommentError}</p>}
+          {routeCommentMsg && <p className="mb-3 text-sm text-green-600">{routeCommentMsg}</p>}
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead>
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Maršruts</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lietotājs</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Komentārs</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Darbības</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {routeComments.map((comment) => (
+                  <tr key={comment.id}>
+                    <td className="px-6 py-4 align-top text-sm text-gray-900 dark:text-white">
+                      <div className="font-medium">{comment.routeName}</div>
+                    </td>
+                    <td className="px-6 py-4 align-top text-sm text-gray-900 dark:text-white">
+                      <div>{comment.userName}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{comment.userEmail}</div>
+                    </td>
+                    <td className="px-6 py-4 align-top text-sm text-gray-900 dark:text-white min-w-[280px]">
+                      {editingRouteCommentId === comment.id ? (
+                        <textarea
+                          value={routeCommentText}
+                          onChange={(e) => setRouteCommentText(e.target.value)}
+                          className="min-h-[90px] w-full rounded border p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                      ) : (
+                        <p className="max-w-xl whitespace-pre-wrap">{comment.text}</p>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 align-top whitespace-nowrap text-sm space-x-2">
+                      {editingRouteCommentId === comment.id ? (
+                        <>
+                          <button onClick={() => handleSaveRouteComment(comment.id)} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                            Saglabāt
+                          </button>
+                          <button onClick={resetRouteCommentForm} className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">
+                            Atcelt
+                          </button>
+                        </>
+                      ) : (
+                        <button onClick={() => handleEditRouteComment(comment)} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                          Labot
+                        </button>
+                      )}
+                      <button onClick={() => handleDeleteRouteComment(comment.id)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
+                        Dzēst
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {routeComments.length === 0 && <p className="py-4 text-sm text-gray-600 dark:text-gray-300">Maršrutu komentāru vēl nav.</p>}
+          </div>
+        </div>
+      </div>
 
       {editingDestination && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -756,6 +991,9 @@ const resetReviewForm = () => {
           </div>
         </div>
       )}
+      
     </div>
+    
   )
+  
 }

@@ -21,6 +21,7 @@ model User {
   routeLikes        RouteLike[]
   routes            Route[]
   likedDestinations UserLikedDestination[]
+  visitedDestinations UserVisitedDestination[]
 
   @@map("users")
 }
@@ -43,27 +44,12 @@ model Destination {
   updatedAt            DateTime @updatedAt @map("updated_at")
 
   likedByUsers UserLikedDestination[]
+  visitedByUsers UserVisitedDestination[]
   weatherData  WeatherData[]
 
   @@map("destinations")
 }
 
-model Accommodation {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(100)
-  description String?  @db.Text
-  address     String   @db.VarChar(255)
-  latitude    Decimal  @db.Decimal(10, 8)
-  longitude   Decimal  @db.Decimal(11, 8)
-  category    String   @db.VarChar(50)
-  priceRange  String?  @map("price_range") @db.VarChar(50)
-  contactInfo String?  @map("contact_info") @db.Text
-  images      String?  @db.Text
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  @@map("accommodations")
-}
 
 model Event {
   id          Int      @id @default(autoincrement())
@@ -198,6 +184,20 @@ model UserLikedDestination {
   @@index([destinationId], map: "user_liked_destinations_destinationId_fkey")
   @@map("user_liked_destinations")
 }
+
+model UserVisitedDestination {
+  userId        Int      @map("user_id")
+  destinationId Int      @map("destination_id")
+  visitedAt     DateTime @default(now()) @map("visited_at")
+
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, destinationId])
+  @@index([destinationId], map: "user_visited_destinations_destination_id_fkey")
+  @@map("user_visited_destinations")
+}
+
 
 model WeatherData {
   id            Int         @id @default(autoincrement())

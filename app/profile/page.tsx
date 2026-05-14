@@ -3,7 +3,7 @@
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
-import { MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2, KeyRound } from 'lucide-react'
+import { CheckCircle2, MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2, KeyRound } from 'lucide-react'
 import Link from 'next/link'
 import LikeButton from '@/components/like-button'
 import RandomPlace from '@/components/random-place'
@@ -212,6 +212,38 @@ export default function ProfilePage() {
     }
   }
 
+  const visitedDestinationIdSet = new Set(visitedDestinations.map((destination) => String(destination.id)))
+
+  const toggleVisitedDestination = async (destination: SavedDestination) => {
+    if (!user?.id || user.id === 'admin') return
+
+    const destinationId = Number(destination.id)
+    if (!Number.isFinite(destinationId)) return
+
+    const isVisited = visitedDestinationIdSet.has(String(destination.id))
+    const res = await fetch(
+      isVisited
+        ? `/api/users/visited-destinations/${destinationId}`
+        : '/api/users/visited-destinations',
+      {
+        method: isVisited ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, destinationId }),
+      }
+    )
+    const data = await res.json()
+    if (!res.ok || !data.success) {
+      alert(data.message || 'Neizdevās atjaunināt apmeklējuma statusu.')
+      return
+    }
+
+    if (isVisited) {
+      setVisitedDestinations((prev) => prev.filter((item) => String(item.id) !== String(destination.id)))
+    } else {
+      setVisitedDestinations((prev) => [destination, ...prev])
+    }
+  }
+
   if (!user) return null
 
   return (
@@ -408,12 +440,29 @@ export default function ProfilePage() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 truncate">{d.name}</p>
+                         <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium text-gray-900 truncate">{d.name}</p>
+                            {visitedDestinationIdSet.has(String(d.id)) && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                                <CheckCircle2 className="h-3 w-3" />
+                                Apmeklēts
+                              </span>
+                            )}
+                          </div>
                           {d.description && (
                             <p className="text-sm text-gray-600 truncate">{d.description}</p>
                           )}
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => toggleVisitedDestination(d)}
+                            className={`text-sm hover:underline ${
+                              visitedDestinationIdSet.has(String(d.id)) ? 'text-emerald-700' : 'text-gray-600'
+                            }`}
+                          >
+                            {visitedDestinationIdSet.has(String(d.id)) ? 'Noņemt apmeklējumu' : 'Atzīmēt kā apmeklētu'}
+                          </button>
                           <LikeButton
                             destinationId={String(d.id)}
                             destinationName={d.name}

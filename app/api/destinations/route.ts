@@ -30,15 +30,11 @@ export async function GET(request: NextRequest) {
       region: string | null
     }) => {
       const name = dest.name?.toLowerCase() ?? ''
-      const description = dest.description?.toLowerCase() ?? ''
       const destCategory = dest.category?.toLowerCase() ?? ''
       const destRegion = dest.region?.toLowerCase() ?? ''
 
-      const matchesSearch =
-        !normalizedSearch ||
-        name.includes(normalizedSearch) ||
-        description.includes(normalizedSearch)
-
+      const matchesSearch = !normalizedSearch || name.includes(normalizedSearch)
+      
       const matchesCategory = !normalizedCategory || destCategory === normalizedCategory
       const matchesRegion = !normalizedRegion || destRegion === normalizedRegion
 
