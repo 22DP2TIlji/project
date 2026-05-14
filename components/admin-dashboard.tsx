@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import AdminRouteComments from './admin-route-comments'
@@ -55,6 +55,11 @@ interface RouteComment {
 
 
 const PASSWORD_REQUIREMENTS = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : 'Nezināma kļūda'
+} 
+
 export default function AdminDashboard() {
   const { user, isAdmin, updateUserRole } = useAuth()
   const router = useRouter()
@@ -81,7 +86,12 @@ export default function AdminDashboard() {
   const [destImageFile, setDestImageFile] = useState<File | null>(null)
   const [editImageFile, setEditImageFile] = useState<File | null>(null)
   const [destMsg, setDestMsg] = useState('')
-  const [userForm, setUserForm] = useState({ name: '', email: '', password: '', role: 'user' as 'user' | 'admin' })
+  const [userForm, setUserForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'user' as 'user' | 'admin',
+  })
   const [userMsg, setUserMsg] = useState('')
   const [userError, setUserError] = useState('')
   const [reviewForm, setReviewForm] = useState({ destinationId: '', userId: '', rating: '5', comment: '' })
@@ -227,7 +237,7 @@ const handleDeleteRouteComment = async (commentId: number) => {
     })
   }
 
-  const handleEditSubmit = async (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!editingDestination) return
 
@@ -299,7 +309,7 @@ const handleDeleteRouteComment = async (commentId: number) => {
     }
   }
 
-  const handleAddUser = async (e: React.FormEvent) => {
+  const handleAddUser = async (e: FormEvent) => {
     e.preventDefault()
     setUserMsg('')
     setUserError('')
@@ -354,7 +364,7 @@ const handleDeleteRouteComment = async (commentId: number) => {
     }
   }
 
-  const handleAddDestination = async (e: React.FormEvent) => {
+  const handleAddDestination = async (e: FormEvent) => {
     e.preventDefault()
     setDestMsg('')
     try {
@@ -362,9 +372,9 @@ const handleDeleteRouteComment = async (commentId: number) => {
       if (destImageFile) {
         try {
           imageUrl = await uploadImage(destImageFile)
-        } catch (uploadError: any) {
-          setDestMsg(`Attēla augšupielādes kļūda: ${uploadError.message || 'Nezināma kļūda'}`)
-          return
+        } catch (uploadError: unknown) {
+          setDestMsg(`Attēla augšupielādes kļūda: ${getErrorMessage(uploadError)}`)
+         return
         }
       }
 
@@ -395,16 +405,16 @@ const handleDeleteRouteComment = async (commentId: number) => {
       } else {
         setDestMsg(data.message || 'Kļūda pievienojot galamērķi')
       }
-    } catch (error: any) {
-      setDestMsg(`Kļūda: ${error.message || 'Nezināma kļūda'}`)
+    } } catch (error: unknown) {
+      setDestMsg(`Kļūda: ${getErrorMessage(error)}`)
     }
   }
-const resetReviewForm = () => {
+    const resetReviewForm = () => {
     setReviewForm({ destinationId: '', userId: '', rating: '5', comment: '' })
     setEditingReviewId(null)
   }
 
-  const handleReviewSubmit = async (e: React.FormEvent) => {
+  const handleReviewSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setReviewMsg('')
     setReviewError('')
@@ -748,7 +758,7 @@ const [routeCommentError, setRouteCommentError] = useState("")
                         Labot
                       </button>
                       <button
-                         onClick={() => handleDeleteDestination(destination.id)}
+                        onClick={() => handleDeleteDestination(destination.id)}
                         className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
                       >
                         Dzēst
@@ -762,7 +772,7 @@ const [routeCommentError, setRouteCommentError] = useState("")
         </div>
       </div>
 
-<div className="bg-white dark:bg-gray-800 rounded-lg shadow mt-8">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow mt-8">
         <div className="p-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Galamērķu komentāru pārvaldība</h2>
           <form onSubmit={handleReviewSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
