@@ -40,24 +40,25 @@ interface Review {
   createdAt: string
 }
 
-interface RouteComment {
-  id: number
-  routeId: number
-  routeName: string
-  isPublicRoute: boolean
-  userId: number
-  userName: string
-  userEmail: string
-  text: string
-  createdAt: string
+interface AdminUsersResponse {
+  users?: User[]
+  totalRoutes?: number
 }
 
+interface DestinationsResponse {
+  destinations?: Destination[]
+}
+
+interface ReviewsResponse {
+  success?: boolean
+  reviews?: Review[]
+}
 
 const PASSWORD_REQUIREMENTS = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Nezināma kļūda'
-} 
+}
 
 export default function AdminDashboard() {
   const { user, isAdmin, updateUserRole } = useAuth()
@@ -71,7 +72,6 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [destinations, setDestinations] = useState<Destination[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
-  const [routeComments, setRouteComments] = useState<RouteComment[]>([])
   const [editingDestination, setEditingDestination] = useState<Destination | null>(null)
   const [editForm, setEditForm] = useState({
     name: '',
@@ -93,109 +93,34 @@ export default function AdminDashboard() {
   })
   const [userMsg, setUserMsg] = useState('')
   const [userError, setUserError] = useState('')
-  const [reviewForm, setReviewForm] = useState({ destinationId: '', userId: '', rating: '5', comment: '' })
+  const [reviewForm, setReviewForm] = useState({
+    destinationId: '',
+    userId: '',
+    rating: '5',
+    comment: '',
+  })
   const [editingReviewId, setEditingReviewId] = useState<number | null>(null)
   const [reviewMsg, setReviewMsg] = useState('')
   const [reviewError, setReviewError] = useState('')
-  const [editingRouteCommentId, setEditingRouteCommentId] = useState<number | null>(null)
-  const [routeCommentText, setRouteCommentText] = useState('')
-  const [routeCommentMsg, setRouteCommentMsg] = useState('')
-  const [routeCommentError, setRouteCommentError] = useState('')
-  const [error, setError] = useState('')
+
   const loadAdminData = async () => {
     try {
-      const [usersRes, destinationsRes, reviewsRes, routeCommentsRes] = await Promise.all([
-  fetch('/api/admin/users'),
-  fetch('/api/destinations'),
-  fetch('/api/admin/reviews'),
-  fetch('/api/admin/route-comments'),
-])
-      const usersData = await usersRes.json()
-      const destinationsData = await destinationsRes.json()
-      const reviewsData = await reviewsRes.json()
-      const routeCommentsData = await routeCommentsRes.json()
-      setRouteComments(routeCommentsData)
-    } catch (err) {
-      setError("Neizdevās ielādēt datus")
-    }
-  }
+      const [usersRes, destinationsRes, reviewsRes] = await Promise.all([
+        fetch('/api/admin/users'),
+        fetch('/api/destinations'),
+        fetch('/api/admin/reviews'),
+      ])
 
-  const handleEditRouteComment = (comment: RouteComment) => {
-  setEditingRouteCommentId(comment.id)
-  setRouteCommentText(comment.text)
-  setRouteCommentMsg("")
-  setRouteCommentError("")
-}
+      const usersData = (await usersRes.json()) as AdminUsersResponse
+      const destinationsData = (await destinationsRes.json()) as DestinationsResponse
+      const reviewsData = (await reviewsRes.json()) as ReviewsResponse
 
-const handleCancelRouteCommentEdit = () => {
-  setEditingRouteCommentId(null)
-  setRouteCommentText("")
-}
+      const loadedUsers = usersData.users ?? []
+      const loadedDestinations = destinationsData.destinations ?? []
 
-const handleSaveRouteComment = async () => {
-  if (!editingRouteCommentId) return
-
-  setRouteCommentMsg("")
-  setRouteCommentError("")
-
-  try {
-    const res = await fetch(`/api/admin/route-comments/${editingRouteCommentId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: routeCommentText }),
-    })
-
-    const data = await res.json()
-
-    if (!res.ok || !data.success) {
-      setRouteCommentError(data.message || "Neizdevās saglabāt komentāru.")
-      return
-    }
-
-    setRouteComments((prev) =>
-      prev.map((comment) =>
-        comment.id === editingRouteCommentId ? data.comment : comment
-      )
-    )
-
-    setRouteCommentMsg("Komentārs veiksmīgi atjaunināts.")
-    handleCancelRouteCommentEdit()
-  } catch {
-    setRouteCommentError("Neizdevās saglabāt komentāru.")
-  }
-}
-
-const handleDeleteRouteComment = async (commentId: number) => {
-  if (!confirm("Vai tiešām vēlaties dzēst šo maršruta komentāru?")) return
-
-  try {
-    const res = await fetch(`/api/admin/route-comments/${commentId}`, {
-      method: "DELETE",
-    })
-
-    const data = await res.json()
-
-    if (!res.ok || !data.success) {
-      alert(data.message || "Neizdevās dzēst komentāru.")
-      return
-    }
-
-    setRouteComments((prev) => prev.filter((comment) => comment.id !== commentId))
-  } catch {
-    alert("Neizdevās dzēst komentāru.")
-  }
-}
-      const usersData = await usersRes.json()
-      const destinationsData = await destinationsRes.json()
-      const reviewsData = await reviewsRes.json()
-      const routeCommentsData = await routeCommentsRes.json()
-
-      const loadedUsers = usersData.users || []
-      const loadedDestinations = destinationsData.destinations || []
       setUsers(loadedUsers)
       setDestinations(loadedDestinations)
-      setReviews(reviewsData.success ? reviewsData.reviews || [] : [])
-      setRouteComments(routeCommentsData.success ? routeCommentsData.comments || [] : [])
+      setReviews(reviewsData.success ? reviewsData.reviews ?? [] : [])
 
       setStats({
         totalUsers: loadedUsers.length,
@@ -213,7 +138,7 @@ const handleDeleteRouteComment = async (commentId: number) => {
       router.push('/')
       return
     }
-    
+
     loadAdminData()
   }, [isAdmin, router])
 
@@ -231,6 +156,7 @@ const handleDeleteRouteComment = async (commentId: number) => {
   const uploadImage = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
+
       reader.onload = () => {
         if (typeof reader.result === 'string') {
           resolve(reader.result)
@@ -238,6 +164,7 @@ const handleDeleteRouteComment = async (commentId: number) => {
           reject(new Error('Neizdevās nolasīt failu'))
         }
       }
+
       reader.onerror = () => reject(new Error('Neizdevās nolasīt failu'))
       reader.readAsDataURL(file)
     })
@@ -249,6 +176,7 @@ const handleDeleteRouteComment = async (commentId: number) => {
 
     try {
       let imageUrl = editForm.imageUrl
+
       if (editImageFile) {
         imageUrl = await uploadImage(editImageFile)
       }
@@ -260,12 +188,19 @@ const handleDeleteRouteComment = async (commentId: number) => {
       })
 
       const data = await res.json()
+
       if (data.success) {
-        const updatedDestinations = destinations.map((d: Destination) =>
-          d.id === editingDestination.id ? { ...d, ...editForm, image_url: imageUrl } : d
+        const updatedDestinations = destinations.map((destination) =>
+          destination.id === editingDestination.id
+            ? { ...destination, ...editForm, image_url: imageUrl }
+            : destination
         )
+
         setDestinations(updatedDestinations)
-        setStats((prevStats: UserStats) => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
+        setStats((prevStats) => ({
+          ...prevStats,
+          totalDestinations: updatedDestinations.length,
+        }))
         setEditingDestination(null)
         setEditImageFile(null)
       }
@@ -278,13 +213,21 @@ const handleDeleteRouteComment = async (commentId: number) => {
     if (!confirm('Vai tiešām vēlaties dzēst šo galamērķi?')) return
 
     try {
-      const res = await fetch(`/api/admin/destinations/${destinationId}`, { method: 'DELETE' })
-
+      const res = await fetch(`/api/admin/destinations/${destinationId}`, {
+        method: 'DELETE',
+      })
       const data = await res.json()
+
       if (data.success) {
-        const updatedDestinations = destinations.filter((d: Destination) => d.id !== destinationId)
+        const updatedDestinations = destinations.filter(
+          (destination) => destination.id !== destinationId
+        )
+
         setDestinations(updatedDestinations)
-        setStats((prevStats: UserStats) => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
+        setStats((prevStats) => ({
+          ...prevStats,
+          totalDestinations: updatedDestinations.length,
+        }))
       }
     } catch (error) {
       console.error('Kļūda dzēšot galamērķi:', error)
@@ -293,6 +236,7 @@ const handleDeleteRouteComment = async (commentId: number) => {
 
   const handleToggleRole = async (userId: string | number, currentRole: 'user' | 'admin') => {
     const newRole = currentRole === 'admin' ? 'user' : 'admin'
+
     try {
       const res = await fetch('/api/admin/users', {
         method: 'PUT',
@@ -301,8 +245,14 @@ const handleDeleteRouteComment = async (commentId: number) => {
       })
 
       const data = await res.json()
+
       if (data.success) {
-        setUsers(users.map((u: User) => (u.id === userId ? { ...u, role: newRole } : u)))
+        setUsers((prevUsers) =>
+          prevUsers.map((existingUser) =>
+            existingUser.id === userId ? { ...existingUser, role: newRole } : existingUser
+          )
+        )
+
         if (user && String(user.id) === String(userId)) {
           updateUserRole(userId, newRole)
         }
@@ -321,7 +271,9 @@ const handleDeleteRouteComment = async (commentId: number) => {
     setUserError('')
 
     if (!PASSWORD_REQUIREMENTS.test(userForm.password)) {
-      setUserError('Parolei jābūt vismaz 8 rakstzīmes garai, ar vienu lielo burtu, vienu ciparu un vienu speciālo simbolu.')
+      setUserError(
+        'Parolei jābūt vismaz 8 rakstzīmes garai, ar vienu lielo burtu, vienu ciparu un vienu speciālo simbolu.'
+      )
       return
     }
 
@@ -331,15 +283,27 @@ const handleDeleteRouteComment = async (commentId: number) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userForm),
       })
+
       const data = await res.json()
+
       if (!res.ok || !data.success) {
         setUserError(data.message || 'Neizdevās pievienot lietotāju.')
         return
       }
-      const updated = [data.user, ...users]
-      setUsers(updated)
-      setStats((prev) => ({ ...prev, totalUsers: updated.length }))
-      setUserForm({ name: '', email: '', password: '', role: 'user' })
+
+      const updatedUsers = [data.user, ...users]
+
+      setUsers(updatedUsers)
+      setStats((prevStats) => ({
+        ...prevStats,
+        totalUsers: updatedUsers.length,
+      }))
+      setUserForm({
+        name: '',
+        email: '',
+        password: '',
+        role: 'user',
+      })
       setUserMsg('Lietotājs veiksmīgi pievienots.')
     } catch {
       setUserError('Neizdevās pievienot lietotāju.')
@@ -351,20 +315,30 @@ const handleDeleteRouteComment = async (commentId: number) => {
       alert('Jūs nevarat dzēst savu kontu administratora panelī.')
       return
     }
+
     if (!confirm('Vai tiešām vēlaties dzēst šo lietotāju un viņa datus?')) return
 
     try {
-      const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+      })
       const data = await res.json()
+
       if (!res.ok || !data.success) {
         alert(data.message || 'Neizdevās dzēst lietotāju.')
         return
       }
-      const updated = users.filter((u) => String(u.id) !== String(userId))
-      setUsers(updated)
-      setReviews((prev) => prev.filter((r) => String(r.userId) !== String(userId)))
-      setRouteComments((prev) => prev.filter((comment) => String(comment.userId) !== String(userId)))
-      setStats((prev) => ({ ...prev, totalUsers: updated.length }))
+
+      const updatedUsers = users.filter((existingUser) => String(existingUser.id) !== String(userId))
+
+      setUsers(updatedUsers)
+      setReviews((prevReviews) =>
+        prevReviews.filter((review) => String(review.userId) !== String(userId))
+      )
+      setStats((prevStats) => ({
+        ...prevStats,
+        totalUsers: updatedUsers.length,
+      }))
     } catch {
       alert('Neizdevās dzēst lietotāju.')
     }
@@ -373,24 +347,31 @@ const handleDeleteRouteComment = async (commentId: number) => {
   const handleAddDestination = async (e: FormEvent) => {
     e.preventDefault()
     setDestMsg('')
+
     try {
       let imageUrl: string | undefined
+
       if (destImageFile) {
         try {
           imageUrl = await uploadImage(destImageFile)
         } catch (uploadError: unknown) {
           setDestMsg(`Attēla augšupielādes kļūda: ${getErrorMessage(uploadError)}`)
-         return
+          return
         }
       }
 
       const res = await fetch('/api/admin/destinations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: destName, description: destDesc, imageUrl }),
+        body: JSON.stringify({
+          name: destName,
+          description: destDesc,
+          imageUrl,
+        }),
       })
 
       const data = await res.json()
+
       if (data.success) {
         const newDestination: Destination = {
           id: data.id,
@@ -400,10 +381,14 @@ const handleDeleteRouteComment = async (commentId: number) => {
           region: null,
           image_url: imageUrl,
         }
-        
+
         const updatedDestinations = [...destinations, newDestination]
+
         setDestinations(updatedDestinations)
-        setStats((prevStats: UserStats) => ({ ...prevStats, totalDestinations: updatedDestinations.length }))
+        setStats((prevStats) => ({
+          ...prevStats,
+          totalDestinations: updatedDestinations.length,
+        }))
         setDestName('')
         setDestDesc('')
         setDestImageFile(null)
@@ -411,12 +396,18 @@ const handleDeleteRouteComment = async (commentId: number) => {
       } else {
         setDestMsg(data.message || 'Kļūda pievienojot galamērķi')
       }
-    } } catch (error: unknown) {
+    } catch (error: unknown) {
       setDestMsg(`Kļūda: ${getErrorMessage(error)}`)
     }
   }
-    const resetReviewForm = () => {
-    setReviewForm({ destinationId: '', userId: '', rating: '5', comment: '' })
+
+  const resetReviewForm = () => {
+    setReviewForm({
+      destinationId: '',
+      userId: '',
+      rating: '5',
+      comment: '',
+    })
     setEditingReviewId(null)
   }
 
@@ -433,22 +424,32 @@ const handleDeleteRouteComment = async (commentId: number) => {
     }
 
     try {
-      const res = await fetch(editingReviewId ? `/api/admin/reviews/${editingReviewId}` : '/api/admin/reviews', {
-        method: editingReviewId ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+      const res = await fetch(
+        editingReviewId ? `/api/admin/reviews/${editingReviewId}` : '/api/admin/reviews',
+        {
+          method: editingReviewId ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      )
+
       const data = await res.json()
+
       if (!res.ok || !data.success) {
         setReviewError(data.message || 'Neizdevās saglabāt komentāru.')
         return
       }
 
       if (editingReviewId) {
-        const selectedDestination = destinations.find((d) => String(d.id) === String(reviewForm.destinationId))
-        const selectedUser = users.find((u) => String(u.id) === String(reviewForm.userId))
-        setReviews((prev) =>
-          prev.map((review) =>
+        const selectedDestination = destinations.find(
+          (destination) => String(destination.id) === String(reviewForm.destinationId)
+        )
+        const selectedUser = users.find(
+          (existingUser) => String(existingUser.id) === String(reviewForm.userId)
+        )
+
+        setReviews((prevReviews) =>
+          prevReviews.map((review) =>
             review.id === editingReviewId
               ? {
                   ...review,
@@ -465,9 +466,10 @@ const handleDeleteRouteComment = async (commentId: number) => {
         )
         setReviewMsg('Komentārs veiksmīgi atjaunināts.')
       } else {
-        setReviews((prev) => [data.review, ...prev])
+        setReviews((prevReviews) => [data.review, ...prevReviews])
         setReviewMsg('Komentārs veiksmīgi pievienots.')
       }
+
       resetReviewForm()
     } catch {
       setReviewError('Neizdevās saglabāt komentāru.')
@@ -486,127 +488,60 @@ const handleDeleteRouteComment = async (commentId: number) => {
     setReviewError('')
   }
 
-  interface RouteComment {
-  id: number
-  userId: number
-  userName: string
-  userEmail: string
-  routeId: number
-  routeName: string
-  isPublic: boolean
-  text: string
-  createdAt: string
-}
-
-const [routeComments, setRouteComments] = useState<RouteComment[]>([])
-const [editingRouteCommentId, setEditingRouteCommentId] = useState<number | null>(null)
-const [routeCommentText, setRouteCommentText] = useState("")
-const [routeCommentMsg, setRouteCommentMsg] = useState("")
-const [routeCommentError, setRouteCommentError] = useState("")
-
   const handleDeleteReview = async (reviewId: number) => {
     if (!confirm('Vai tiešām vēlaties dzēst šo komentāru?')) return
 
     try {
-      const res = await fetch(`/api/admin/reviews/${reviewId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/admin/reviews/${reviewId}`, {
+        method: 'DELETE',
+      })
       const data = await res.json()
+
       if (!res.ok || !data.success) {
         alert(data.message || 'Neizdevās dzēst komentāru.')
         return
       }
-      setReviews((prev) => prev.filter((review) => review.id !== reviewId))
+
+      setReviews((prevReviews) => prevReviews.filter((review) => review.id !== reviewId))
     } catch {
       alert('Neizdevās dzēst komentāru.')
     }
   }
-  const handleEditRouteComment = (comment: RouteComment) => {
-    setEditingRouteCommentId(comment.id)
-    setRouteCommentText(comment.text)
-    setRouteCommentMsg('')
-    setRouteCommentError('')
-  }
-
-  const resetRouteCommentForm = () => {
-    setEditingRouteCommentId(null)
-    setRouteCommentText('')
-    setRouteCommentMsg('')
-    setRouteCommentError('')
-  }
-
-  const handleSaveRouteComment = async (commentId: number) => {
-    const text = routeCommentText.trim()
-    if (!text) {
-      setRouteCommentError('Komentārs nedrīkst būt tukšs.')
-      return
-    }
-
-    try {
-      const res = await fetch(`/api/admin/route-comments/${commentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.success) {
-        setRouteCommentError(data.message || 'Neizdevās atjaunināt maršruta komentāru.')
-        return
-      }
-      setRouteComments((prev) =>
-        prev.map((comment) => (comment.id === commentId ? data.comment : comment))
-      )
-      setRouteCommentMsg('Maršruta komentārs veiksmīgi atjaunināts.')
-      setEditingRouteCommentId(null)
-      setRouteCommentText('')
-    } catch {
-      setRouteCommentError('Neizdevās atjaunināt maršruta komentāru.')
-    }
-  }
-
-  const handleDeleteRouteComment = async (commentId: number) => {
-    if (!confirm('Vai tiešām vēlaties dzēst šo maršruta komentāru?')) return
-
-    try {
-      const res = await fetch(`/api/admin/route-comments/${commentId}`, { method: 'DELETE' })
-      const data = await res.json()
-      if (!res.ok || !data.success) {
-        alert(data.message || 'Neizdevās dzēst maršruta komentāru.')
-        return
-      }
-      setRouteComments((prev) => prev.filter((comment) => comment.id !== commentId))
-      if (editingRouteCommentId === commentId) resetRouteCommentForm()
-    } catch {
-      alert('Neizdevās dzēst maršruta komentāru.')
-    }
-  }
-
 
   if (!isAdmin()) return null
 
   return (
     <div className="container mx-auto px-4 py-8">
-   
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Lietotāji kopā</h3>
           <p className="text-3xl font-light text-blue-600 dark:text-blue-400">{stats.totalUsers}</p>
         </div>
+
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Aktīvie lietotāji</h3>
           <p className="text-3xl font-light text-green-600 dark:text-green-400">{stats.activeUsers}</p>
         </div>
+
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Galamērķi</h3>
-          <p className="text-3xl font-light text-purple-600 dark:text-purple-400">{stats.totalDestinations}</p>
+          <p className="text-3xl font-light text-purple-600 dark:text-purple-400">
+            {stats.totalDestinations}
+          </p>
         </div>
+
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Maršruti kopā</h3>
-          <p className="text-3xl font-light text-orange-600 dark:text-orange-400">{stats.totalItineraries}</p>
+          <p className="text-3xl font-light text-orange-600 dark:text-orange-400">
+            {stats.totalItineraries}
+          </p>
         </div>
       </div>
 
-  <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
         <div className="p-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Pievienot lietotāju</h2>
+
           <form onSubmit={handleAddUser} className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <input
               value={userForm.name}
@@ -615,6 +550,7 @@ const [routeCommentError, setRouteCommentError] = useState("")
               className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               required
             />
+
             <input
               type="email"
               value={userForm.email}
@@ -623,6 +559,7 @@ const [routeCommentError, setRouteCommentError] = useState("")
               className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               required
             />
+
             <div>
               <input
                 type="password"
@@ -632,25 +569,36 @@ const [routeCommentError, setRouteCommentError] = useState("")
                 className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 required
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">8+ rakstzīmes, lielais burts, cipars un speciālais simbols.</p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                8+ rakstzīmes, lielais burts, cipars un speciālais simbols.
+              </p>
             </div>
+
             <select
               value={userForm.role}
-              onChange={(e) => setUserForm({ ...userForm, role: e.target.value as 'user' | 'admin' })}
+              onChange={(e) =>
+                setUserForm({ ...userForm, role: e.target.value as 'user' | 'admin' })
+              }
               className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
               <option value="user">Lietotājs</option>
               <option value="admin">Administrators</option>
             </select>
-            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Pievienot</button>
+
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              Pievienot
+            </button>
           </form>
+
           {userError && <p className="mt-2 text-sm text-red-600">{userError}</p>}
           {userMsg && <p className="mt-2 text-sm text-green-600">{userMsg}</p>}
         </div>
       </div>
+
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
         <div className="p-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Lietotāju pārvaldība</h2>
+
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead>
@@ -662,23 +610,33 @@ const [routeCommentError, setRouteCommentError] = useState("")
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Darbības</th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {users.map((u: User, index: number) => (
-                  <tr key={u.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{index + 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.role === 'admin' ? 'Administrators' : 'Lietotājs'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
+                {users.map((existingUser, index) => (
+                  <tr key={existingUser.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {index + 1}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {existingUser.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {existingUser.email}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {existingUser.role === 'admin' ? 'Administrators' : 'Lietotājs'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                       <button
-                        onClick={() => handleToggleRole(u.id, u.role)}
+                        onClick={() => handleToggleRole(existingUser.id, existingUser.role)}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                       >
-                        {u.role === 'admin' ? 'Padarīt par lietotāju' : 'Paaugstināt par administratoru'}
+                        {existingUser.role === 'admin' ? 'Padarīt par lietotāju' : 'Padarīt par administratoru'}
                       </button>
+
                       <button
-                        onClick={() => handleDeleteUser(u.id)}
-                        disabled={String(user?.id) === String(u.id)}
+                        onClick={() => handleDeleteUser(existingUser.id)}
+                        disabled={String(user?.id) === String(existingUser.id)}
                         className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         Dzēst
@@ -695,9 +653,12 @@ const [routeCommentError, setRouteCommentError] = useState("")
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
         <div className="p-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Pievienot galamērķi</h2>
+
           <form onSubmit={handleAddDestination} className="space-y-4 max-w-md">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nosaukums</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Nosaukums
+              </label>
               <input
                 type="text"
                 placeholder="Galamērķa nosaukums"
@@ -707,8 +668,11 @@ const [routeCommentError, setRouteCommentError] = useState("")
                 required
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Apraksts</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Apraksts
+              </label>
               <textarea
                 placeholder="Apraksts"
                 value={destDesc}
@@ -717,8 +681,11 @@ const [routeCommentError, setRouteCommentError] = useState("")
                 required
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attēls</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Attēls
+              </label>
               <input
                 type="file"
                 accept="image/*"
@@ -726,16 +693,20 @@ const [routeCommentError, setRouteCommentError] = useState("")
                 className="w-full text-sm text-gray-700 dark:text-gray-300"
               />
             </div>
-            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Pievienot galamērķi</button>
+
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              Pievienot galamērķi
+            </button>
+
             {destMsg && <div className="text-green-600 mt-2">{destMsg}</div>}
           </form>
         </div>
       </div>
 
-
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow mt-8">
         <div className="p-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Galamērķu pārvaldība</h2>
+
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead>
@@ -748,14 +719,25 @@ const [routeCommentError, setRouteCommentError] = useState("")
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Darbības</th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {destinations.map((destination: Destination, index: number) => (
+                {destinations.map((destination, index) => (
                   <tr key={destination.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{index + 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{destination.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white line-clamp-2">{destination.description}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{destination.category || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{destination.region || '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {index + 1}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {destination.name}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white line-clamp-2">
+                      {destination.description}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {destination.category || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {destination.region || '-'}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                       <button
                         onClick={() => handleEditClick(destination)}
@@ -763,6 +745,7 @@ const [routeCommentError, setRouteCommentError] = useState("")
                       >
                         Labot
                       </button>
+
                       <button
                         onClick={() => handleDeleteDestination(destination.id)}
                         className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
@@ -778,9 +761,10 @@ const [routeCommentError, setRouteCommentError] = useState("")
         </div>
       </div>
 
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow mt-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mt-8">
         <div className="p-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Galamērķu komentāru pārvaldība</h2>
+
           <form onSubmit={handleReviewSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
             <select
               value={reviewForm.destinationId}
@@ -790,9 +774,12 @@ const [routeCommentError, setRouteCommentError] = useState("")
             >
               <option value="">Izvēlieties galamērķi</option>
               {destinations.map((destination) => (
-                <option key={destination.id} value={destination.id}>{destination.name}</option>
+                <option key={destination.id} value={destination.id}>
+                  {destination.name}
+                </option>
               ))}
             </select>
+
             <select
               value={reviewForm.userId}
               onChange={(e) => setReviewForm({ ...reviewForm, userId: e.target.value })}
@@ -800,19 +787,25 @@ const [routeCommentError, setRouteCommentError] = useState("")
               required
             >
               <option value="">Izvēlieties lietotāju</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+              {users.map((existingUser) => (
+                <option key={existingUser.id} value={existingUser.id}>
+                  {existingUser.name} ({existingUser.email})
+                </option>
               ))}
             </select>
+
             <select
               value={reviewForm.rating}
               onChange={(e) => setReviewForm({ ...reviewForm, rating: e.target.value })}
               className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
               {[5, 4, 3, 2, 1].map((rating) => (
-                <option key={rating} value={rating}>{rating} zvaigznes</option>
+                <option key={rating} value={rating}>
+                  {rating} zvaigznes
+                </option>
               ))}
             </select>
+
             <textarea
               value={reviewForm.comment}
               onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
@@ -820,10 +813,12 @@ const [routeCommentError, setRouteCommentError] = useState("")
               className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               required
             />
+
             <div className="flex gap-2">
               <button type="submit" className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                 {editingReviewId ? 'Saglabāt' : 'Pievienot'}
               </button>
+
               {editingReviewId && (
                 <button type="button" onClick={resetReviewForm} className="px-4 py-2 rounded border dark:border-gray-600 dark:text-white">
                   Atcelt
@@ -831,6 +826,7 @@ const [routeCommentError, setRouteCommentError] = useState("")
               )}
             </div>
           </form>
+
           {reviewError && <p className="mb-3 text-sm text-red-600">{reviewError}</p>}
           {reviewMsg && <p className="mb-3 text-sm text-green-600">{reviewMsg}</p>}
 
@@ -845,86 +841,34 @@ const [routeCommentError, setRouteCommentError] = useState("")
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Darbības</th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {reviews.map((review) => (
                   <tr key={review.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{review.destinationName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{review.userName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{review.rating}/5</td>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-lg">{review.comment}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {review.destinationName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {review.userName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {review.rating}/5
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-lg">
+                      {review.comment}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                      <button onClick={() => handleEditReview(review)} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                      <button
+                        onClick={() => handleEditReview(review)}
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                      >
                         Labot
                       </button>
-                      <button onClick={() => handleDeleteReview(review.id)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
-                        Dzēst
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {reviews.length === 0 && <p className="py-4 text-sm text-gray-600 dark:text-gray-300">Komentāru vēl nav.</p>}
-          </div>
-        </div>
-      </div>
-      
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mt-8">
-        <div className="p-6">
-          <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Publisko maršrutu komentāru pārvaldība</h2>
-          <p className="mb-4 text-sm text-gray-600 dark:text-gray-300">
-            Šeit administrators var labot vai dzēst komentārus, ko lietotāji ir atstājuši publiskajiem maršrutiem.
-          </p>
-          {routeCommentError && <p className="mb-3 text-sm text-red-600">{routeCommentError}</p>}
-          {routeCommentMsg && <p className="mb-3 text-sm text-green-600">{routeCommentMsg}</p>}
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead>
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Maršruts</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lietotājs</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Komentārs</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Darbības</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {routeComments.map((comment) => (
-                  <tr key={comment.id}>
-                    <td className="px-6 py-4 align-top text-sm text-gray-900 dark:text-white">
-                      <div className="font-medium">{comment.routeName}</div>
-                    </td>
-                    <td className="px-6 py-4 align-top text-sm text-gray-900 dark:text-white">
-                      <div>{comment.userName}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{comment.userEmail}</div>
-                    </td>
-                    <td className="px-6 py-4 align-top text-sm text-gray-900 dark:text-white min-w-[280px]">
-                      {editingRouteCommentId === comment.id ? (
-                        <textarea
-                          value={routeCommentText}
-                          onChange={(e) => setRouteCommentText(e.target.value)}
-                          className="min-h-[90px] w-full rounded border p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        />
-                      ) : (
-                        <p className="max-w-xl whitespace-pre-wrap">{comment.text}</p>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 align-top whitespace-nowrap text-sm space-x-2">
-                      {editingRouteCommentId === comment.id ? (
-                        <>
-                          <button onClick={() => handleSaveRouteComment(comment.id)} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-                            Saglabāt
-                          </button>
-                          <button onClick={resetRouteCommentForm} className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">
-                            Atcelt
-                          </button>
-                        </>
-                      ) : (
-                        <button onClick={() => handleEditRouteComment(comment)} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-                          Labot
-                        </button>
-                      )}
-                      <button onClick={() => handleDeleteRouteComment(comment.id)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
+                      <button
+                        onClick={() => handleDeleteReview(review.id)}
+                        className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                      >
                         Dzēst
                       </button>
                     </td>
@@ -932,7 +876,10 @@ const [routeCommentError, setRouteCommentError] = useState("")
                 ))}
               </tbody>
             </table>
-            {routeComments.length === 0 && <p className="py-4 text-sm text-gray-600 dark:text-gray-300">Maršrutu komentāru vēl nav.</p>}
+
+            {reviews.length === 0 && (
+              <p className="py-4 text-sm text-gray-600 dark:text-gray-300">Komentāru vēl nav.</p>
+            )}
           </div>
         </div>
       </div>
@@ -941,9 +888,12 @@ const [routeCommentError, setRouteCommentError] = useState("")
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
             <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Labot galamērķi</h3>
+
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nosaukums</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nosaukums
+                </label>
                 <input
                   type="text"
                   value={editForm.name}
@@ -952,8 +902,11 @@ const [routeCommentError, setRouteCommentError] = useState("")
                   required
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Apraksts</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Apraksts
+                </label>
                 <textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
@@ -961,8 +914,11 @@ const [routeCommentError, setRouteCommentError] = useState("")
                   required
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategorija</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Kategorija
+                </label>
                 <input
                   type="text"
                   value={editForm.category}
@@ -970,8 +926,11 @@ const [routeCommentError, setRouteCommentError] = useState("")
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reģions</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Reģions
+                </label>
                 <input
                   type="text"
                   value={editForm.region}
@@ -979,8 +938,11 @@ const [routeCommentError, setRouteCommentError] = useState("")
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jauns attēls</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Jauns attēls
+                </label>
                 <input
                   type="file"
                   accept="image/*"
@@ -988,6 +950,7 @@ const [routeCommentError, setRouteCommentError] = useState("")
                   className="w-full text-sm text-gray-700 dark:text-gray-300"
                 />
               </div>
+
               <div className="flex justify-end space-x-2 pt-4">
                 <button
                   type="button"
@@ -996,6 +959,7 @@ const [routeCommentError, setRouteCommentError] = useState("")
                 >
                   Atcelt
                 </button>
+
                 <button
                   type="submit"
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded"
@@ -1007,9 +971,6 @@ const [routeCommentError, setRouteCommentError] = useState("")
           </div>
         </div>
       )}
-      
     </div>
-    
   )
-  
 }
