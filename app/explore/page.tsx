@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Cloud, Wind, Thermometer, Droplets, Calendar } from "lucide-react"
 
 const EVENTS = [
@@ -215,10 +216,13 @@ function ExploreWeather() {
                   })}
                 </p>
               </div>
-              <img
+              <Image
                 src={`https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png`}
                 alt={current.weather[0].description}
-                className="w-20 h-20"
+                width={80}
+                height={80}
+                className="h-20 w-20"
+                unoptimized
               />
             </div>
             <div className="mb-6">
@@ -291,10 +295,13 @@ function ExploreWeather() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-lg font-medium text-gray-900 dark:text-white">{getDayName(day.dt)}</h4>
-                    <img
+                    <Image
                       src={`https://openweathermap.org/img/wn/${day.weather[0].icon}.png`}
                       alt={day.weather[0].description}
-                      className="w-10 h-10"
+                      width={40}
+                      height={40}
+                      className="h-10 w-10"
+                      unoptimized
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">Temp. {Math.round(day.main.temp)}°C</p>
@@ -316,10 +323,10 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <section className="relative h-[38vh] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200 dark:bg-gray-700" />
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-4xl md:text-6xl font-light text-gray-900 dark:text-white">Iepazīsti Latviju</h1>
+      <section className="travel-hero">
+        <div className="travel-hero-glow" />
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+          <h1 className="travel-hero-title">Iepazīsti Latviju</h1>
           <p className="mt-4 text-lg md:text-xl text-gray-700 dark:text-gray-200 max-w-2xl mx-auto">
             Pasākumi, virtuve un laikapstākļi vienuviet
           </p>
@@ -346,7 +353,7 @@ export default function ExplorePage() {
         </div>
       </section>
 
-      <section id="events" className="scroll-mt-20 py-12 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+      <section id="events" className="travel-section scroll-mt-20">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-light text-center mb-2 text-gray-900 dark:text-white">Pasākumi Latvijā</h2>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Atklājiet festivālus un notikumus</p>
@@ -363,10 +370,13 @@ export default function ExplorePage() {
                 className="group border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden hover:shadow-md bg-white dark:bg-gray-800"
               >
                 <div className="relative h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden">
-  <img
+  <Image
     src={event.image}
     alt={event.name}
-    className="w-full h-full object-cover"
+    fill
+    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+    className="object-cover"
+    unoptimized
   />
 
   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-transparent" />
@@ -393,7 +403,7 @@ export default function ExplorePage() {
         </div>
       </section>
 
-      <section id="cuisine" className="scroll-mt-20 py-12 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+       <section id="cuisine" className="travel-section scroll-mt-20">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-light text-center mb-2 text-gray-900 dark:text-white">Latviešu virtuve</h2>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Tradicionālie ēdieni un kur tos nobaudīt</p>
@@ -439,7 +449,7 @@ export default function ExplorePage() {
         </div>
       </section>
 
-      <section id="weather" className="scroll-mt-20 py-12 bg-white dark:bg-gray-900">
+      <section id="weather" className="travel-section scroll-mt-20">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-light text-center mb-8 text-gray-900 dark:text-white">Laikapstākļi Latvijā</h2>
           <ExploreWeather />

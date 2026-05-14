@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Star, MessageCircle, User as UserIcon } from "lucide-react"
@@ -341,10 +342,13 @@ export default function DestinationPage() {
             
 <div className="relative h-96 mb-8 overflow-hidden rounded-md bg-gray-200">
   {destination.image_url ? (
-    <img
+    <Image
       src={destination.image_url}
       alt={destination.name}
-      className="w-full h-full object-cover"
+      fill
+      sizes="(max-width: 768px) 100vw, 896px"
+      className="object-cover"
+      unoptimized
     />
   ) : (
     <div className="w-full h-full flex items-center justify-center text-sm text-gray-500">
@@ -547,10 +551,13 @@ export default function DestinationPage() {
                   <Link key={d.id} href={`/destination/${d.id}`} className="group">
                     <div className="relative h-32 mb-2 overflow-hidden rounded-md bg-gray-200">
                       {d.image_url && (
-                        <img
+                        <Image
                           src={d.image_url}
                           alt={d.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          fill
+                          sizes="(max-width: 768px) 50vw, 224px"
+                          className="object-cover transition-transform group-hover:scale-105"
+                          unoptimized
                         />
                       )}
                     </div>

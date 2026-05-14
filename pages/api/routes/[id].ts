@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession, AuthOptions } from 'next-auth';
 import prisma from '../../../lib/prisma';
-import { authOptions } from '../../auth/[...nextauth]'; // Corrected path
+import { authOptions } from '../auth/[...nextauth]';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -13,10 +13,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Itinerary might be public, or only accessible by owner. Let's assume for now
   // it's only accessible by the owner for simplicity, matching the save logic.
-  if (!session?.user?.id) {
+  if (!session || !session.user?.id) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  const userId = session.user.id;
   const { id } = req.query;
 
   if (!id || typeof id !== 'string') {
@@ -26,13 +27,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const itineraryId = parseInt(id);
     if (isNaN(itineraryId)) {
-       return res.status(400).json({ error: 'Invalid itinerary ID' });
+      return res.status(400).json({ error: 'Invalid itinerary ID' });
     }
 
     const itinerary = await prisma.route.findFirst({
       where: {
         id: itineraryId,
-        userId: parseInt(session.user.id), // Ensure only owner can fetch
+        userId: parseInt(userId), // Ensure only owner can fetch
       },
       include: {
         points: { // Include points associated with the route

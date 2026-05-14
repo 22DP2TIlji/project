@@ -37,19 +37,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
-      <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-8 shadow-lg">
-        <h2 className="mb-6 text-center text-2xl font-light text-gray-900 dark:text-white">Pieslēgties savam kontam</h2>
+    <div className="auth-shell">
+      <div className="auth-card">
+        <div className="mb-8 text-center">
+          <span className="eyebrow">TravelLatvia</span>
+          <h2 className="text-3xl font-black text-slate-950">Pieslēgties savam kontam</h2>
+          <p className="mt-2 text-sm text-slate-500">Turpini plānot savus maršrutus un saglabātās idejas.</p>
+        </div>
 
         {error && (
-          <div className="mb-4 rounded-md bg-red-100 p-3 text-sm text-red-700">
+          <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="email" className="mb-2 block text-sm font-bold text-slate-700">
               E-pasts
             </label>
             <input
@@ -57,14 +61,14 @@ export default function LoginPage() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 p-3.5 text-slate-950 shadow-sm"
               placeholder="jusu@pasts.lv"
               required
             />
           </div>
 
           <div className="mb-6">
-            <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+<label htmlFor="password" className="mb-2 block text-sm font-bold text-slate-700">
               Parole
             </label>
             <input
@@ -72,7 +76,7 @@ export default function LoginPage() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 p-3.5 text-slate-950 shadow-sm"
               placeholder="••••••••"
               required
             />
@@ -80,15 +84,15 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full rounded-md bg-blue-600 py-3 px-4 text-white transition-colors hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+            className="w-full rounded-2xl bg-slate-950 px-4 py-3.5 font-black text-white shadow-xl shadow-slate-950/20 transition hover:-translate-y-0.5 hover:bg-sky-700"
           >
             Pieslēgties
           </button>
         </form>
-
-        <div className="mt-6 text-center text-sm text-gray-700 dark:text-gray-300">
+<div className="mt-6 text-center text-sm font-medium text-slate-600">
+        
           Nav konta?{' '}
-          <Link href="/signup" className="underline hover:text-blue-600 dark:hover:text-blue-400">
+          <Link href="/signup" className="font-black text-sky-700 hover:text-sky-900">
             Reģistrēties
           </Link>
         </div>

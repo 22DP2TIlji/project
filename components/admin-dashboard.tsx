@@ -538,16 +538,18 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
-        <div className="p-6">
-          <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Pievienot lietotāju</h2>
+      <div className="admin-clean-section mb-8">
+        <div className="mb-5">
+          <h2 className="text-xl font-medium text-slate-950">Pievienot lietotāju</h2>
+          <p className="mt-1 text-sm text-slate-500">Izveidojiet jaunu kontu un piešķiriet tam lomu.</p>
+        </div>
 
-          <form onSubmit={handleAddUser} className="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <form onSubmit={handleAddUser} className="admin-clean-form">
             <input
               value={userForm.name}
               onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
               placeholder="Vārds"
-              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="admin-field"
               required
             />
 
@@ -556,7 +558,7 @@ export default function AdminDashboard() {
               value={userForm.email}
               onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
               placeholder="E-pasts"
-              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="admin-field"
               required
             />
 
@@ -566,10 +568,10 @@ export default function AdminDashboard() {
                 value={userForm.password}
                 onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
                 placeholder="Parole"
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="admin-field w-full"
                 required
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-2 text-xs leading-5 text-slate-500">
                 8+ rakstzīmes, lielais burts, cipars un speciālais simbols.
               </p>
             </div>
@@ -579,20 +581,19 @@ export default function AdminDashboard() {
               onChange={(e) =>
                 setUserForm({ ...userForm, role: e.target.value as 'user' | 'admin' })
               }
-              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="admin-field"
             >
               <option value="user">Lietotājs</option>
               <option value="admin">Administrators</option>
             </select>
 
-            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              Pievienot
-            </button>
-          </form>
+          <button type="submit" className="admin-primary-button">
+            Pievienot
+          </button>
+        </form>
 
-          {userError && <p className="mt-2 text-sm text-red-600">{userError}</p>}
-          {userMsg && <p className="mt-2 text-sm text-green-600">{userMsg}</p>}
-        </div>
+        {userError && <p className="mt-3 text-sm text-red-600">{userError}</p>}
+        {userMsg && <p className="mt-3 text-sm text-green-600">{userMsg}</p>}
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
@@ -664,7 +665,7 @@ export default function AdminDashboard() {
                 placeholder="Galamērķa nosaukums"
                 value={destName}
                 onChange={(e) => setDestName(e.target.value)}
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="admin-field w-full"
                 required
               />
             </div>
@@ -677,7 +678,7 @@ export default function AdminDashboard() {
                 placeholder="Apraksts"
                 value={destDesc}
                 onChange={(e) => setDestDesc(e.target.value)}
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="admin-field w-full"
                 required
               />
             </div>
@@ -761,15 +762,17 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mt-8">
-        <div className="p-6">
-          <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Galamērķu komentāru pārvaldība</h2>
+      <div className="admin-clean-section mt-8">
+        <div className="mb-5">
+          <h2 className="text-xl font-medium text-slate-950">Galamērķu komentāru pārvaldība</h2>
+          <p className="mt-1 text-sm text-slate-500">Pievienojiet, labojiet vai dzēsiet galamērķu atsauksmes.</p>
+        </div>
 
-          <form onSubmit={handleReviewSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
+        <form onSubmit={handleReviewSubmit} className="admin-clean-form mb-6">
             <select
               value={reviewForm.destinationId}
               onChange={(e) => setReviewForm({ ...reviewForm, destinationId: e.target.value })}
-              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="admin-field"
               required
             >
               <option value="">Izvēlieties galamērķi</option>
@@ -783,7 +786,7 @@ export default function AdminDashboard() {
             <select
               value={reviewForm.userId}
               onChange={(e) => setReviewForm({ ...reviewForm, userId: e.target.value })}
-              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="admin-field"
               required
             >
               <option value="">Izvēlieties lietotāju</option>
@@ -797,7 +800,7 @@ export default function AdminDashboard() {
             <select
               value={reviewForm.rating}
               onChange={(e) => setReviewForm({ ...reviewForm, rating: e.target.value })}
-              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="admin-field"
             >
               {[5, 4, 3, 2, 1].map((rating) => (
                 <option key={rating} value={rating}>
@@ -810,17 +813,17 @@ export default function AdminDashboard() {
               value={reviewForm.comment}
               onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
               placeholder="Komentārs"
-              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="admin-field"
               required
             />
 
             <div className="flex gap-2">
-              <button type="submit" className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              <button type="submit" className="admin-primary-button flex-1">
                 {editingReviewId ? 'Saglabāt' : 'Pievienot'}
               </button>
 
               {editingReviewId && (
-                <button type="button" onClick={resetReviewForm} className="px-4 py-2 rounded border dark:border-gray-600 dark:text-white">
+                <button type="button" onClick={resetReviewForm} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                   Atcelt
                 </button>
               )}
@@ -880,7 +883,6 @@ export default function AdminDashboard() {
             {reviews.length === 0 && (
               <p className="py-4 text-sm text-gray-600 dark:text-gray-300">Komentāru vēl nav.</p>
             )}
-          </div>
         </div>
       </div>
 

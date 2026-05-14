@@ -34,46 +34,38 @@ export default function RandomPlace() {
   }
 
   return (
-    <div className="bg-white p-4 rounded-md border border-gray-200">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-medium text-gray-800">Nejauša vieta</h3>
-        <button
+    <div className="h-full rounded-[1.25rem] border border-slate-200/80 bg-white/90 p-5 shadow-lg shadow-slate-900/5">      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-bold text-slate-900">Nejauša vieta</h3>
+         <button
           type="button"
           onClick={fetchRandom}
           disabled={loading}
-          className="p-2 rounded-md bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
-          title="Saņemt nejaušu vietu"
+          className="rounded-full bg-sky-50 p-2 text-sky-700 transition hover:bg-sky-100 disabled:opacity-50"          title="Saņemt nejaušu vietu"
         >
           <Shuffle className="h-4 w-4" />
         </button>
       </div>
-      {loading && <p className="text-sm text-gray-500">Ielādē...</p>}
-      {!loading && place && (
+      {loading && <p className="text-sm text-slate-500">Ielādē...</p>}      {!loading && place && (
         <div>
           <Link
             href={`/destination/${place.id}`}
-            className="text-blue-600 hover:underline font-medium"
-          >
+            className="font-semibold text-sky-700 hover:underline"          >
             {place.name}
           </Link>
           {place.city && (
-            <span className="text-gray-500 text-sm ml-1">({place.city})</span>
-          )}
+            <span className="ml-1 text-sm text-slate-500">({place.city})</span>          )}
           {place.description && (
-            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-              {place.description}
+            <p className="mt-2 line-clamp-2 text-sm text-slate-600">              {place.description}
             </p>
           )}
           {place.category && (
-            <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-gray-100 rounded">
-              {place.category}
+            <span className="mt-3 inline-block rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">              {place.category}
             </span>
           )}
         </div>
       )}
       {!loading && !place && (
-        <p className="text-sm text-gray-500">Spiediet pogu, lai atklātu</p>
-      )}
+        <p className="text-sm text-slate-500">Spiediet pogu, lai atklātu</p>      )}
     </div>
   )
 }

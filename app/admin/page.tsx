@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
@@ -24,7 +24,7 @@ export default function AdminPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8 flex items-center justify-center">
+      <div className="page-shell flex items-center justify-center">
         {/* "Loading..." -> "Ielādē..." */}
         <p className="text-gray-600 dark:text-gray-400">Ielādē...</p>
       </div>
@@ -36,10 +36,17 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
-      {/* "Admin Dashboard" -> "Administrēšanas panelis" */}
-      <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">Administrēšanas panelis</h1>
-      <AdminDashboard />
+    <div className="page-shell">
+      <div className="page-container">
+        <div className="page-hero mb-8">
+          <span className="eyebrow">Administrēšana</span>
+          <h1 className="text-3xl font-black text-slate-450 md:text-5xl">Administrēšanas panelis</h1>
+          <p className="mt-3 max-w-2xl text-slate-400">
+            Pārvaldiet lietotājus, galamērķus un atsauksmes vienotā profesionālā darba vidē.
+          </p>
+        </div>
+        <AdminDashboard />
+      </div>
     </div>
   )
 }

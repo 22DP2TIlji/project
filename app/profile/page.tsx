@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { CheckCircle2, MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2, KeyRound } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import LikeButton from '@/components/like-button'
 import RandomPlace from '@/components/random-place'
 
@@ -248,21 +249,20 @@ export default function ProfilePage() {
 
   return (
     <>
-      <section className="relative h-[40vh] bg-gradient-to-br from-indigo-100 via-sky-50 to-emerald-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-white/20"></div>
-        <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light">Profils</h1>
-          <p className="mt-4 text-xl">Jūsu konts un statistika</p>
-        </div>
+      <section className="travel-hero">
+        <div className="travel-hero-glow" />
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+          <span className="eyebrow">Personīgais centrs</span>
+          <h1 className="travel-hero-title">Profils</h1>
+          <p className="travel-hero-subtitle">Jūsu konts, saglabātie maršruti un ceļojumu statistika vienā pārskatāmā panelī.</p>        </div>
       </section>
 
-      <section className="py-16">
+      <section className="travel-section">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="md:col-span-1">
-              <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                <h2 className="text-2xl font-light mb-6 text-gray-800">Konta informācija</h2>
-                <div className="mb-4">
+          <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+            <div className="lg:col-span-1">
+              <div className="profile-panel">
+                <h2 className="mb-6 text-2xl font-black text-slate-950">Konta informācija</h2>                <div className="mb-4">
                   <span className="block text-sm text-gray-500">Vārds:</span>
                   <span className="text-lg font-medium text-gray-900">{user.name}</span>
                 </div>
@@ -278,123 +278,104 @@ export default function ProfilePage() {
                 </div>
                 <button
                   onClick={logout}
-                  className="w-full rounded-md bg-red-600 py-3 px-4 text-white transition-colors hover:bg-red-700 flex items-center justify-center gap-2"
-                >
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-3 font-black text-white transition hover:-translate-y-0.5 hover:bg-red-700"                >
                   <LogOut className="h-4 w-4" />
                   Izrakstīties
                 </button>
               </div>
 
               {user.id !== 'admin' && (
-                <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mt-6">
-                  <h2 className="text-xl font-light mb-4 text-gray-800 flex items-center gap-2">
-                    <KeyRound className="h-5 w-5" />
+                <div className="profile-panel mt-6">
+                  <h2 className="mb-4 flex items-center gap-2 text-xl font-black text-slate-950">                    <KeyRound className="h-5 w-5" />
                     Mainīt paroli
                   </h2>
                   <form onSubmit={changePassword} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="currentPassword">Pašreizējā parole</label>
-                      <input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full rounded-md border border-gray-300 p-3" required />
+                      <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="currentPassword">Pašreizējā parole</label>
+                      <input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="profile-password-input" required />                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="newPassword">Jaunā parole</label>
+                       <input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="profile-password-input" required />                      <p className="mt-2 text-xs text-gray-600">Vismaz 8 rakstzīmes, viens lielais burts, viens cipars un viens speciālais simbols.</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="newPassword">Jaunā parole</label>
-                      <input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full rounded-md border border-gray-300 p-3" required />
-                      <p className="mt-2 text-xs text-gray-600">Vismaz 8 rakstzīmes, viens lielais burts, viens cipars un viens speciālais simbols.</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="confirmNewPassword">Atkārtojiet jauno paroli</label>
-                      <input id="confirmNewPassword" type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} className="w-full rounded-md border border-gray-300 p-3" required />
-                    </div>
+                      <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="confirmNewPassword">Atkārtojiet jauno paroli</label>
+                     <input id="confirmNewPassword" type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} className="profile-password-input" required />                    </div>
                     {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
                     {passwordMessage && <p className="text-sm text-green-600">{passwordMessage}</p>}
-                    <button type="submit" disabled={changingPassword} className="w-full rounded-md bg-gray-800 py-3 px-4 text-white transition-colors hover:bg-gray-700 disabled:opacity-50">
-                      {changingPassword ? 'Maina paroli...' : 'Nomainīt paroli'}
+                    <button type="submit" disabled={changingPassword} className="travel-primary-button w-full disabled:opacity-50">                      {changingPassword ? 'Maina paroli...' : 'Nomainīt paroli'}
                     </button>
                   </form>
                 </div>
               )}
             </div>
 
-            <div className="md:col-span-2">
-              <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
-                <h2 className="text-2xl font-light mb-6 text-gray-800 flex items-center gap-2">
-                  <TrendingUp className="h-6 w-6" />
+           <div className="lg:col-span-1">
+              <div className="profile-panel mb-6">
+                <h2 className="mb-6 flex items-center gap-2 text-2xl font-black text-slate-950">                  <TrendingUp className="h-6 w-6" />
                   Jūsu statistika
                 </h2>
 
                 {loading ? (
                   <p className="text-gray-600">Ielādē statistiku...</p>
                 ) : stats ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <div className="p-4 bg-blue-50 rounded-md border border-blue-200">
-                      <div className="flex items-center gap-2 mb-2">
+                  <div className="profile-stats-grid">
+                   <div className="profile-stat border-sky-200 bg-sky-50">                      <div className="flex items-center gap-2 mb-2">
                         <MapPin className="h-5 w-5 text-blue-600" />
                         <span className="text-sm text-gray-600">Saglabātās vietas</span>
                       </div>
-                      <p className="text-3xl font-light text-blue-600">{stats.savedDestinations}</p>
-                    </div>
+                      <p className="text-3xl font-black text-sky-700">{stats.savedDestinations}</p>                    </div>
 
-                    <div className="p-4 bg-green-50 rounded-md border border-green-200">
-                      <div className="flex items-center gap-2 mb-2">
+                    <div className="profile-stat border-emerald-200 bg-emerald-50">
+                    <div className="flex items-center gap-2 mb-2">
                         <Route className="h-5 w-5 text-green-600" />
                         <span className="text-sm text-gray-600">Izveidotie maršruti</span>
                       </div>
-                      <p className="text-3xl font-light text-green-600">{stats.routesCreated}</p>
-                    </div>
+                      <p className="text-3xl font-black text-emerald-700">{stats.routesCreated}</p>                    </div>
 
-                    <div className="p-4 bg-yellow-50 rounded-md border border-yellow-200">
-                      <div className="flex items-center gap-2 mb-2">
+                    <div className="profile-stat border-amber-200 bg-amber-50">                      <div className="flex items-center gap-2 mb-2">
                         <Star className="h-5 w-5 text-yellow-600" />
                         <span className="text-sm text-gray-600">Uzrakstītās atsauksmes</span>
                       </div>
-                      <p className="text-3xl font-light text-yellow-600">{stats.reviewsWritten}</p>
-                    </div>
+                      <p className="text-3xl font-black text-amber-700">{stats.reviewsWritten}</p>                    </div>
 
-                    <div className="p-4 bg-purple-50 rounded-md border border-purple-200">
-                      <div className="flex items-center gap-2 mb-2">
+                    <div className="profile-stat border-violet-200 bg-violet-50">                      <div className="flex items-center gap-2 mb-2">
                         <Star className="h-5 w-5 text-purple-600" />
                         <span className="text-sm text-gray-600">Vidējais vērtējums</span>
                       </div>
-                      <p className="text-3xl font-light text-purple-600">
-                        {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
+                      <p className="text-3xl font-black text-violet-700">                        {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
                       </p>
                     </div>
 
                     {stats.citiesVisited !== undefined && (
-                      <div className="p-4 bg-amber-50 rounded-md border border-amber-200">
-                        <div className="flex items-center gap-2 mb-2">
+                      <div className="profile-stat border-amber-200 bg-amber-50">                        <div className="flex items-center gap-2 mb-2">
                           <MapPin className="h-5 w-5 text-amber-600" />
                           <span className="text-sm text-gray-600">Apmeklētās pilsētas</span>
                         </div>
-                        <p className="text-3xl font-light text-amber-600">{stats.citiesVisited}</p>
-                      </div>
+                        <p className="text-3xl font-black text-amber-700">{stats.citiesVisited}</p>
+                        </div>
                     )}
                     {stats.totalKm !== undefined && stats.totalKm > 0 && (
-                      <div className="p-4 bg-teal-50 rounded-md border border-teal-200">
-                        <div className="flex items-center gap-2 mb-2">
+                      <div className="profile-stat border-teal-200 bg-teal-50">                        <div className="flex items-center gap-2 mb-2">
                           <Route className="h-5 w-5 text-teal-600" />
                           <span className="text-sm text-gray-600">Kopā km</span>
                         </div>
-                        <p className="text-3xl font-light text-teal-600">{stats.totalKm}</p>
+                        <p className="text-3xl font-black text-teal-700">{stats.totalKm}</p>
                       </div>
                     )}
                     {stats.totalSpent !== undefined && stats.totalSpent > 0 && (
-                      <div className="p-4 bg-emerald-50 rounded-md border border-emerald-200">
-                        <div className="flex items-center gap-2 mb-2">
+                      <div className="profile-stat border-emerald-200 bg-emerald-50">                        <div className="flex items-center gap-2 mb-2">
                           <DollarSign className="h-5 w-5 text-emerald-600" />
                           <span className="text-sm text-gray-600">Kopā iztērēts</span>
                         </div>
-                        <p className="text-3xl font-light text-emerald-600">{stats.totalSpent}€</p>
-                      </div>
+                         <p className="text-3xl font-black text-emerald-700">{stats.totalSpent}€</p>                      </div>
                     )}
                   </div>
                 ) : (
                   <p className="text-gray-600">Statistika vēl nav pieejama</p>
                 )}
               </div>
-              <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
-                <h3 className="text-xl font-light mb-4 text-gray-800">Jau apmeklēti galamērķi</h3>
-                {visitedDestinations.length > 0 ? (
+              <div className="profile-panel mb-6">
+                <h3 className="mb-4 text-xl font-black text-slate-950">Jau apmeklēti galamērķi</h3>                {visitedDestinations.length > 0 ? (
                   <div className="space-y-2">
                     {visitedDestinations.slice(0, 6).map((d) => (
                       <Link key={d.id} href={`/destination/${d.id}`} className="block text-sm text-blue-600 hover:underline">
@@ -407,9 +388,8 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
-                <h3 className="text-xl font-light mb-4 text-gray-800">Maršruti, kas jums patīk</h3>
-                {likedRoutes.length > 0 ? (
+              <div className="profile-panel mb-6">
+                <h3 className="mb-4 text-xl font-black text-slate-950">Maršruti, kas jums patīk</h3>                {likedRoutes.length > 0 ? (
                   <div className="space-y-2">
                     {likedRoutes.slice(0, 6).map((r) => (
                       <Link key={r.id} href={`/itinerary?route=${r.id}&openMap=1`} className="block text-sm text-blue-600 hover:underline">
@@ -422,9 +402,8 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
-                <h3 className="text-xl font-light mb-4 text-gray-800 flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
+<div className="profile-panel mb-6">
+                <h3 className="mb-4 flex items-center gap-2 text-xl font-black text-slate-950">                  <MapPin className="h-5 w-5" />
                   Saglabātās vietas
                 </h3>
                 {savedPlaces.length > 0 ? (
@@ -434,9 +413,9 @@ export default function ProfilePage() {
                         key={d.id}
                         className="flex items-center gap-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50"
                       >
-                        <div className="w-12 h-12 rounded bg-gray-200 overflow-hidden shrink-0">
+                        <div className="relative w-12 h-12 rounded bg-gray-200 overflow-hidden shrink-0">
                           {d.image_url && (
-                            <img src={d.image_url} alt="" className="w-full h-full object-cover" />
+                            <Image src={d.image_url} alt="" fill sizes="48px" className="object-cover" unoptimized />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -491,9 +470,8 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
-                <h3 className="text-xl font-light mb-4 text-gray-800 flex items-center gap-2">
-                  <Route className="h-5 w-5" />
+               <div className="profile-panel mb-6">
+                <h3 className="mb-4 flex items-center gap-2 text-xl font-black text-slate-950">                  <Route className="h-5 w-5" />
                   Saglabātie maršruti
                 </h3>
                 {savedItineraries.length > 0 ? (
@@ -553,9 +531,8 @@ export default function ProfilePage() {
               {stats && (
                 <>
                   {stats.favoriteCategory && (
-                    <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
-                      <h3 className="text-xl font-light mb-4 text-gray-800">Iecienītākā kategorija</h3>
-                      <p className="text-2xl text-gray-900">{stats.favoriteCategory}</p>
+                     <div className="profile-panel mb-6">
+                      <h3 className="mb-4 text-xl font-black text-slate-950">Iecienītākā kategorija</h3>                      <p className="text-2xl text-gray-900">{stats.favoriteCategory}</p>
                       {stats.categoryBreakdown && (
                         <div className="mt-4 space-y-2">
                           {Object.entries(stats.categoryBreakdown).map(([cat, count]: [string, any]) => (
@@ -570,9 +547,8 @@ export default function ProfilePage() {
                   )}
 
                   {stats.favoriteRegion && (
-                    <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
-                      <h3 className="text-xl font-light mb-4 text-gray-800">Iecienītākais reģions</h3>
-                      <p className="text-2xl text-gray-900">{stats.favoriteRegion}</p>
+                    <div className="profile-panel mb-6">
+                      <h3 className="mb-4 text-xl font-black text-slate-950">Iecienītākais reģions</h3>                      <p className="text-2xl text-gray-900">{stats.favoriteRegion}</p>
                       {stats.regionBreakdown && (
                         <div className="mt-4 space-y-2">
                           {Object.entries(stats.regionBreakdown).map(([reg, count]: [string, any]) => (
@@ -586,27 +562,23 @@ export default function ProfilePage() {
                     </div>
                   )}
 
-                  <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
-                    <h3 className="text-xl font-light mb-4 text-gray-800">Ātrās darbības</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="profile-panel">
+                    <h3 className="mb-4 text-xl font-black text-slate-950">Ātrās darbības</h3>                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Link
                         href="/itinerary"
-                        className="p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
-                      >
+                        className="rounded-3xl border border-slate-200 bg-white/70 p-5 transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50"                      >
                         <h4 className="font-medium mb-1">Plānot jaunu maršrutu</h4>
                         <p className="text-sm text-gray-600">Izveidojiet plānu no savām saglabātajām vietām</p>
                       </Link>
                       <Link
                         href="/compare"
-                        className="p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
-                      >
+                        className="rounded-3xl border border-slate-200 bg-white/70 p-5 transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50"                      >
                         <h4 className="font-medium mb-1">Salīdzināt galamērķus</h4>
                         <p className="text-sm text-gray-600">Salīdziniet līdz pat 3 vietām</p>
                       </Link>
                       <Link
                         href="/destinations"
-                        className="p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
-                      >
+                        className="rounded-3xl border border-slate-200 bg-white/70 p-5 transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50"                      >
                         <h4 className="font-medium mb-1">Izpētīt vairāk</h4>
                         <p className="text-sm text-gray-600">Atklājiet jaunus galamērķus</p>
                       </Link>

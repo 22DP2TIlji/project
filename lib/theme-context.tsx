@@ -11,18 +11,17 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { user, updatePreferences } = useAuth()
+  const { user } = useAuth()
   const [darkMode, setDarkMode] = useState(false)
 
   // Initialize dark mode from user preferences or system preference
   useEffect(() => {
-    if (user?.preferences?.darkMode !== undefined) {
-      setDarkMode(user.preferences.darkMode)
+    if ((user as any)?.preferences?.darkMode !== undefined) {
+      setDarkMode((user as any).preferences.darkMode)
     } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-      setDarkMode(prefersDark)
+      setDarkMode(false)
     }
-  }, [user?.preferences?.darkMode])
+  }, [(user as any)?.preferences?.darkMode])
 
   // Apply dark mode class to document
   useEffect(() => {
@@ -37,11 +36,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode
     setDarkMode(newDarkMode)
-    
-    // Update user preferences if logged in
-    if (user) {
-      updatePreferences({ darkMode: newDarkMode })
-    }
   }
 
   return (

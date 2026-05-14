@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { CheckCircle2, Search, MapPin, Filter, Navigation } from 'lucide-react'
 import LikeButton from "@/components/like-button"
 import { useAuth } from "@/lib/auth-context"
@@ -136,15 +137,15 @@ export default function DestinationsPage() {
 
   return (
     <>
-      <section className="relative h-[40vh] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200 dark:bg-gray-700"></div>
-        <div className="relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white">Galamērķi</h1>
-          <p className="mt-4 text-xl text-gray-700 dark:text-gray-200">Atklāj labākās apskates vietas Latvijā</p>
+      <section className="travel-hero">
+        <div className="travel-hero-glow"></div>
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+          <h1 className="travel-hero-title">Galamērķi</h1>
+          <p className="travel-hero-subtitle">Atklāj labākās apskates vietas Latvijā</p>
         </div>
       </section>
 
-      <section className="py-16 bg-white dark:bg-gray-900">
+     <section className="travel-section">
         <div className="container mx-auto px-4">
           <div className="mb-8">
             <div className="flex flex-col md:flex-row gap-4 mb-6">

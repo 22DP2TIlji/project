@@ -3,148 +3,159 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
-import { useState, useRef, useEffect } from "react"
+import { Menu, X } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 
-function useHeaderLinks() {
-  return {
-    primaryLinks: [
-      ["/destinations", "Galamērķi"],
-      ["/itinerary", "Plānot ceļojumu"],
-      ["/routes", "Publiskie maršruti"],
-    ] as Array<[string, string]>,
-    planLinks: [
-      ["/trip-planner", "Ceļojuma plānotājs"],
-      ["/quiz", "Kurp doties?"],
-      ["/compare", "Salīdzināt"],
-      ["/checklist", "Sagatavošanās darbi"],
-    ] as Array<[string, string]>,
-  }
+type HeaderLink = [string, string]
+
+const primaryLinks: HeaderLink[] = [
+  ["/destinations", "Galamērķi"],
+  ["/itinerary", "Plānot ceļojumu"],
+  ["/routes", "Publiskie maršruti"],
+]
+
+const planLinks: HeaderLink[] = [
+  ["/trip-planner", "Ceļojuma plānotājs"],
+  ["/quiz", "Kurp doties?"],
+  ["/compare", "Salīdzināt"],
+  ["/checklist", "Sagatavošanās darbi"],
+]
+
+const secondaryLinks: HeaderLink[] = [
+  ["/explore", "Izpētīt"],
+  ["/contact", "Kontakti"],
+]
+
+function isActivePath(pathname: string, href: string) {
+  return pathname === href || (href !== "/" && pathname.startsWith(`${href}/`))
 }
 
-function Dropdown({ label, links, pathname }: { label: string; links: Array<[string, string]>; pathname: string }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    if (open) document.addEventListener("click", handleClickOutside)
-    return () => document.removeEventListener("click", handleClickOutside)
-  }, [open])
-
-  const isActive = links.some(([href]) => pathname === href)
+function NavLink({ href, label, pathname, onClick }: { href: string; label: string; pathname: string; onClick?: () => void }) {
+  const active = isActivePath(pathname, href)
 
   return (
-    <div ref={ref} className="relative">
+    <Link href={href} onClick={onClick} className={`clean-nav-link ${active ? "clean-nav-link-active" : ""}`}>
+      {label}
+    </Link>
+  )
+}
+
+function PlanningMenu({ pathname }: { pathname: string }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const active = planLinks.some(([href]) => isActivePath(pathname, href))
+
+  useEffect(() => {
+    function closeOnOutsideClick(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false)
+    }
+
+    document.addEventListener("click", closeOnOutsideClick)
+    return () => document.removeEventListener("click", closeOnOutsideClick)
+  }, [])
+
+  return (
+    <div ref={ref} className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors flex items-center gap-1 ${
-          isActive
-            ? "text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30"
-            : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
-        }`}
+        onClick={() => setOpen((value) => !value)}
+        onFocus={() => setOpen(true)}
+        className={`clean-nav-link inline-flex items-center gap-1.5 ${active ? "clean-nav-link-active" : ""}`}
+        aria-expanded={open}
       >
-        <span suppressHydrationWarning>{label}</span>
-        <svg className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        Plānošana un rīki
+        <span className="text-xs text-slate-400">▾</span>
       </button>
+
       {open && (
-        <div className="absolute top-full left-0 mt-1 py-1 min-w-[180px] rounded-lg bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 z-50">
-          {links.map(([href, linkLabel]) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setOpen(false)}
-              className={`block px-4 py-2 text-sm ${
-                pathname === href
-                  ? "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/10"
-                  : "text-gray-900 dark:text-gray-200 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white"
-              }`}
-            >
-              {linkLabel}
-            </Link>
-          ))}
+        <div className="absolute left-0 top-full z-50 min-w-[230px] pt-2">
+          <div className="rounded-xl border border-slate-200 bg-white p-2 shadow-lg shadow-slate-900/10">
+            {planLinks.map(([href, label]) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setOpen(false)}
+                className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  isActivePath(pathname, href)
+                    ? "bg-slate-100 text-slate-950"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>
   )
 }
 
-function NavLink({ href, label, pathname }: { href: string; label: string; pathname: string }) {
-  const active = pathname === href
-  return (
-    <Link
-      href={href}
-      className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
-        active
-          ? "text-blue-700 dark:text-blue-300 bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/30"
-          : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
-      }`}
-    >
-      <span suppressHydrationWarning>{label}</span>
-    </Link>
-  )
-}
-
 export default function Header() {
   const { user, isAdmin } = useAuth()
   const pathname = usePathname() ?? ""
-  const { primaryLinks, planLinks } = useHeaderLinks()
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => setMobileOpen(false), [pathname])
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/70 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/60 border-b border-gray-200/70 dark:border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">TravelLatvia</span>
-            </Link>
-          </div>
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between gap-4">
+          <Link href="/" className="text-xl font-semibold tracking-tight text-sky-700" aria-label="TravelLatvia sākumlapa">
+            TravelLatvia
+          </Link>
 
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden items-center gap-1 lg:flex">
             {primaryLinks.map(([href, label]) => (
               <NavLink key={href} href={href} label={label} pathname={pathname} />
             ))}
-            <Dropdown label="Plānošana un rīki" links={planLinks} pathname={pathname} />
-            <NavLink href="/explore" label="Izpētīt" pathname={pathname} />
-            <NavLink href="/contact" label="Kontakti" pathname={pathname} />
+            <PlanningMenu pathname={pathname} />
+            {secondaryLinks.map(([href, label]) => (
+              <NavLink key={href} href={href} label={label} pathname={pathname} />
+            ))}
           </nav>
 
-          <div className="hidden md:flex items-center gap-3">
-            {user && (
-              <Link
-                href="/profile"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              >
-                Mans profils
-              </Link>
-            )}
-
-            {user && isAdmin && isAdmin() && (
-              <NavLink href="/admin" label="Administrators" pathname={pathname} />
-            )}
-
+          <div className="hidden items-center gap-2 lg:flex">
+            {user && <NavLink href="/profile" label="Mans profils" pathname={pathname} />}
+            {user && isAdmin && isAdmin() && <NavLink href="/admin" label="Administrators" pathname={pathname} />}
             {!user && (
               <>
-                <Link
-                  href="/login"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                >
-                  Pieslēgties
-                </Link>
-                <Link
-                  href="/signup"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                >
+                <Link href="/login" className="clean-nav-link">Pieslēgties</Link>
+                <Link href="/signup" className="rounded-lg bg-sky-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-800">
                   Reģistrēties
                 </Link>
               </>
             )}
           </div>
+
+          <button
+            type="button"
+            onClick={() => setMobileOpen((value) => !value)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 lg:hidden"
+            aria-label="Atvērt navigāciju"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
+
+        {mobileOpen && (
+          <div className="border-t border-slate-100 py-3 lg:hidden">
+            <div className="grid gap-1">
+              {[...primaryLinks, ...planLinks, ...secondaryLinks].map(([href, label]) => (
+                <NavLink key={href} href={href} label={label} pathname={pathname} />
+              ))}
+              {user ? (
+                <NavLink href="/profile" label="Mans profils" pathname={pathname} />
+              ) : (
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <Link href="/login" className="clean-nav-link justify-center">Pieslēgties</Link>
+                  <Link href="/signup" className="rounded-lg bg-sky-700 px-4 py-2 text-center text-sm font-medium text-white">Reģistrēties</Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   )

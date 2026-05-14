@@ -11,8 +11,11 @@ export default function WeatherRedirectPage() {
   }, [router])
 
   return (
-    <p className="p-8 text-center text-gray-600 dark:text-gray-300">
-      Notiek pāradresācija...
-    </p>
+    <div className="page-shell">
+      <div className="redirect-card">
+        <div className="mx-auto mb-4 h-10 w-10 animate-pulse rounded-full bg-sky-100" />
+        <p>Notiek pāradresācija...</p>
+      </div>
+    </div>
   )
 }

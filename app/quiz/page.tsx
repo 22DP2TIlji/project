@@ -99,18 +99,18 @@ export default function QuizPage() {
 
   return (
     <>
-      <section className="relative h-[35vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200" />
-        <div className="relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-light flex items-center justify-center gap-2">
+      <section className="travel-hero">
+        <div className="travel-hero-glow" />
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+          <h1 className="travel-hero-title flex items-center justify-center gap-3">
             <Compass className="h-10 w-10" />
             Atrodi savu galamērķi
           </h1>
-          <p className="mt-3 text-lg text-gray-600">Atbildi uz dažiem jautājumiem, lai saņemtu personalizētus ieteikumus</p>
+          <p className="travel-hero-subtitle">Atbildi uz dažiem jautājumiem, lai saņemtu personalizētus ieteikumus</p>
         </div>
       </section>
 
-      <section className="py-12">
+      <section className="travel-section">
         <div className="container mx-auto px-4 max-w-xl">
           {!finished ? (
             <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
@@ -161,5 +161,5 @@ export default function QuizPage() {
         </div>
       </section>
     </>
-  )
-}
+    )
+    }

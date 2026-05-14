@@ -54,19 +54,23 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
-      <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-8 shadow-lg">
-        <h2 className="mb-6 text-center text-2xl font-light text-gray-900 dark:text-white">Izveidot kontu</h2>
-
+    <div className="auth-shell">
+      <div className="auth-card">
+        <div className="mb-8 text-center">
+          <span className="eyebrow">Jauns ceļojums</span>
+          <h2 className="text-3xl font-black text-slate-950">Izveidot kontu</h2>
+          <p className="mt-2 text-sm text-slate-500">Saglabā maršrutus, izlasi un ceļojuma sagatavošanās darbus.</p>
+        </div>
+        
         {error && (
-          <div className="mb-4 rounded-md bg-red-100 p-3 text-sm text-red-700">
+          <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="name" className="mb-2 block text-sm font-bold text-slate-700">
               Vārds
             </label>
             <input
@@ -74,14 +78,14 @@ export default function SignupPage() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 p-3.5 text-slate-950 shadow-sm"
               placeholder="Jānis Bērziņš"
               required
             />
           </div>
 
           <div className="mb-4">
-            <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="email" className="mb-2 block text-sm font-bold text-slate-700">
               E-pasts
             </label>
             <input
@@ -89,14 +93,13 @@ export default function SignupPage() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-              placeholder="jusu@pasts.lv"
+             className="w-full rounded-2xl border border-slate-200 bg-white/90 p-3.5 text-slate-950 shadow-sm"
               required
             />
           </div>
 
           <div className="mb-4">
-            <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="password" className="mb-2 block text-sm font-bold text-slate-700">
               Parole
             </label>
             <input
@@ -104,17 +107,17 @@ export default function SignupPage() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 p-3.5 text-slate-950 shadow-sm"
               placeholder="••••••••"
               required
             />
-            <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+             <p className="mt-2 text-xs font-medium text-slate-500">
               Parolei jābūt vismaz 8 rakstzīmes garai, ar vismaz vienu lielo burtu, vienu ciparu un vienu speciālo simbolu (piemēram, punktu).
             </p>
           </div>
 
           <div className="mb-6">
-            <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="confirmPassword" className="mb-2 block text-sm font-bold text-slate-700">
               Apstipriniet paroli
             </label>
             <input
@@ -122,23 +125,22 @@ export default function SignupPage() {
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 p-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-              placeholder="••••••••"
+             className="w-full rounded-2xl border border-slate-200 bg-white/90 p-3.5 text-slate-950 shadow-sm"
               required
             />
           </div>
 
           <button
             type="submit"
-            className="w-full rounded-md bg-blue-600 py-3 px-4 text-white transition-colors hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+            className="w-full rounded-2xl bg-slate-950 px-4 py-3.5 font-black text-white shadow-xl shadow-slate-950/20 transition hover:-translate-y-0.5 hover:bg-sky-700"
           >
             Reģistrēties
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-700 dark:text-gray-300">
+        <div className="mt-6 text-center text-sm font-medium text-slate-600">
           Jums jau ir konts?{' '}
-          <Link href="/login" className="underline hover:text-blue-600 dark:hover:text-blue-400">
+           <Link href="/login" className="font-black text-sky-700 hover:text-sky-900">
             Ienākt
           </Link>
         </div>

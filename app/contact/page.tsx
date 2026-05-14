@@ -5,14 +5,14 @@ import { Mail, MapPin, Phone } from "lucide-react"
 export default function Contact() {
   return (
     <>
-      <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-5xl md:text-6xl font-light text-gray-900">Sazinieties ar mums</h1>
+       <section className="travel-hero">
+        <div className="travel-hero-glow"></div>
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+          <h1 className="travel-hero-title">Sazinieties ar mums</h1>
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="travel-section">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12">

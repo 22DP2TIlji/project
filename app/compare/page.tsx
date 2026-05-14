@@ -55,15 +55,15 @@ export default function ComparePage() {
 
   return (
     <>
-      <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-5xl md:text-6xl font-light text-gray-900">Salīdzināt galamērķus</h1>
+      <section className="travel-hero">
+        <div className="travel-hero-glow"></div>
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+          <h1 className="travel-hero-title">Salīdzināt galamērķus</h1>
           <p className="mt-4 text-xl text-gray-700">Salīdziniet līdz 3 galamērķiem vienuviet</p>
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="travel-section">
         <div className="container mx-auto px-4">
           {selectedDestinations.length === 0 ? (
             <div className="bg-blue-50 border border-blue-200 rounded-md p-6 mb-8 text-center">
@@ -75,7 +75,7 @@ export default function ComparePage() {
             <div className="mb-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {selectedDestinations.map((dest) => (
-                  <div key={dest.id} className="border border-gray-200 rounded-md p-4 bg-white relative shadow-sm">
+                  <div key={dest.id} className="relative rounded-xl border border-slate-200 bg-white p-6">
                     <button
                       onClick={() => removeDestination(dest.id)}
                       className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors"
@@ -112,7 +112,7 @@ export default function ComparePage() {
                   </div>
                 ))}
                 {selectedDestinations.length < 3 && (
-                  <div className="border-2 border-dashed border-gray-300 rounded-md p-4 flex items-center justify-center min-h-[200px] bg-gray-50/50">
+                  <div className="flex min-h-[200px] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
                     <div className="text-center">
                       <Plus className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                       <p className="text-sm text-gray-500">Pievienot vēl vienu</p>
@@ -123,7 +123,7 @@ export default function ComparePage() {
             </div>
           )}
 
-          <div className="bg-white border border-gray-200 rounded-md p-6 shadow-sm">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h2 className="text-2xl font-light mb-4 text-gray-900">Meklēt galamērķus</h2>
             <div className="relative mb-6">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -145,7 +145,7 @@ export default function ComparePage() {
                   .map((dest) => (
                     <div
                       key={dest.id}
-                      className="border border-gray-200 rounded-md p-4 hover:bg-blue-50/50 cursor-pointer transition-all hover:border-blue-200"
+                      className="cursor-pointer rounded-xl border border-slate-200 bg-white p-5 transition-colors hover:border-sky-200 hover:bg-sky-50"
                       onClick={() => addDestination(dest)}
                     >
                       <h4 className="font-semibold text-gray-900">{dest.name}</h4>
@@ -162,48 +162,48 @@ export default function ComparePage() {
           </div>
 
           {selectedDestinations.length > 0 && (
-            <div className="mt-12 bg-white border border-gray-200 rounded-md p-6 shadow-sm">
-              <h2 className="text-2xl font-light mb-6 text-gray-900">Salīdzināšanas tabula</h2>
+            <div className="mt-12 rounded-xl border border-slate-200 bg-white p-7">
+              <h2 className="mb-5 text-2xl font-medium text-slate-950">Salīdzināšanas tabula</h2>
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+                <table className="compare-table">
                   
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="">
                     <tr>
-                      <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Nosaukums</td>
+                      <td className="compare-row-label">Nosaukums</td>
                       {selectedDestinations.map((dest) => (
-                        <td key={dest.id} className="p-4 text-gray-900 font-medium">
+                        <td key={dest.id} className="compare-cell font-medium text-slate-950">
                           {dest.name}
                         </td>
                       ))}
                     </tr>
                     <tr>
-                      <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Apraksts</td>
+                      <td className="compare-row-label">Apraksts</td>
                       {selectedDestinations.map((dest) => (
-                        <td key={dest.id} className="p-4 text-sm text-gray-600 leading-relaxed">
+                        <td key={dest.id} className="compare-cell text-sm leading-relaxed text-slate-600">
                           {dest.description || "Nav pieejams"}
                         </td>
                       ))}
                     </tr>
                     <tr>
-                      <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Kategorija</td>
+                      <td className="compare-row-label">Kategorija</td>
                       {selectedDestinations.map((dest) => (
-                        <td key={dest.id} className="p-4 text-gray-900">
+                        <td key={dest.id} className="compare-cell text-slate-900">
                           {dest.category || "Nav pieejama"}
                         </td>
                       ))}
                     </tr>
                     <tr>
-                      <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Reģions</td>
+                      <td className="compare-row-label">Reģions</td>
                       {selectedDestinations.map((dest) => (
-                        <td key={dest.id} className="p-4 text-gray-900">
+                        <td key={dest.id} className="compare-cell text-slate-900">
                           {dest.region || "Nav pieejams"}
                         </td>
                       ))}
                     </tr>
                     <tr>
-                      <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Atrašanās vieta</td>
+                      <td className="compare-row-label">Atrašanās vieta</td>
                       {selectedDestinations.map((dest) => (
-                        <td key={dest.id} className="p-4 text-sm text-gray-500">
+                        <td key={dest.id} className="compare-cell text-sm text-slate-500">
                           {dest.latitude && dest.longitude
                             ? `${Number(dest.latitude).toFixed(4)}, ${Number(dest.longitude).toFixed(4)}`
                             : "Nav norādīta"}
@@ -211,12 +211,12 @@ export default function ComparePage() {
                       ))}
                     </tr>
                     <tr>
-                      <td className="p-4 font-medium text-gray-700 bg-gray-50/30">Darbības</td>
+                      <td className="compare-row-label">Darbības</td>
                       {selectedDestinations.map((dest) => (
-                        <td key={dest.id} className="p-4">
+                        <td key={dest.id} className="compare-cell">
                           <Link
                             href={`/destination/${dest.id}`}
-                            className="text-blue-600 hover:underline text-sm font-medium"
+                            className="text-sm font-medium text-sky-700 hover:underline"
                           >
                             Skatīt vairāk
                           </Link>

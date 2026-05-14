@@ -116,15 +116,15 @@ export default function ChecklistPage() {
 
   return (
     <>
-      <section className="relative h-[40vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200"></div>
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-5xl md:text-6xl font-light">Ceļojuma saraksts</h1>
+      <section className="travel-hero">
+        <div className="travel-hero-glow"></div>
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+          <h1 className="travel-hero-title text-black-800">Ceļojuma saraksts</h1>
           <p className="mt-4 text-xl">Sagatavojies savam braucienam uz Latviju laicīgi</p>
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="travel-section">
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Progress */}
           <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">

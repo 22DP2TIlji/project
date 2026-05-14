@@ -1,12 +1,10 @@
-﻿import type React from "react"
-import { Inter } from "next/font/google"
+import type React from "react"
+// @ts-ignore: CSS module declarations may be missing in the current TS config
 import "./globals.css"
 import { AuthProvider } from "@/lib/auth-context"
 import { ThemeProvider } from "@/lib/theme-context"
 import Header from "@/components/header"
-import Footer from "@/components/footer"
-
-const inter = Inter({ subsets: ["latin", "latin-ext"] }) // Pievienots latin-ext latviešu zīmēm
+import footer from "@/components/footer"
 
 export const metadata = {
   title: "TravelLatvia | Ceļo gudri",
@@ -22,14 +20,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="lv" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <AuthProvider>
           <ThemeProvider>
             <Header />
-            <main className="pt-16 min-h-screen">
+            <main className="min-h-screen pt-16">
               {children}
             </main>
-            <Footer />
+            <footer />
           </ThemeProvider>
         </AuthProvider>
       </body>

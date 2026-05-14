@@ -113,17 +113,17 @@ export default function TripPlannerPage() {
 
   return (
     <>
-      <section className="relative h-[35vh] bg-gray-100 flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden bg-gray-200" />
-        <div className="relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-light">Gudrais ceļojuma plānotājs</h1>
-          <p className="mt-3 text-lg text-gray-600">
+      <section className="travel-hero">
+        <div className="travel-hero-glow" />
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+          <h1 className="travel-hero-title">Gudrais ceļojuma plānotājs</h1>
+          <p className="travel-hero-subtitle">
             Veidojiet maršrutu pēc dienām, interesēm un budžeta
           </p>
         </div>
       </section>
 
-      <section className="py-12">
+      <section className="travel-section">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-8">
             <h2 className="text-xl font-light mb-4 flex items-center gap-2">
