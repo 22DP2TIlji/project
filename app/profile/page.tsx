@@ -286,7 +286,7 @@ export default function ProfilePage() {
 
               {user.id !== 'admin' && (
                 <div className="profile-panel mt-6">
-                  <h2 className="mb-4 flex items-center gap-2 text-xl font-black text-slate-950">                    <KeyRound className="h-5 w-5" />
+                  <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-950">                    <KeyRound className="h-4 w-4" />
                     Mainīt paroli
                   </h2>
                   <form onSubmit={changePassword} className="space-y-4">
@@ -311,7 +311,7 @@ export default function ProfilePage() {
 
            <div className="lg:col-span-1">
               <div className="profile-panel mb-6">
-  <h2 className="mb-4 flex items-center gap-2 text-2xl font-black text-slate-950">
+  <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-950">
     <TrendingUp className="h-6 w-6" />
     Jūsu statistika
   </h2>
@@ -319,67 +319,95 @@ export default function ProfilePage() {
   {loading ? (
     <p className="text-gray-600">Ielādē statistiku...</p>
   ) : stats ? (
-    <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
-      <div className="rounded-2xl border border-sky-100 bg-sky-50/50 p-4 shadow-sm backdrop-blur-sm">
-        <div className="mb-3 flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-blue-600" />
-          <span className="text-sm text-gray-600">Saglabātās vietas</span>
-        </div>
-        <p className="text-2xl font-black text-sky-700">{stats.savedDestinations}</p>
-      </div>
-
-      <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 shadow-sm backdrop-blur-sm">
-        <div className="mb-3 flex items-center gap-2">
-          <Route className="h-5 w-5 text-green-600" />
-          <span className="text-sm text-gray-600">Izveidotie maršruti</span>
-        </div>
-        <p className="text-2xl font-black text-emerald-700">{stats.routesCreated}</p>
-      </div>
-
-      <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-4 shadow-sm backdrop-blur-sm">
-        <div className="mb-3 flex items-center gap-2">
-          <Star className="h-5 w-5 text-yellow-600" />
-          <span className="text-sm text-gray-600">Uzrakstītās atsauksmes</span>
-        </div>
-        <p className="text-2xl font-black text-amber-700">{stats.reviewsWritten}</p>
-      </div>
-
-      <div className="rounded-2xl border border-violet-100 bg-violet-50/50 p-4 shadow-sm backdrop-blur-sm">
-        <div className="mb-3 flex items-center gap-2">
-          <Star className="h-5 w-5 text-purple-600" />
-          <span className="text-sm text-gray-600">Vidējais vērtējums</span>
-        </div>
-        <p className="text-2xl font-black text-violet-700">
-          {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
-        </p>
-      </div>
-
-      {stats.citiesVisited !== undefined && (
-        <div className="rounded-2xl border border-orange-100 bg-orange-50/50 p-4 shadow-sm backdrop-blur-sm">
-          <div className="mb-3 flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-orange-600" />
-            <span className="text-sm text-gray-600">Apmeklētās pilsētas</span>
-          </div>
-          <p className="text-2xl font-black text-orange-700">{stats.citiesVisited}</p>
-        </div>
-      )}
-
-      {stats.totalKm !== undefined && stats.totalKm > 0 && (
-        <div className="rounded-2xl border border-teal-100 bg-teal-50/50 p-4 shadow-sm backdrop-blur-sm">
-          <div className="mb-3 flex items-center gap-2">
-            <Route className="h-5 w-5 text-teal-600" />
-            <span className="text-sm text-gray-600">Kopā km</span>
-          </div>
-          <p className="text-2xl font-black text-teal-700">{stats.totalKm}</p>
-        </div>
-      )}
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
+  <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4 shadow-sm backdrop-blur-sm min-h-[118px]">
+    <div className="flex items-center gap-2">
+      <MapPin className="h-4 w-4 shrink-0 text-blue-600" />
+      <span className="text-sm font-medium leading-snug text-slate-600">
+        Saglabātās vietas
+      </span>
     </div>
+
+    <p className="mt-6 text-2xl font-black text-sky-700">
+      {stats.savedDestinations}
+    </p>
+  </div>
+
+  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 shadow-sm backdrop-blur-sm min-h-[118px]">
+    <div className="flex items-center gap-2">
+      <Route className="h-4 w-4 shrink-0 text-green-600" />
+      <span className="text-sm font-medium leading-snug text-slate-600">
+        Izveidotie maršruti
+      </span>
+    </div>
+
+    <p className="mt-6 text-2xl font-black text-emerald-700">
+      {stats.routesCreated}
+    </p>
+  </div>
+
+  <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-4 shadow-sm backdrop-blur-sm min-h-[118px]">
+    <div className="flex items-center gap-2">
+      <Star className="h-4 w-4 shrink-0 text-yellow-600" />
+      <span className="text-sm font-medium leading-snug text-slate-600">
+        Uzrakstītās atsauksmes
+      </span>
+    </div>
+
+    <p className="mt-6 text-2xl font-black text-amber-700">
+      {stats.reviewsWritten}
+    </p>
+  </div>
+
+  <div className="rounded-2xl border border-violet-100 bg-violet-50/60 p-4 shadow-sm backdrop-blur-sm min-h-[118px]">
+    <div className="flex items-center gap-2">
+      <Star className="h-4 w-4 shrink-0 text-purple-600" />
+      <span className="text-sm font-medium leading-snug text-slate-600">
+        Vidējais vērtējums
+      </span>
+    </div>
+
+    <p className="mt-6 text-2xl font-black text-violet-700">
+      {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
+    </p>
+  </div>
+
+  {stats.citiesVisited !== undefined && (
+    <div className="rounded-2xl border border-orange-100 bg-orange-50/60 p-4 shadow-sm backdrop-blur-sm min-h-[118px]">
+      <div className="flex items-center gap-2">
+        <MapPin className="h-4 w-4 shrink-0 text-orange-600" />
+        <span className="text-sm font-medium leading-snug text-slate-600">
+          Apmeklētās pilsētas
+        </span>
+      </div>
+
+      <p className="mt-6 text-2xl font-black text-orange-700">
+        {stats.citiesVisited}
+      </p>
+    </div>
+  )}
+
+  {stats.totalKm !== undefined && stats.totalKm > 0 && (
+    <div className="rounded-2xl border border-teal-100 bg-teal-50/60 p-4 shadow-sm backdrop-blur-sm min-h-[118px]">
+      <div className="flex items-center gap-2">
+        <Route className="h-4 w-4 shrink-0 text-teal-600" />
+        <span className="text-sm font-medium leading-snug text-slate-600">
+          Kopā km
+        </span>
+      </div>
+
+      <p className="mt-6 text-2xl font-black text-teal-700">
+        {stats.totalKm}
+      </p>
+    </div>
+  )}
+</div>
   ) : (
     <p className="text-gray-600">Statistika vēl nav pieejama</p>
   )}
 </div>
               <div className="profile-panel mb-6">
-  <h3 className="mb-4 text-xl font-black text-slate-950">Jau apmeklēti galamērķi</h3>
+  <h3 className="mb-4 text-lg font-black text-slate-950">Jau apmeklēti galamērķi</h3>
 
   {visitedDestinations.length > 0 ? (
     <div className="space-y-3">
@@ -406,7 +434,7 @@ export default function ProfilePage() {
 </div>
 
               <div className="profile-panel mb-6">
-  <h3 className="mb-4 text-xl font-black text-slate-950">Publiskie maršruti, kas jums patīk</h3>
+  <h3 className="mb-4 text-lg font-black text-slate-950">Publiskie maršruti, kas jums patīk</h3>
 
   {likedRoutes.length > 0 ? (
     <div className="space-y-3">
@@ -427,7 +455,7 @@ export default function ProfilePage() {
 </div>
 
 <div className="profile-panel mb-6">
-                <h3 className="mb-4 flex items-center gap-2 text-xl font-black text-slate-950">                  <MapPin className="h-5 w-5" />
+                <h3 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-950">                  <MapPin className="h-4 w-4" />
                   Saglabātās vietas
                 </h3>
                 {savedPlaces.length > 0 ? (
@@ -495,7 +523,7 @@ export default function ProfilePage() {
               </div>
 
                <div className="profile-panel mb-6">
-                <h3 className="mb-4 flex items-center gap-2 text-xl font-black text-slate-950">                  <Route className="h-5 w-5" />
+                <h3 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-950">                  <Route className="h-4 w-4" />
                   Saglabātie maršruti
                 </h3>
                 {savedItineraries.length > 0 ? (
@@ -554,40 +582,40 @@ export default function ProfilePage() {
 
               {stats && (
                 <>
-                  {stats.favoriteCategory && (
-                     <div className="profile-panel mb-6">
-                      <h3 className="mb-4 text-xl font-black text-slate-950">Iecienītākā kategorija</h3>                      <p className="text-2xl text-gray-900">{stats.favoriteCategory}</p>
-                      {stats.categoryBreakdown && (
-                        <div className="mt-4 space-y-2">
-                          {Object.entries(stats.categoryBreakdown).map(([cat, count]: [string, any]) => (
-                            <div key={cat} className="flex justify-between items-center">
-                              <span className="text-gray-600">{cat}</span>
-                              <span className="text-gray-900 font-medium">{count}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {(stats.favoriteCategory || stats.favoriteRegion) && (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {stats.favoriteCategory && (
+      <div className="profile-panel mb-6">
+        <h3 className="mb-3 text-lg font-black text-slate-950">
+          Iecienītākā kategorija
+        </h3>
 
-                  {stats.favoriteRegion && (
-                    <div className="profile-panel mb-6">
-                      <h3 className="mb-4 text-xl font-black text-slate-950">Iecienītākais reģions</h3>                      <p className="text-2xl text-gray-900">{stats.favoriteRegion}</p>
-                      {stats.regionBreakdown && (
-                        <div className="mt-4 space-y-2">
-                          {Object.entries(stats.regionBreakdown).map(([reg, count]: [string, any]) => (
-                            <div key={reg} className="flex justify-between items-center">
-                              <span className="text-gray-600">{reg}</span>
-                              <span className="text-gray-900 font-medium">{count}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
+        <div className="rounded-2xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm backdrop-blur-sm">
+          <p className="text-lg font-semibold text-slate-900">
+            {stats.favoriteCategory}
+          </p>
+        </div>
+      </div>
+    )}
+
+    {stats.favoriteRegion && (
+      <div className="profile-panel mb-6">
+        <h3 className="mb-3 text-lg font-black text-slate-950">
+          Iecienītākais reģions
+        </h3>
+
+        <div className="rounded-2xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm backdrop-blur-sm">
+          <p className="text-lg font-semibold text-slate-900">
+            {stats.favoriteRegion}
+          </p>
+        </div>
+      </div>
+    )}
+  </div>
+)}
 
                   <div className="profile-panel">
-                    <h3 className="mb-4 text-xl font-black text-slate-950">Ātrās darbības</h3>                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <h3 className="mb-4 text-lg font-black text-slate-950">Ātrās darbības</h3>                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Link
                         href="/itinerary"
                         className="rounded-3xl border border-slate-200 bg-white/70 p-5 transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50"                      >
