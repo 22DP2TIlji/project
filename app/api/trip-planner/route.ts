@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { getUserFromId } from '@/lib/auth-utils'
 
 // Центры городов Латвии (lat, lng)
 const CITY_CENTERS: Record<string, [number, number]> = {
@@ -79,11 +80,27 @@ function optimizeRoute(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { days = 1, interests = [], budget = 0, startCity = 'riga' } = body as {
+    const { userId, days = 1, interests = [], budget = 0, startCity = 'riga' } = body as {
+      userId?: string
       days?: number
       interests?: string[]
       budget?: number
       startCity?: string
+    }
+
+    if (!userId || userId === 'admin') {
+      return NextResponse.json(
+        { success: false, message: 'Lūdzu, piesakieties vai reģistrējieties, lai veidotu ceļojumu.' },
+        { status: 401 }
+      )
+    }
+
+    const user = await getUserFromId(userId)
+    if (!user?.id || user.id === 'admin') {
+      return NextResponse.json(
+        { success: false, message: 'Lūdzu, piesakieties vai reģistrējieties, lai veidotu ceļojumu.' },
+        { status: 401 }
+      )
     }
 
     const center = CITY_CENTERS[startCity.toLowerCase()] ?? CITY_CENTERS.riga

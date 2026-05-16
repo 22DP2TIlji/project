@@ -290,6 +290,8 @@ export default function DestinationsPage() {
                       <img
                         src={destination.image_url}
                         alt={destination.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                     )}

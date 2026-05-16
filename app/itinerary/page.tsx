@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { Search, Clock, Navigation, MapPin, Hotel, Calendar, X, Share2, CheckCircle2 } from "lucide-react"
 
@@ -46,7 +46,8 @@ interface NearbyPlace {
 }
 
 export default function ItineraryPage() {
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const [startPoint, setStartPoint] = useState("")
   const [endPoint, setEndPoint] = useState("")
@@ -91,12 +92,11 @@ export default function ItineraryPage() {
         }
       }
 
+      setSavedItineraries([])
       try {
-        const saved = localStorage.getItem("savedItineraries")
-        setSavedItineraries(saved ? JSON.parse(saved) : [])
+        localStorage.removeItem("savedItineraries")
       } catch (error) {
-        console.error("Kļūda, ielādējot saglabātos maršrutus no localStorage:", error)
-        setSavedItineraries([])
+        console.error("Kļūda, tīrot viesu saglabātos maršrutus:", error)
       } finally {
         setSavedItinerariesLoaded(true)
       }
@@ -286,7 +286,7 @@ export default function ItineraryPage() {
 
   const toggleVisitedDestination = async (destinationId: number) => {
     if (!user?.id || user.id === "admin") {
-      alert("Lūdzu, piesakieties, lai saglabātu apmeklētās vietas.")
+     router.push("/login")
       return
     }
     const isVisited = visitedDestinationIds.includes(destinationId)
@@ -324,6 +324,11 @@ export default function ItineraryPage() {
   }
 
   const calculateRoute = async () => {
+     if (!isAuthenticated || !user || user.id === "admin") {
+      router.push("/login")
+      return
+    }
+
     try {
       let start = getCoordinates(startPoint)
       let end = getCoordinates(endPoint)
@@ -409,6 +414,11 @@ export default function ItineraryPage() {
     try {
       if (!route) return
 
+      if (!isAuthenticated || !user || user.id === "admin") {
+        router.push("/login")
+        return
+      }
+
       const baseItinerary = {
         id: Date.now().toString(),
         ...route,
@@ -418,48 +428,37 @@ export default function ItineraryPage() {
 
       let savedForState = baseItinerary
 
-      if (user && user.id && user.id !== "admin") {
-        try {
-          const response = await fetch("/api/itineraries", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              itinerary: baseItinerary,
-            }),
-          })
+      try {
+        const response = await fetch("/api/itineraries", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            itinerary: baseItinerary,
+          }),
+        })
 
           const data = await response.json().catch(() => ({}))
-          if (response.ok && data.success && data.routeId) {
-            savedForState = {
-              ...baseItinerary,
-              id: data.routeId.toString(),
-            }
-            if (typeof window !== "undefined") {
-              window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
-            }
-          } else {
-            const msg = data?.message || "Neizdevās saglabāt maršrutu."
-            alert(msg)
-            return
+        if (response.ok && data.success && data.routeId) {
+          savedForState = {
+            ...baseItinerary,
+            id: data.routeId.toString(),
           }
-        } catch (error) {
-          console.error("Kļūda, saglabājot maršrutu datubāzē:", error)
-          alert("Neizdevās saglabāt maršrutu.")
-          return
-        }
-      } else {
-        try {
-          const updatedGuestItineraries = [...savedItineraries, baseItinerary]
-          localStorage.setItem("savedItineraries", JSON.stringify(updatedGuestItineraries))
+      
           if (typeof window !== "undefined") {
             window.dispatchEvent(new CustomEvent("savedItinerariesUpdated"))
           }
-        } catch (error) {
-          console.error("Kļūda, saglabājot maršrutu localStorage:", error)
+        } else {
+          const msg = data?.message || "Neizdevās saglabāt maršrutu."
+          alert(msg)
+          return
         }
+        } catch (error) {
+        console.error("Kļūda, saglabājot maršrutu datubāzē:", error)
+        alert("Neizdevās saglabāt maršrutu.")
+        return
       }
 
       const updatedItineraries = [...savedItineraries, savedForState]
@@ -801,10 +800,10 @@ export default function ItineraryPage() {
 
                 <button
                   onClick={calculateRoute}
-                  className="travel-primary-button w-full disabled:cursor-not-allowed disabled:opacity-50"                  disabled={!startPoint || !endPoint}
+                  className="travel-primary-button w-full disabled:cursor-not-allowed disabled:opacity-50"                  disabled={!startPoint || !endPoint || !isAuthenticated || !user || user.id === "admin"}
                 >
                   <Search className="w-4 h-4 mr-2" />
-                  Aprēķināt maršrutu
+                  {isAuthenticated && user?.id !== "admin" ? "Aprēķināt maršrutu" : "Pieslēdzieties, lai plānotu"}
                 </button>
 
                 {route && (

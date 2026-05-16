@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { MapPin, Heart, MessageCircle, Copy, Send } from "lucide-react"
 
@@ -18,13 +19,14 @@ type PublicRoute = {
 
 export default function PublicRoutesPage() {
   const { user } = useAuth()
+  const router = useRouter()
   const [routes, setRoutes] = useState<PublicRoute[]>([])
   const [loading, setLoading] = useState(true)
   const [cloning, setCloning] = useState<number | null>(null)
   const [commentText, setCommentText] = useState<Record<number, string>>({})
   const [routeComments, setRouteComments] = useState<Record<number, Array<{ id: number; userName: string; text: string }>>>({})
   const [likedState, setLikedState] = useState<Record<number, boolean>>({})
-
+  
   useEffect(() => {
     const load = async () => {
       try {
@@ -51,7 +53,7 @@ export default function PublicRoutesPage() {
 
   const toggleLike = async (routeId: number) => {
     if (!user?.id || user.id === "admin") {
-      alert("Lūdzu, piesakieties, lai atzīmētu patīk.")
+      router.push("/login")
       return
     }
     const res = await fetch(`/api/routes/${routeId}/likes`, {
@@ -80,7 +82,7 @@ export default function PublicRoutesPage() {
 
   const addComment = async (routeId: number) => {
     if (!user?.id || user.id === "admin") {
-      alert("Lūdzu, piesakieties, lai komentētu.")
+      router.push("/login")
       return
     }
     const text = (commentText[routeId] || "").trim()
@@ -106,7 +108,7 @@ export default function PublicRoutesPage() {
 
   const clone = async (routeId: number) => {
     if (!user || !user.id || user.id === "admin") {
-      alert("Lūdzu, piesakieties, lai kopētu šo maršrutu.")
+      router.push("/login")
       return
     }
     setCloning(routeId)

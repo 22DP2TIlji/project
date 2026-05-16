@@ -54,6 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return
               }
               localStorage.removeItem('user')
+              localStorage.removeItem('likedDestinations')
+    localStorage.removeItem('savedItineraries')
               setUser(null)
               return
             }

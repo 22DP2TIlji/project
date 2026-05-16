@@ -36,18 +36,19 @@ return NextResponse.json(
         ...destination,
         latitude: destination.latitude ? Number(destination.latitude) : null,
         longitude: destination.longitude ? Number(destination.longitude) : null,
-        image_url: normalizeImageUrl(destination.imageUrl),
+        image_url: normalizeImageUrl(destination.imageUrl, destination.id),
       },
     },
   { headers: { 'Cache-Control': 'no-store' } }
   )
 }
 
-function normalizeImageUrl(value: string | null): string | null {
+function normalizeImageUrl(value: string | null, destinationId: number): string | null {
   if (!value) return null
   const raw = value.trim()
   if (!raw) return null
 
+  if (raw.startsWith("data:image/")) return `/api/destinations/${destinationId}/image`
   if (raw.startsWith("//")) return `https:${raw}`
   if (raw.startsWith("http://")) return raw.replace("http://", "https://")
   return raw

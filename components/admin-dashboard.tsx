@@ -56,6 +56,44 @@ interface ReviewsResponse {
 
 const PASSWORD_REQUIREMENTS = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 
+const MAX_IMAGE_WIDTH = 1200
+const MAX_IMAGE_HEIGHT = 900
+const IMAGE_QUALITY = 0.78
+const OUTPUT_IMAGE_TYPE = 'image/jpeg'
+
+async function resizeImage(file: File): Promise<File> {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Lūdzu izvēlieties attēla failu')
+  }
+
+  const bitmap = await createImageBitmap(file)
+  const scale = Math.min(1, MAX_IMAGE_WIDTH / bitmap.width, MAX_IMAGE_HEIGHT / bitmap.height)
+  const width = Math.max(1, Math.round(bitmap.width * scale))
+  const height = Math.max(1, Math.round(bitmap.height * scale))
+  const canvas = document.createElement('canvas')
+
+  canvas.width = width
+  canvas.height = height
+  canvas.getContext('2d')?.drawImage(bitmap, 0, 0, width, height)
+  bitmap.close()
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (result) => {
+        if (result) {
+          resolve(result)
+        } else {
+          reject(new Error('Neizdevās saspiest attēlu'))
+        }
+      },
+      OUTPUT_IMAGE_TYPE,
+      IMAGE_QUALITY,
+    )
+  })
+
+  return new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: OUTPUT_IMAGE_TYPE })
+}
+
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Nezināma kļūda'
 }
@@ -154,20 +192,20 @@ export default function AdminDashboard() {
   }
 
   const uploadImage = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
+    const compressedFile = await resizeImage(file)
+    const formData = new FormData()
 
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result)
-        } else {
-          reject(new Error('Neizdevās nolasīt failu'))
-        }
-      }
-
-      reader.onerror = () => reject(new Error('Neizdevās nolasīt failu'))
-      reader.readAsDataURL(file)
+      const res = await fetch('/api/admin/destination-images', {
+      method: 'POST',
+      body: formData,
     })
+    const data = await res.json()
+
+    if (!res.ok || !data.success || typeof data.imageUrl !== 'string') {
+      throw new Error(data.message || 'Neizdevās augšupielādēt attēlu')
+    }
+
+    return data.imageUrl
   }
 
   const handleEditSubmit = async (e: FormEvent) => {
@@ -887,92 +925,118 @@ export default function AdminDashboard() {
       </div>
 
       {editingDestination && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Labot galamērķi</h3>
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-[9999]">
+    <div className="bg-[#ffffff] rounded-lg p-6 max-w-md w-full shadow-2xl">
+      <h3 className="text-xl font-medium text-gray-900 mb-4">
+        Labot galamērķi
+      </h3>
 
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nosaukums
-                </label>
-                <input
-                  type="text"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  required
-                />
-              </div>
+      <form onSubmit={handleEditSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Nosaukums
+          </label>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Apraksts
-                </label>
-                <textarea
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Kategorija
-                </label>
-                <input
-                  type="text"
-                  value={editForm.category}
-                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Reģions
-                </label>
-                <input
-                  type="text"
-                  value={editForm.region}
-                  onChange={(e) => setEditForm({ ...editForm, region: e.target.value })}
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Jauns attēls
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setEditImageFile(e.target.files?.[0] || null)}
-                  className="w-full text-sm text-gray-700 dark:text-gray-300"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setEditingDestination(null)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                >
-                  Atcelt
-                </button>
-
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded"
-                >
-                  Saglabāt izmaiņas
-                </button>
-              </div>
-            </form>
-          </div>
+          <input
+            type="text"
+            value={editForm.name}
+            onChange={(e) =>
+              setEditForm({ ...editForm, name: e.target.value })
+            }
+            className="w-full p-2 border rounded bg-white border-gray-300 text-gray-900"
+            required
+          />
         </div>
-      )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Apraksts
+          </label>
+
+          <textarea
+            value={editForm.description}
+            onChange={(e) =>
+              setEditForm({
+                ...editForm,
+                description: e.target.value,
+              })
+            }
+            className="w-full p-2 border rounded bg-white border-gray-300 text-gray-900"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Kategorija
+          </label>
+
+          <input
+            type="text"
+            value={editForm.category}
+            onChange={(e) =>
+              setEditForm({
+                ...editForm,
+                category: e.target.value,
+              })
+            }
+            className="w-full p-2 border rounded bg-white border-gray-300 text-gray-900"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Reģions
+          </label>
+
+          <input
+            type="text"
+            value={editForm.region}
+            onChange={(e) =>
+              setEditForm({
+                ...editForm,
+                region: e.target.value,
+              })
+            }
+            className="w-full p-2 border rounded bg-white border-gray-300 text-gray-900"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Jauns attēls
+          </label>
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) =>
+              setEditImageFile(e.target.files?.[0] || null)
+            }
+            className="w-full text-sm text-gray-700"
+          />
+        </div>
+
+        <div className="flex justify-end space-x-2 pt-4">
+          <button
+            type="button"
+            onClick={() => setEditingDestination(null)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded"
+          >
+            Atcelt
+          </button>
+
+          <button
+            type="submit"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded"
+          >
+            Saglabāt izmaiņas
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
     </div>
   )
 }

@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Check, Plus, Trash2 } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 
 interface ChecklistItem {
   id: string
@@ -47,42 +49,65 @@ function getItemLabel(text: string): string {
   return ITEM_LABELS[text] ?? text
 }
 
+function createDefaultItems(): ChecklistItem[] {
+  return DEFAULT_ITEM_KEYS.map(({ id, key, category }) => ({
+    id,
+    text: key,
+    completed: false,
+    category,
+  }))
+}
+
+function getUserChecklistKey(userId: string): string {
+  return `travelChecklist:${userId}`
+}
 export default function ChecklistPage() {
   const [items, setItems] = useState<ChecklistItem[]>([])
+  const { user, isAuthenticated } = useAuth()
+  const router = useRouter()
   const [newItemText, setNewItemText] = useState("")
   const [newItemCategory, setNewItemCategory] = useState("Custom")
   const [filterCategory, setFilterCategory] = useState("all")
 
+  const checklistStorageKey = user?.id ? getUserChecklistKey(user.id) : null
+
   useEffect(() => {
-    const saved = localStorage.getItem("travelChecklist")
+    if (!checklistStorageKey) {
+      setItems(createDefaultItems())
+      try {
+        localStorage.removeItem("travelChecklist")
+      } catch {}
+      return
+    }
+
+    const saved = localStorage.getItem(checklistStorageKey)
     if (saved) {
       try {
         setItems(JSON.parse(saved))
+        return
       } catch {
-        setItems(DEFAULT_ITEM_KEYS.map(({ id, key, category }) => ({
-          id,
-          text: key,
-          completed: false,
-          category,
-        })))
+        setItems(createDefaultItems())
+        return
       }
-    } else {
-      setItems(DEFAULT_ITEM_KEYS.map(({ id, key, category }) => ({
-        id,
-        text: key,
-        completed: false,
-        category,
-      })))
+    
     }
-  }, [])
+
+    setItems(createDefaultItems())
+  }, [checklistStorageKey])
 
   useEffect(() => {
-    if (items.length > 0) {
-      localStorage.setItem("travelChecklist", JSON.stringify(items))
-    }
-  }, [items])
+    if (!checklistStorageKey || items.length === 0) return
+    localStorage.setItem(checklistStorageKey, JSON.stringify(items))
+  }, [items, checklistStorageKey])
+
+  const requireLogin = () => {
+    if (isAuthenticated && user?.id) return false
+    router.push("/login")
+    return true
+  }
 
   const addItem = () => {
+    if (requireLogin()) return
     if (!newItemText.trim()) return
 
     const newItem: ChecklistItem = {
@@ -97,10 +122,12 @@ export default function ChecklistPage() {
   }
 
   const toggleItem = (id: string) => {
+    if (requireLogin()) return
     setItems(items.map((item) => (item.id === id ? { ...item, completed: !item.completed } : item)))
   }
 
   const deleteItem = (id: string) => {
+    if (requireLogin()) return
     setItems(items.filter((item) => item.id !== id))
   }
 
@@ -143,6 +170,12 @@ export default function ChecklistPage() {
             <p className="text-sm text-gray-600 mt-2">{progress}% pabeigts</p>
           </div>
 
+          {!isAuthenticated && (
+            <div className="mb-6 rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+              Lai rediģētu un atzīmētu sagatavošanās darbus, lūdzu, piesakieties vai reģistrējieties.
+            </div>
+          )}
+
           {/* Add new item */}
           <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 mb-6">
             <h2 className="text-xl font-light mb-4">Pievienot jaunu vienumu</h2>
@@ -151,14 +184,16 @@ export default function ChecklistPage() {
                 type="text"
                 value={newItemText}
                 onChange={(e) => setNewItemText(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && addItem()}
+                onKeyDown={(e) => e.key === "Enter" && addItem()}
                 placeholder="Ievadiet uzdevumu..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                disabled={!isAuthenticated}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 disabled:cursor-not-allowed disabled:bg-gray-100"
               />
               <select
                 value={newItemCategory}
                 onChange={(e) => setNewItemCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+               disabled={!isAuthenticated}
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 disabled:cursor-not-allowed disabled:bg-gray-100"
               >
                 <option value="Custom">Pielāgots</option>
                 {categories.map((cat) => (
@@ -170,6 +205,7 @@ export default function ChecklistPage() {
               <button
                 onClick={addItem}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                title={isAuthenticated ? undefined : "Pieslēdzieties, lai pievienotu"}
               >
                 <Plus className="h-5 w-5" />
                 Pievienot
@@ -222,6 +258,7 @@ export default function ChecklistPage() {
                   >
                     <button
                       onClick={() => toggleItem(item.id)}
+                      title={isAuthenticated ? undefined : "Pieslēdzieties, lai atzīmētu"}
                       className={`flex-shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
                         item.completed
                           ? "bg-blue-600 border-blue-600 text-white"
@@ -243,7 +280,7 @@ export default function ChecklistPage() {
                     <button
                       onClick={() => deleteItem(item.id)}
                       className="text-gray-400 hover:text-red-500 transition-colors"
-                      title="Dzēst"
+                      title={isAuthenticated ? "Dzēst" : "Pieslēdzieties, lai dzēstu"}
                     >
                       <Trash2 className="h-5 w-5" />
                     </button>

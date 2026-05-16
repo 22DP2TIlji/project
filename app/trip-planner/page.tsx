@@ -27,7 +27,7 @@ const CATEGORIES = [
 ]
 
 export default function TripPlannerPage() {
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const router = useRouter()
   const [days, setDays] = useState(2)
   const [interests, setInterests] = useState<string[]>([])
@@ -45,6 +45,11 @@ export default function TripPlannerPage() {
   }
 
   const generate = async () => {
+    if (!isAuthenticated || !user || user.id === "admin") {
+      router.push("/login")
+      return
+    }
+
     setLoading(true)
     setTrip(null)
     setTripNotice('')
@@ -53,6 +58,7 @@ export default function TripPlannerPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          userId: user.id,
           days,
           interests: interests.length ? interests : undefined,
           budget: budget ? parseFloat(budget) : undefined,
@@ -80,8 +86,8 @@ export default function TripPlannerPage() {
 
   const saveAndPlanOnMap = async () => {
     if (!trip) return
-    if (!user?.id || user.id === "admin") {
-      alert("Lūdzu, piesakieties, lai saglabātu ceļojumu.")
+    if (!isAuthenticated || !user?.id || user.id === "admin") {
+      router.push("/login")
       return
     }
 
@@ -197,7 +203,7 @@ export default function TripPlannerPage() {
               </div>
               <button
                 onClick={generate}
-                disabled={loading}
+                disabled={loading || !isAuthenticated || !user || user.id === "admin"}
                 className="px-6 py-3 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
               >
                 {loading ? (
@@ -208,7 +214,7 @@ export default function TripPlannerPage() {
                 ) : (
                   <>
                     <MapPin className="h-4 w-4" />
-                    Izveidot maršrutu
+                    {isAuthenticated && user?.id !== "admin" ? "Izveidot maršrutu" : "Pieslēdzieties, lai veidotu"}
                   </>
                 )}
               </button>
@@ -265,11 +271,11 @@ export default function TripPlannerPage() {
               <button
                 type="button"
                 onClick={saveAndPlanOnMap}
-                disabled={saving}
+                disabled={saving || !isAuthenticated || !user || user.id === "admin"}
                 className="inline-block mt-6 text-blue-600 hover:underline disabled:opacity-50"
               >
-                {saving ? "Saglabā..." : "Saglabāt un plānot kartē →"}
-              </button>
+                {saving ? "Saglabā..." : isAuthenticated && user?.id !== "admin" ? "Saglabāt un plānot kartē →" : "Pieslēdzieties, lai saglabātu"}
+                </button>
             </div>
           )}
         </div>

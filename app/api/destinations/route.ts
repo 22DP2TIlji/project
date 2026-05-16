@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
         region: d.region,
         latitude: d.latitude ? Number(d.latitude) : null,
         longitude: d.longitude ? Number(d.longitude) : null,
-        image_url: normalizeImageUrl(d.imageRaw ?? null),
+        image_url: normalizeImageUrl(d.imageRaw ?? null, d.id),
       }))
 
       return NextResponse.json(
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       region: d.region,
       latitude: d.latitude ? Number(d.latitude) : null,
       longitude: d.longitude ? Number(d.longitude) : null,
-      image_url: normalizeImageUrl(d.imageRaw ?? null),
+      image_url: normalizeImageUrl(d.imageRaw ?? null, d.id),
     }))
 
     return NextResponse.json(
@@ -214,7 +214,7 @@ async function loadAllDestinations(): Promise<Array<{
   }
 }
 
-function normalizeImageUrl(value: string | null): string | null {
+function normalizeImageUrl(value: string | null, destinationId: number): string | null {
   if (!value) return null
 
   let raw = value.trim()
@@ -239,6 +239,7 @@ function normalizeImageUrl(value: string | null): string | null {
     }
   }
 
+  if (raw.startsWith('data:image/')) return `/api/destinations/${destinationId}/image`
   if (raw.startsWith('//')) return `https:${raw}`
   if (raw.startsWith('http://')) return raw.replace('http://', 'https://')
 

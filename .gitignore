@@ -33,3 +33,6 @@ yarn-error.log*
 
 # generated helper files
 scripts/image-missing.json
+# local uploaded destination images
+/public/uploads/destinations/*
+!/public/uploads/destinations/.gitkeep

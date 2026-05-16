@@ -121,12 +121,10 @@ export default function ProfilePage() {
         } catch (e) {}
       }
 
+       setSavedItineraries([])
       try {
-        const raw = localStorage.getItem('savedItineraries')
-        setSavedItineraries(raw ? JSON.parse(raw) : [])
-      } catch {
-        setSavedItineraries([])
-      }
+        localStorage.removeItem('savedItineraries')
+      } catch {}
     }
     load()
     window.addEventListener('savedItinerariesUpdated', load)
@@ -149,7 +147,9 @@ export default function ProfilePage() {
         if (!res.ok || !data.success) {
           const isNotFound = data.message?.includes('not found') || data.message?.includes('access denied')
           if (isNotFound) {
-            localStorage.setItem('savedItineraries', JSON.stringify(updated))
+            if (user && user.id && user.id !== 'admin') {
+        localStorage.removeItem('savedItineraries')
+      }
           } else {
             setSavedItineraries(savedItineraries)
             alert(data.message || 'Neizdevās izdzēst maršrutu.')

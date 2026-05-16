@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useLikeDestination } from '@/hooks/useLikeDestination';
 import { Heart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface DestinationCardProps {
   id: number;
@@ -23,12 +24,13 @@ export default function DestinationCard({
   onLikeChange,
 }: DestinationCardProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const { toggleLike, isLoading, error } = useLikeDestination();
 
   const handleLikeClick = async () => {
     if (!user) {
-      // Šeit varētu pievienot paziņojumu par nepieciešamību pieslēgties
+     router.push('/login');
       return;
     }
 
@@ -49,7 +51,7 @@ export default function DestinationCard({
           <h3 className="text-xl font-bold text-slate-950">{name}</h3>
           <button
             onClick={handleLikeClick}
-            disabled={isLoading || !user}
+            disabled={isLoading}
             className={`p-2 rounded-full transition-colors ${
              isLiked ? 'text-red-500' : 'text-slate-400 hover:text-red-500'
             } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
