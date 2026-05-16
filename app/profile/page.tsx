@@ -264,15 +264,15 @@ export default function ProfilePage() {
               <div className="profile-panel">
                 <h2 className="mb-6 text-2xl font-black text-slate-950">Konta informācija</h2>                <div className="mb-4">
                   <span className="block text-sm text-gray-500">Vārds:</span>
-                  <span className="text-lg font-medium text-gray-900">{user.name}</span>
+                  <span className="text-base font-medium text-gray-900">{user.name}</span>
                 </div>
                 <div className="mb-4">
                   <span className="block text-sm text-gray-500">E-pasts:</span>
-                  <span className="text-lg font-medium text-gray-900">{user.email}</span>
+                  <span className="text-base font-medium text-gray-900">{user.email}</span>
                 </div>
                 <div className="mb-6">
                   <span className="block text-sm text-gray-500">Loma:</span>
-                  <span className="text-lg font-medium text-gray-900">
+                  <span className="text-base font-medium text-gray-900">
                     {isAdmin() ? "Administrators" : "Lietotājs"}
                   </span>
                 </div>
@@ -311,96 +311,120 @@ export default function ProfilePage() {
 
            <div className="lg:col-span-1">
               <div className="profile-panel mb-6">
-                <h2 className="mb-6 flex items-center gap-2 text-2xl font-black text-slate-950">                  <TrendingUp className="h-6 w-6" />
-                  Jūsu statistika
-                </h2>
+  <h2 className="mb-4 flex items-center gap-2 text-2xl font-black text-slate-950">
+    <TrendingUp className="h-6 w-6" />
+    Jūsu statistika
+  </h2>
 
-                {loading ? (
-                  <p className="text-gray-600">Ielādē statistiku...</p>
-                ) : stats ? (
-                  <div className="profile-stats-grid">
-                   <div className="profile-stat border-sky-200 bg-sky-50">                      <div className="flex items-center gap-2 mb-2">
-                        <MapPin className="h-5 w-5 text-blue-600" />
-                        <span className="text-sm text-gray-600">Saglabātās vietas</span>
-                      </div>
-                      <p className="text-3xl font-black text-sky-700">{stats.savedDestinations}</p>                    </div>
+  {loading ? (
+    <p className="text-gray-600">Ielādē statistiku...</p>
+  ) : stats ? (
+    <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
+      <div className="rounded-2xl border border-sky-100 bg-sky-50/50 p-4 shadow-sm backdrop-blur-sm">
+        <div className="mb-3 flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-blue-600" />
+          <span className="text-sm text-gray-600">Saglabātās vietas</span>
+        </div>
+        <p className="text-2xl font-black text-sky-700">{stats.savedDestinations}</p>
+      </div>
 
-                    <div className="profile-stat border-emerald-200 bg-emerald-50">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Route className="h-5 w-5 text-green-600" />
-                        <span className="text-sm text-gray-600">Izveidotie maršruti</span>
-                      </div>
-                      <p className="text-3xl font-black text-emerald-700">{stats.routesCreated}</p>                    </div>
+      <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 shadow-sm backdrop-blur-sm">
+        <div className="mb-3 flex items-center gap-2">
+          <Route className="h-5 w-5 text-green-600" />
+          <span className="text-sm text-gray-600">Izveidotie maršruti</span>
+        </div>
+        <p className="text-2xl font-black text-emerald-700">{stats.routesCreated}</p>
+      </div>
 
-                    <div className="profile-stat border-amber-200 bg-amber-50">                      <div className="flex items-center gap-2 mb-2">
-                        <Star className="h-5 w-5 text-yellow-600" />
-                        <span className="text-sm text-gray-600">Uzrakstītās atsauksmes</span>
-                      </div>
-                      <p className="text-3xl font-black text-amber-700">{stats.reviewsWritten}</p>                    </div>
+      <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-4 shadow-sm backdrop-blur-sm">
+        <div className="mb-3 flex items-center gap-2">
+          <Star className="h-5 w-5 text-yellow-600" />
+          <span className="text-sm text-gray-600">Uzrakstītās atsauksmes</span>
+        </div>
+        <p className="text-2xl font-black text-amber-700">{stats.reviewsWritten}</p>
+      </div>
 
-                    <div className="profile-stat border-violet-200 bg-violet-50">                      <div className="flex items-center gap-2 mb-2">
-                        <Star className="h-5 w-5 text-purple-600" />
-                        <span className="text-sm text-gray-600">Vidējais vērtējums</span>
-                      </div>
-                      <p className="text-3xl font-black text-violet-700">                        {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
-                      </p>
-                    </div>
+      <div className="rounded-2xl border border-violet-100 bg-violet-50/50 p-4 shadow-sm backdrop-blur-sm">
+        <div className="mb-3 flex items-center gap-2">
+          <Star className="h-5 w-5 text-purple-600" />
+          <span className="text-sm text-gray-600">Vidējais vērtējums</span>
+        </div>
+        <p className="text-2xl font-black text-violet-700">
+          {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
+        </p>
+      </div>
 
-                    {stats.citiesVisited !== undefined && (
-                      <div className="profile-stat border-amber-200 bg-amber-50">                        <div className="flex items-center gap-2 mb-2">
-                          <MapPin className="h-5 w-5 text-amber-600" />
-                          <span className="text-sm text-gray-600">Apmeklētās pilsētas</span>
-                        </div>
-                        <p className="text-3xl font-black text-amber-700">{stats.citiesVisited}</p>
-                        </div>
-                    )}
-                    {stats.totalKm !== undefined && stats.totalKm > 0 && (
-                      <div className="profile-stat border-teal-200 bg-teal-50">                        <div className="flex items-center gap-2 mb-2">
-                          <Route className="h-5 w-5 text-teal-600" />
-                          <span className="text-sm text-gray-600">Kopā km</span>
-                        </div>
-                        <p className="text-3xl font-black text-teal-700">{stats.totalKm}</p>
-                      </div>
-                    )}
-                    {stats.totalSpent !== undefined && stats.totalSpent > 0 && (
-                      <div className="profile-stat border-emerald-200 bg-emerald-50">                        <div className="flex items-center gap-2 mb-2">
-                          <DollarSign className="h-5 w-5 text-emerald-600" />
-                          <span className="text-sm text-gray-600">Kopā iztērēts</span>
-                        </div>
-                         <p className="text-3xl font-black text-emerald-700">{stats.totalSpent}€</p>                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-gray-600">Statistika vēl nav pieejama</p>
-                )}
-              </div>
+      {stats.citiesVisited !== undefined && (
+        <div className="rounded-2xl border border-orange-100 bg-orange-50/50 p-4 shadow-sm backdrop-blur-sm">
+          <div className="mb-3 flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-orange-600" />
+            <span className="text-sm text-gray-600">Apmeklētās pilsētas</span>
+          </div>
+          <p className="text-2xl font-black text-orange-700">{stats.citiesVisited}</p>
+        </div>
+      )}
+
+      {stats.totalKm !== undefined && stats.totalKm > 0 && (
+        <div className="rounded-2xl border border-teal-100 bg-teal-50/50 p-4 shadow-sm backdrop-blur-sm">
+          <div className="mb-3 flex items-center gap-2">
+            <Route className="h-5 w-5 text-teal-600" />
+            <span className="text-sm text-gray-600">Kopā km</span>
+          </div>
+          <p className="text-2xl font-black text-teal-700">{stats.totalKm}</p>
+        </div>
+      )}
+    </div>
+  ) : (
+    <p className="text-gray-600">Statistika vēl nav pieejama</p>
+  )}
+</div>
               <div className="profile-panel mb-6">
-                <h3 className="mb-4 text-xl font-black text-slate-950">Jau apmeklēti galamērķi</h3>                {visitedDestinations.length > 0 ? (
-                  <div className="space-y-2">
-                    {visitedDestinations.slice(0, 6).map((d) => (
-                      <Link key={d.id} href={`/destination/${d.id}`} className="block text-sm text-blue-600 hover:underline">
-                        {d.name}
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-600">Vēl nav atzīmētu apmeklētu vietu.</p>
-                )}
-              </div>
+  <h3 className="mb-4 text-xl font-black text-slate-950">Jau apmeklēti galamērķi</h3>
+
+  {visitedDestinations.length > 0 ? (
+    <div className="space-y-3">
+      {visitedDestinations.slice(0, 6).map((d) => (
+        <Link
+          key={d.id}
+          href={`/destination/${d.id}`}
+          className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm backdrop-blur-sm transition hover:bg-gray-50"
+        >
+          <div>
+            <p className="text-base font-black text-slate-950">{d.name}</p>
+            {d.description && (
+              <p className="mt-1 line-clamp-1 text-sm text-slate-600">{d.description}</p>
+            )}
+          </div>
+
+          <span className="text-sm font-bold text-blue-600">Skatīt</span>
+        </Link>
+      ))}
+    </div>
+  ) : (
+    <p className="text-gray-600">Vēl nav atzīmētu apmeklētu vietu.</p>
+  )}
+</div>
 
               <div className="profile-panel mb-6">
-                <h3 className="mb-4 text-xl font-black text-slate-950">Maršruti, kas jums patīk</h3>                {likedRoutes.length > 0 ? (
-                  <div className="space-y-2">
-                    {likedRoutes.slice(0, 6).map((r) => (
-                      <Link key={r.id} href={`/itinerary?route=${r.id}&openMap=1`} className="block text-sm text-blue-600 hover:underline">
-                        {r.name}
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-600">Jūs vēl neesat atzīmējis nevienu publisko maršrutu ar “patīk”.</p>
-                )}
-              </div>
+  <h3 className="mb-4 text-xl font-black text-slate-950">Publiskie maršruti, kas jums patīk</h3>
+
+  {likedRoutes.length > 0 ? (
+    <div className="space-y-3">
+      {likedRoutes.slice(0, 6).map((r) => (
+        <Link
+          key={r.id}
+          href={`/itinerary?route=${r.id}&openMap=1`}
+          className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm backdrop-blur-sm transition hover:bg-gray-50"
+        >
+          <p className="text-base font-black text-slate-950">{r.name}</p>
+          <span className="text-sm font-bold text-blue-600">Skatīt</span>
+        </Link>
+      ))}
+    </div>
+  ) : (
+    <p className="text-gray-600">Jūs vēl neesat atzīmējis nevienu publisko maršrutu ar “patīk”.</p>
+  )}
+</div>
 
 <div className="profile-panel mb-6">
                 <h3 className="mb-4 flex items-center gap-2 text-xl font-black text-slate-950">                  <MapPin className="h-5 w-5" />
