@@ -192,21 +192,26 @@ export default function AdminDashboard() {
   }
 
   const uploadImage = async (file: File): Promise<string> => {
-    const compressedFile = await resizeImage(file)
-    const formData = new FormData()
+  const compressedFile = await resizeImage(file)
 
-      const res = await fetch('/api/admin/destination-images', {
-      method: 'POST',
-      body: formData,
-    })
-    const data = await res.json()
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
 
-    if (!res.ok || !data.success || typeof data.imageUrl !== 'string') {
-      throw new Error(data.message || 'Neizdevās augšupielādēt attēlu')
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+      } else {
+        reject(new Error('Neizdevās nolasīt attēlu'))
+      }
     }
 
-    return data.imageUrl
-  }
+    reader.onerror = () => {
+      reject(new Error('Neizdevās nolasīt attēlu'))
+    }
+
+    reader.readAsDataURL(compressedFile)
+  })
+}
 
   const handleEditSubmit = async (e: FormEvent) => {
     e.preventDefault()
