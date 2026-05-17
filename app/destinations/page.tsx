@@ -8,7 +8,7 @@ import LikeButton from "@/components/like-button"
 import { useAuth } from "@/lib/auth-context"
 
 // Tulkotas kategorijas un reģioni
-const categories = ["all", "city", "nature", "beach", "palace"]
+const categories = ["Visas", "Pilsēta", "Daba", "Pludmale", "Muiža"]
 const regions = ["all", "Vidzeme", "Zemgale", "Latgale", "Kurzeme"]
 
 const categoryTranslations: Record<string, string> = {
