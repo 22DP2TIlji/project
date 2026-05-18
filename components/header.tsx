@@ -23,7 +23,6 @@ const planLinks: HeaderLink[] = [
 
 const secondaryLinks: HeaderLink[] = [
   ["/explore", "Izpētīt"],
-  ["/contact", "Kontakti"],
 ]
 
 function isActivePath(pathname: string, href: string) {
