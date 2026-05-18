@@ -28,11 +28,13 @@ export async function GET(_: Request, { params }: RouteParams) {
   }
 
   return new NextResponse(parsed.body, {
-  headers: {
-    'Content-Type': parsed.mimeType,
-    'Cache-Control': 'public, max-age=31536000, immutable',
-  },
-})
+    headers: {
+      'Content-Type': parsed.mimeType,
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      Pragma: 'no-cache',
+      Expires: '0',
+    },
+  })
 }
 
 function parseImageDataUrl(value: string | null): { mimeType: string; body: ArrayBuffer } | null {
