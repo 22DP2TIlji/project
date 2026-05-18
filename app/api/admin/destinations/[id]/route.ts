@@ -1,8 +1,44 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { normalizeDestinationImageUrl } from '../../destination-images'
+import { mkdir, writeFile } from 'fs/promises'
+import path from 'path'
 
 type RouteParams = { params: { id: string } }
+
+const DATA_URL_PATTERN = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
+const IMAGE_EXTENSION_BY_MIME: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+}
+
+async function saveDestinationImageFile(imageUrl: string | null, destinationId: number) {
+  if (!imageUrl) return imageUrl
+
+  const match = imageUrl.match(DATA_URL_PATTERN)
+  if (!match) return imageUrl
+
+  const mimeType = match[1].toLowerCase()
+  const extension = IMAGE_EXTENSION_BY_MIME[mimeType]
+
+  if (!extension) {
+    throw new Error('Unsupported image type')
+  }
+
+  const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'destinations')
+  await mkdir(uploadDir, { recursive: true })
+
+  const fileName = `destination-${destinationId}-${Date.now()}.${extension}`
+  const filePath = path.join(uploadDir, fileName)
+  const buffer = Buffer.from(match[2], 'base64')
+
+  await writeFile(filePath, buffer)
+
+  return `/uploads/destinations/${fileName}`
+}
 
 export async function PUT(request: Request, { params }: RouteParams) {
   const rawId = params.id
@@ -32,6 +68,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 
   try {
+    const normalizedImageUrl = normalizeDestinationImageUrl(imageUrl)
+    const savedImageUrl = await saveDestinationImageFile(normalizedImageUrl, destinationId)
+
     const updatedDestination = await prisma.destination.update({
       where: { id: destinationId },
       data: {
@@ -39,7 +78,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
         description: description.trim(),
         category: category?.trim() || null,
         region: region?.trim() || null,
-        imageUrl: normalizeDestinationImageUrl(imageUrl),
+        imageUrl: savedImageUrl,
       },
       select: {
         id: true,
