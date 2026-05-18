@@ -92,9 +92,10 @@ function PlanningMenu({ pathname }: { pathname: string }) {
 }
 
 export default function Header() {
-  const { user, isAdmin } = useAuth()
+  const { user } = useAuth()
   const pathname = usePathname() ?? ""
   const [mobileOpen, setMobileOpen] = useState(false)
+  const canSeeAdmin = user?.role === "admin"
 
   useEffect(() => setMobileOpen(false), [pathname])
 
@@ -118,7 +119,7 @@ export default function Header() {
 
           <div className="hidden items-center gap-2 lg:flex">
             {user && <NavLink href="/profile" label="Mans profils" pathname={pathname} />}
-            {user && isAdmin && isAdmin() && <NavLink href="/admin" label="Administrators" pathname={pathname} />}
+             {canSeeAdmin && <NavLink href="/admin" label="Administrators" pathname={pathname} />}
             {!user && (
               <>
                 <Link href="/login" className="clean-nav-link">Pieslēgties</Link>
@@ -129,14 +130,24 @@ export default function Header() {
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => setMobileOpen((value) => !value)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 lg:hidden"
-            aria-label="Atvērt navigāciju"
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+         <div className="flex items-center gap-2 lg:hidden">
+            {canSeeAdmin && (
+              <Link
+                href="/admin"
+                className="rounded-lg bg-sky-700 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-800"
+              >
+                Admin
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => setMobileOpen((value) => !value)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700"
+              aria-label="Atvērt navigāciju"
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
 
         {mobileOpen && (
@@ -146,7 +157,10 @@ export default function Header() {
                 <NavLink key={href} href={href} label={label} pathname={pathname} />
               ))}
               {user ? (
-                <NavLink href="/profile" label="Mans profils" pathname={pathname} />
+                <>
+                  <NavLink href="/profile" label="Mans profils" pathname={pathname} />
+                  {canSeeAdmin && <NavLink href="/admin" label="Administrators" pathname={pathname} />}
+                </>
               ) : (
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <Link href="/login" className="clean-nav-link justify-center">Pieslēgties</Link>
