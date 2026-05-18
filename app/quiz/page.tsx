@@ -142,17 +142,10 @@ export default function QuizPage() {
               {description && (
                 <p className="text-gray-600 mb-6">{description}</p>
               )}
-              <Link
-                href={`/destinations?region=${CITY_TO_REGION[suggestedCity] ?? "Vidzeme"}`}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
-              >
-                Izpētīt vietu: {suggestedCity}
-                <ChevronRight className="h-4 w-4" />
-              </Link>
               <p className="mt-4 text-sm text-gray-500">
-                Vai arī{" "}
+                {" "}
                 <Link href="/trip-planner" className="text-blue-600 hover:underline">
-                  plānojiet pilnu maršrutu
+                  Plānojiet pilnu maršrutu
                 </Link>{" "}
                 balstoties uz savām interesēm.
               </p>
