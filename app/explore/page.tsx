@@ -53,7 +53,7 @@ const EVENTS = [
     description:
       "Dzintaru koncertzālē vasaras sezonā notiek dažādi koncerti — no klasiskās mūzikas līdz pop un džezam.",
     highlights: ["Dzīvā mūzika", "Koncerti pie jūras", "Starptautiski mākslinieki"],
-    image: "https://www.jurmala.lv/sites/jurmala/files/styles/meta_image/public/gallery_images/saullekta-koncerts_artis-veigurs-46.jpg?itok=-2kAF-Mb",
+    image: "https://i3.cn.cz/1747226333_JOHNWILLIAMSKONCERT202527.jpg",
   },
 ]
 
