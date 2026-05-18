@@ -6,18 +6,11 @@ import Image from 'next/image'
 import { CheckCircle2, Search, MapPin, Filter, Navigation } from 'lucide-react'
 import LikeButton from "@/components/like-button"
 import { useAuth } from "@/lib/auth-context"
+import { CATEGORY_OPTIONS, getCategoryLabel } from "@/lib/category-utils"
 
 // Tulkotas kategorijas un reģioni
-const categories = ["Visas", "Pilsēta", "Daba", "Pludmale", "Muiža"]
+const categories = [{ value: "all", label: "Visas" }, ...CATEGORY_OPTIONS]
 const regions = ["all", "Vidzeme", "Zemgale", "Latgale", "Kurzeme"]
-
-const categoryTranslations: Record<string, string> = {
-  all: "Visas",
-  city: "Pilsēta",
-  nature: "Daba",
-  beach: "Pludmale",
-  palace: "Pils/Muiža"
-};
 
 export default function DestinationsPage() {
   const { user } = useAuth()
@@ -171,8 +164,8 @@ export default function DestinationsPage() {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
                   {categories.map(category => (
-                    <option key={category} value={category} className="bg-white dark:bg-gray-800">
-                      {categoryTranslations[category] || category}
+                    <option key={category.value} value={category.value} className="bg-white dark:bg-gray-800">
+                      {category.label}
                     </option>
                   ))}
                 </select>
@@ -247,17 +240,17 @@ export default function DestinationsPage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {categories.filter(cat => cat !== "all").map(category => (
+              {categories.filter(category => category.value !== "all").map(category => (
                 <button
-                  key={category}
+                  key={category.value}
                   className={`px-3 py-1 rounded-full text-sm ${
-                    selectedCategory === category
+                    selectedCategory === category.value
                       ? "bg-blue-600 text-white"
                       : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
                   }`}
-                  onClick={() => setSelectedCategory(category)}
+                  onClick={() => setSelectedCategory(category.value)}
                 >
-                  {categoryTranslations[category] || category}
+                  {category.label}
                 </button>
               ))}
             </div>
@@ -313,7 +306,7 @@ export default function DestinationsPage() {
                     <div className="flex gap-2">
                       {destination.category && (
                         <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-xs rounded-full text-gray-700 dark:text-gray-200">
-                          {categoryTranslations[destination.category] || destination.category}
+                           {getCategoryLabel(destination.category)}
                         </span>
                       )}
                       {destination.region && (

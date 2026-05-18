@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getUserFromId } from '@/lib/auth-utils'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface LikedDestinationRow {
   destinationId: number
 }
@@ -16,17 +19,20 @@ export async function POST(request: Request) {
 
     // Special-case hard-coded admin account
     if (userId === 'admin') {
-      return NextResponse.json({
-        success: true,
-        user: {
-          id: 'admin',
-          name: 'Admin',
-          email: 'admin@gmail.com',
-          role: 'admin',
-          savedDestinations: [],
-          savedItineraries: [],
+      return NextResponse.json(
+        {
+          success: true,
+          user: {
+            id: 'admin',
+            name: 'Admin',
+            email: 'admin@gmail.com',
+            role: 'admin',
+            savedDestinations: [],
+            savedItineraries: [],
+          },
         },
-      })
+         { headers: { 'Cache-Control': 'no-store' } },
+      )
     }
 
     const user = await getUserFromId(userId)
@@ -48,7 +54,10 @@ export async function POST(request: Request) {
     // Add liked destinations to the user object
     const userWithLiked = { ...user, savedDestinations: likedDestinations }
 
-    return NextResponse.json({ success: true, user: userWithLiked })
+    return NextResponse.json(
+      { success: true, user: userWithLiked },
+      { headers: { 'Cache-Control': 'no-store' } },
+    )
   } catch (error) {
     console.error('Error fetching user data:', error)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })

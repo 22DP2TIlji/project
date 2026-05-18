@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getUserFromId } from '@/lib/auth-utils'
+import { categoryMatches } from '@/lib/category-utils'
 
 // Центры городов Латвии (lat, lng)
 const CITY_CENTERS: Record<string, [number, number]> = {
@@ -111,18 +112,14 @@ export async function POST(request: NextRequest) {
       MAX_PLACES_CAP
     )
 
-    const where: Record<string, unknown> = {}
-    if (interests && interests.length > 0) {
-      where.category = { in: interests }
-    }
+    const selectedInterests = Array.isArray(interests) ? interests.filter(Boolean) : []
 
-    const destinations = await prisma.destination.findMany({
-      where: Object.keys(where).length ? where : undefined,
-    })
+    const destinations = await prisma.destination.findMany()
 
     type DestRow = typeof destinations[0] & { averageCost?: unknown; averageVisitMinutes?: number | null; rating?: unknown }
     let places = destinations
       .filter((d) => d.latitude != null && d.longitude != null)
+      .filter((d) => selectedInterests.length === 0 || selectedInterests.some((interest) => categoryMatches(d.category, interest)))
       .map((d) => {
         const row = d as DestRow
         return {

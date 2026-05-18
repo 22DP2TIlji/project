@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getUserFromId } from '@/lib/auth-utils'
 import { Prisma } from '@prisma/client'
+import { createRouteName, serializeItineraryForRouteDescription } from '@/lib/route-storage'
 
 type TripDay = { dayNumber: number; places: Array<{ id: number; name: string; latitude?: number; longitude?: number }> }
 
@@ -137,8 +138,8 @@ export async function POST(request: NextRequest) {
     const created = await prisma.route.create({
       data: {
         userId: numericUserId,
-        name: tripName.trim(),
-        description: JSON.stringify(itinerary),
+        name: createRouteName(tripName),
+        description: serializeItineraryForRouteDescription(itinerary),
         startLat: startCoords[0],
         startLng: startCoords[1],
         endLat: endCoords[0],

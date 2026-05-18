@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma'
+import { categoryMatches } from '@/lib/category-utils'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
 
       const matchesSearch = !normalizedSearch || name.includes(normalizedSearch)
       
-      const matchesCategory = !normalizedCategory || destCategory === normalizedCategory
+      const matchesCategory = !normalizedCategory || categoryMatches(destCategory, normalizedCategory)
       const matchesRegion = !normalizedRegion || destRegion === normalizedRegion
 
       return matchesSearch && matchesCategory && matchesRegion

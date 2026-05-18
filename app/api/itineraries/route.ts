@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUserFromId } from "@/lib/auth-utils";
+import { createRouteName, serializeItineraryForRouteDescription } from "@/lib/route-storage";
 
 type ItineraryPayload = {
   id?: string;
@@ -157,11 +158,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const name = itinerary.tripName
-      ? String(itinerary.tripName)
-      : itinerary.startPoint && itinerary.endPoint
-        ? `${itinerary.startPoint} → ${itinerary.endPoint}`
-        : "Saglabāts maršruts";
+    const name = createRouteName(
+      itinerary.tripName
+        ? String(itinerary.tripName)
+        : itinerary.startPoint && itinerary.endPoint
+          ? `${itinerary.startPoint} → ${itinerary.endPoint}`
+          : "Saglabāts maršruts",
+    );
 
     const startCoords = itinerary.startCoords;
     const endCoords = itinerary.endCoords;
@@ -170,7 +173,7 @@ export async function POST(request: NextRequest) {
       data: {
         userId: numericUserId,
         name,
-        description: JSON.stringify(itinerary),
+        description: serializeItineraryForRouteDescription(itinerary),
         startLat: startCoords?.[0] ?? 0,
         startLng: startCoords?.[1] ?? 0,
         endLat: endCoords?.[0] ?? 0,

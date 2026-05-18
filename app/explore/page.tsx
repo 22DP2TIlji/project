@@ -113,6 +113,23 @@ interface ForecastDay {
   dt_txt?: string
 }
 
+const EVENT_IMAGE_FALLBACK = "/placeholder.svg"
+
+function EventImage({ src, alt }: { src: string; alt: string }) {
+  const [imageSrc, setImageSrc] = useState(src)
+
+  return (
+    <img
+      src={imageSrc}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      className="h-full w-full object-cover"
+      onError={() => setImageSrc(EVENT_IMAGE_FALLBACK)}
+    />
+  )
+}
+
 const WEATHER_CITIES = [
   { key: "riga", label: "Rīga", lat: 56.9496, lng: 24.1052 },
   { key: "jurmala", label: "Jūrmala", lat: 56.9677, lng: 23.7704 },
@@ -370,14 +387,7 @@ export default function ExplorePage() {
                 className="group border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden hover:shadow-md bg-white dark:bg-gray-800"
               >
                 <div className="relative h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden">
-  <Image
-    src={event.image}
-    alt={event.name}
-    fill
-    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-    className="object-cover"
-    unoptimized
-  />
+  <EventImage src={event.image} alt={event.name} />
 
   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-transparent" />
 

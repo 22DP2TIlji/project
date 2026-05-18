@@ -45,17 +45,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const response = await fetch('/api/auth/me', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              cache: 'no-store',
               body: JSON.stringify({ id: userData.id })
             })
             if (response.ok) {
               const result = await response.json()
               if (result.success && result.user) {
                 setUser(result.user)
+                localStorage.setItem('user', JSON.stringify(result.user))
                 return
               }
               localStorage.removeItem('user')
               localStorage.removeItem('likedDestinations')
-    localStorage.removeItem('savedItineraries')
+              localStorage.removeItem('savedItineraries')
               setUser(null)
               return
             }
@@ -84,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: {
           'Content-Type': 'application/json',
         },
+        cache: 'no-store',
         body: JSON.stringify({ email, password })
       })
 
