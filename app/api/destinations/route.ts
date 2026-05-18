@@ -35,7 +35,6 @@ export async function GET(request: NextRequest) {
       const destRegion = dest.region?.toLowerCase() ?? ''
 
       const matchesSearch = !normalizedSearch || name.includes(normalizedSearch)
-      
       const matchesCategory = !normalizedCategory || categoryMatches(destCategory, normalizedCategory)
       const matchesRegion = !normalizedRegion || destRegion === normalizedRegion
 
@@ -80,7 +79,7 @@ export async function GET(request: NextRequest) {
         region: d.region,
         latitude: d.latitude ? Number(d.latitude) : null,
         longitude: d.longitude ? Number(d.longitude) : null,
-        image_url: normalizeImageUrl(d.imageRaw ?? null, d.id),
+        image_url: normalizeImageUrl(d.imageRaw ?? null, d.id, d.updatedAt),
       }))
 
       return NextResponse.json(
@@ -110,7 +109,7 @@ export async function GET(request: NextRequest) {
       region: d.region,
       latitude: d.latitude ? Number(d.latitude) : null,
       longitude: d.longitude ? Number(d.longitude) : null,
-      image_url: normalizeImageUrl(d.imageRaw ?? null, d.id),
+      image_url: normalizeImageUrl(d.imageRaw ?? null, d.id, d.updatedAt),
     }))
 
     return NextResponse.json(
@@ -157,6 +156,7 @@ async function loadAllDestinations(): Promise<Array<{
   latitude: number | null
   longitude: number | null
   imageRaw: string | null
+  updatedAt: Date | string | null
 }>> {
   try {
     const rows = await prisma.$queryRawUnsafe<
@@ -170,9 +170,10 @@ async function loadAllDestinations(): Promise<Array<{
         latitude: number | null
         longitude: number | null
         imageRaw: string | null
+        updatedAt: Date | string | null
       }>
     >(
-      `SELECT id, name, description, city, category, region, latitude, longitude, image_url AS imageRaw
+      `SELECT id, name, description, city, category, region, latitude, longitude, image_url AS imageRaw, updated_at AS updatedAt
        FROM destinations
        ORDER BY id DESC`
     )
@@ -196,9 +197,10 @@ async function loadAllDestinations(): Promise<Array<{
           latitude: number | null
           longitude: number | null
           imageRaw: string | null
+          updatedAt: Date | string | null
         }>
       >(
-        `SELECT id, name, description, city, category, region, latitude, longitude, imageUrl AS imageRaw
+        `SELECT id, name, description, city, category, region, latitude, longitude, imageUrl AS imageRaw, updatedAt
          FROM destinations
          ORDER BY id DESC`
       )
@@ -215,7 +217,7 @@ async function loadAllDestinations(): Promise<Array<{
   }
 }
 
-function normalizeImageUrl(value: string | null, destinationId: number): string | null {
+function normalizeImageUrl(value: string | null, destinationId: number, updatedAt?: Date | string | null): string | null {
   if (!value) return null
 
   let raw = value.trim()
@@ -240,7 +242,9 @@ function normalizeImageUrl(value: string | null, destinationId: number): string 
     }
   }
 
-  if (raw.startsWith('data:image/')) return `/api/destinations/${destinationId}/image`
+  const version = updatedAt ? new Date(updatedAt).getTime() : Date.now()
+
+  if (raw.startsWith('data:image/')) return `/api/destinations/${destinationId}/image?v=${version}`
   if (raw.startsWith('//')) return `https:${raw}`
   if (raw.startsWith('http://')) return raw.replace('http://', 'https://')
 
