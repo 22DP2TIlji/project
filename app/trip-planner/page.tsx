@@ -27,7 +27,7 @@ const CATEGORIES = [
 ]
 
 export default function TripPlannerPage() {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isLoading } = useAuth()
   const router = useRouter()
   const [days, setDays] = useState(2)
   const [interests, setInterests] = useState<string[]>([])
@@ -45,7 +45,11 @@ export default function TripPlannerPage() {
   }
 
   const generate = async () => {
+<<<<<<< ours
     if (!isAuthenticated || !user || user.id === "admin") {
+=======
+    if (!user || user.id === "admin") {
+>>>>>>> theirs
       router.push("/login?message=" + encodeURIComponent("Lai veiktu šo darbību, vispirms pieslēdzieties."))
       return
     }
@@ -86,7 +90,11 @@ export default function TripPlannerPage() {
 
   const saveAndPlanOnMap = async () => {
     if (!trip) return
+<<<<<<< ours
     if (!isAuthenticated || !user?.id || user.id === "admin") {
+=======
+    if (!user?.id || user.id === "admin") {
+>>>>>>> theirs
       router.push("/login?message=" + encodeURIComponent("Lai veiktu šo darbību, vispirms pieslēdzieties."))
       return
     }
@@ -203,7 +211,7 @@ export default function TripPlannerPage() {
               </div>
               <button
                 onClick={generate}
-                disabled={loading || !isAuthenticated || !user || user.id === "admin"}
+                disabled={loading || isLoading || !user || user.id === "admin"}
                 className="px-6 py-3 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
               >
                 {loading ? (
@@ -214,7 +222,7 @@ export default function TripPlannerPage() {
                 ) : (
                   <>
                     <MapPin className="h-4 w-4" />
-                    {isAuthenticated && user?.id !== "admin" ? "Izveidot maršrutu" : "Pieslēdzieties, lai veidotu"}
+                    {user && user.id !== "admin" ? "Izveidot maršrutu" : "Pieslēdzieties, lai veidotu"}
                   </>
                 )}
               </button>

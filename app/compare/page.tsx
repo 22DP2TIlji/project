@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Search, MapPin, Star, Calendar, X, Plus } from "lucide-react"
+import { getCategoryLabel } from "@/lib/category-utils"
 
 export default function ComparePage() {
   const [selectedDestinations, setSelectedDestinations] = useState<any[]>([])
@@ -88,7 +89,7 @@ export default function ComparePage() {
                     <div className="flex flex-wrap gap-2 mt-3">
                       {dest.category && (
                         <span className="px-2 py-1 bg-gray-100 text-xs rounded text-gray-600">
-                          {dest.category}
+                          {getCategoryLabel(dest.category)}
                         </span>
                       )}
                       {dest.region && (
@@ -188,7 +189,7 @@ export default function ComparePage() {
                       <td className="compare-row-label">Kategorija</td>
                       {selectedDestinations.map((dest) => (
                         <td key={dest.id} className="compare-cell text-slate-900">
-                          {dest.category || "Nav pieejama"}
+                          {dest.category ? getCategoryLabel(dest.category) : "Nav pieejama"}
                         </td>
                       ))}
                     </tr>
