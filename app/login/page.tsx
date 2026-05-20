@@ -3,14 +3,16 @@
 import { useState } from 'react'
 import Link from "next/link"
 import { useAuth } from '@/lib/auth-context'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function LoginPage() {
   const { login, isAuthenticated } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const authRequiredMessage = searchParams.get('message')
 
   // Novirzīt, ja lietotājs jau ir autorizējies
   if (isAuthenticated) {
@@ -44,6 +46,12 @@ export default function LoginPage() {
           <h2 className="text-3xl font-black text-slate-950">Pieslēgties savam kontam</h2>
           <p className="mt-2 text-sm text-slate-500">Turpini plānot savus maršrutus un saglabātās idejas.</p>
         </div>
+
+        {authRequiredMessage && (
+          <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-700">
+            {decodeURIComponent(authRequiredMessage)}
+          </div>
+        )}
 
         {error && (
           <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">

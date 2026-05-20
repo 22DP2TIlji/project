@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Star, MessageCircle, User as UserIcon } from "lucide-react"
 import LikeButton from "@/components/like-button"
@@ -131,6 +131,7 @@ export default function DestinationPage() {
   const [moreDestinations, setMoreDestinations] = useState<any[]>([])
   const [loadingMore, setLoadingMore] = useState(true)
   const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
     if (!id) {
@@ -242,7 +243,10 @@ const fetchDestination = async () => {
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!id || !user) return
+    if (!id || !user) {
+      router.push("/login?message=" + encodeURIComponent("Lai veiktu šo darbību, vispirms pieslēdzieties."))
+      return
+    }
     if (!newComment.trim()) return
     if (!isNumericDestination) return
 
@@ -473,7 +477,7 @@ const fetchDestination = async () => {
                         </p>
                       </div>
                       <Link
-                        href="/login"
+                        href="/login?message=Lai%20veiktu%20darb%C4%ABbu%2C%20vispirms%20piesl%C4%93dzieties."
                         className="inline-flex items-center justify-center px-5 py-2.5 rounded-md border border-gray-300 text-sm font-medium text-gray-900 bg-white hover:bg-gray-50 transition-colors"
                       >
                         Pieslēgties

@@ -46,7 +46,7 @@ export default function TripPlannerPage() {
 
   const generate = async () => {
     if (!isAuthenticated || !user || user.id === "admin") {
-      router.push("/login")
+      router.push("/login?message=" + encodeURIComponent("Lai veiktu šo darbību, vispirms pieslēdzieties."))
       return
     }
 
@@ -87,7 +87,7 @@ export default function TripPlannerPage() {
   const saveAndPlanOnMap = async () => {
     if (!trip) return
     if (!isAuthenticated || !user?.id || user.id === "admin") {
-      router.push("/login")
+      router.push("/login?message=" + encodeURIComponent("Lai veiktu šo darbību, vispirms pieslēdzieties."))
       return
     }
 

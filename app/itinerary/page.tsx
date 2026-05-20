@@ -906,11 +906,6 @@ export default function ItineraryPage() {
                           <div className="flex items-center gap-2">
                             {user &&
                               user.id &&
-<<<<<<< ours
-
-=======
-                              
->>>>>>> theirs
                               Number.isFinite(Number(itinerary.id)) && (
                                 <label className="flex cursor-pointer items-center gap-1.5 text-sm">
                                   <input

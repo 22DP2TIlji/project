@@ -61,17 +61,14 @@ export default function LikeButton({ destinationId, destinationName, onLikeChang
       return
     }
 
-    router.push("/login")
+    router.push("/login?message=" + encodeURIComponent("Lai veiktu šo darbību, vispirms pieslēdzieties."))
   }
   return (
     <button
       type="button"
       onClick={toggleLike}
-<<<<<<< ours
       disabled={updating}
-=======
-       disabled={updating}
->>>>>>> theirs
+
       className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
       aria-label={isLiked ? "Noņemt no izlases" : "Pievienot izlasei"}
       title={isAuthenticated ? undefined : "Pieslēdzieties, lai saglabātu vietu"}

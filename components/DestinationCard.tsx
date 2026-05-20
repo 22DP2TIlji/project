@@ -30,7 +30,7 @@ export default function DestinationCard({
 
   const handleLikeClick = async () => {
     if (!user) {
-     router.push('/login');
+     router.push('/login?message=' + encodeURIComponent('Lai veiktu šo darbību, vispirms pieslēdzieties.'));
       return;
     }
 
@@ -54,7 +54,7 @@ export default function DestinationCard({
             disabled={isLoading}
             className={`p-2 rounded-full transition-colors ${
              isLiked ? 'text-red-500' : 'text-slate-400 hover:text-red-500'
-            } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            } cursor-pointer`}
             title={user ? (isLiked ? 'Noņemt patīk' : 'Patīk') : 'Pieslēdzieties, lai pievienotu izlasei'}
           >
             <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />

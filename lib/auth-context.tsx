@@ -79,6 +79,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadUser()
   }, [])
 
+
+  useEffect(() => {
+    if (!user?.id || user.id === 'admin') return
+
+    const sendPresence = async () => {
+      try {
+        await fetch('/api/users/presence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id }),
+          keepalive: true,
+        })
+      } catch {}
+    }
+
+    sendPresence()
+    const interval = setInterval(sendPresence, 60_000)
+
+    return () => clearInterval(interval)
+  }, [user?.id, user?.role])
+
   const login = async (email: string, password: string) => {
     try {
       const response = await fetch('/api/auth/login', {

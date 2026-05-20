@@ -160,17 +160,14 @@ export default function AdminDashboard() {
       setDestinations(loadedDestinations)
       setReviews(reviewsData.success ? reviewsData.reviews ?? [] : [])
 
-      const activeThreshold = Date.now() - 15 * 60 * 1000
+      const activeThreshold = Date.now() - 2 * 60 * 1000
       const activeUsers = loadedUsers.filter((u: User) => {
+        if (u.role === "admin") return false
         if (!u.lastLogin) return false
         const lastSeen = new Date(u.lastLogin).getTime()
         return Number.isFinite(lastSeen) && lastSeen >= activeThreshold
       }).length
 
-<<<<<<< ours
-
-=======
->>>>>>> theirs
       setStats({
         totalUsers: loadedUsers.length,
         activeUsers,

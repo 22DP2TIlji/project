@@ -53,7 +53,7 @@ export default function PublicRoutesPage() {
 
   const toggleLike = async (routeId: number) => {
     if (!user?.id) {
-      router.push("/login")
+      router.push("/login?message=" + encodeURIComponent("Lai veiktu šo darbību, vispirms pieslēdzieties."))
       return
     }
     const res = await fetch(`/api/routes/${routeId}/likes`, {
@@ -82,7 +82,7 @@ export default function PublicRoutesPage() {
 
   const addComment = async (routeId: number) => {
     if (!user?.id) {
-      router.push("/login")
+      router.push("/login?message=" + encodeURIComponent("Lai veiktu šo darbību, vispirms pieslēdzieties."))
       return
     }
     const text = (commentText[routeId] || "").trim()
@@ -108,7 +108,7 @@ export default function PublicRoutesPage() {
 
   const clone = async (routeId: number) => {
     if (!user || !user.id) {
-      router.push("/login")
+      router.push("/login?message=" + encodeURIComponent("Lai veiktu šo darbību, vispirms pieslēdzieties."))
       return
     }
     setCloning(routeId)
