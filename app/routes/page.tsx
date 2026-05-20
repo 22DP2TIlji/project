@@ -52,7 +52,7 @@ export default function PublicRoutesPage() {
   }, [user?.id])
 
   const toggleLike = async (routeId: number) => {
-    if (!user?.id || user.id === "admin") {
+    if (!user?.id) {
       router.push("/login")
       return
     }
@@ -81,7 +81,7 @@ export default function PublicRoutesPage() {
   }
 
   const addComment = async (routeId: number) => {
-    if (!user?.id || user.id === "admin") {
+    if (!user?.id) {
       router.push("/login")
       return
     }
@@ -107,7 +107,7 @@ export default function PublicRoutesPage() {
   }
 
   const clone = async (routeId: number) => {
-    if (!user || !user.id || user.id === "admin") {
+    if (!user || !user.id) {
       router.push("/login")
       return
     }

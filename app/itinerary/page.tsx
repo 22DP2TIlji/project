@@ -63,6 +63,7 @@ export default function ItineraryPage() {
   const [showNearby, setShowNearby] = useState(false)
   const [isPublic, setIsPublic] = useState(false)
   const [visitedDestinationIds, setVisitedDestinationIds] = useState<number[]>([])
+  const [showAllSavedRoutes, setShowAllSavedRoutes] = useState(false)
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
 
   const routeIdFromUrl = searchParams.get("route")
@@ -887,7 +888,10 @@ export default function ItineraryPage() {
                   </h2>
 
                   <div className="space-y-4">
-                    {savedItineraries.map((itinerary) => (
+                    {(showAllSavedRoutes
+                      ? savedItineraries
+                      : savedItineraries.slice(0, 2)
+                    ).map((itinerary: any) => (
                       <div
                         key={itinerary.id}
                         className="rounded-3xl border border-slate-200 bg-slate-50/80 p-5"
@@ -902,8 +906,8 @@ export default function ItineraryPage() {
                           <div className="flex items-center gap-2">
                             {user &&
                               user.id &&
-                              user.id !== "admin" &&
-                              Number.isFinite(parseInt(itinerary.id)) && (
+
+                              Number.isFinite(Number(itinerary.id)) && (
                                 <label className="flex cursor-pointer items-center gap-1.5 text-sm">
                                   <input
                                     type="checkbox"
@@ -939,6 +943,17 @@ export default function ItineraryPage() {
                       </div>
                     ))}
                   </div>
+                  {savedItineraries.length > 2 && (
+                    <div className="mt-4 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setShowAllSavedRoutes((prev) => !prev)}
+                        className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                      >
+                        {showAllSavedRoutes ? "Rādīt mazāk" : "Skatīt tālāk"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -985,6 +1000,17 @@ export default function ItineraryPage() {
                       </div>
                     ))}
                   </div>
+                  {savedItineraries.length > 2 && (
+                    <div className="mt-4 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setShowAllSavedRoutes((prev) => !prev)}
+                        className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                      >
+                        {showAllSavedRoutes ? "Rādīt mazāk" : "Skatīt tālāk"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
               {isClient && (

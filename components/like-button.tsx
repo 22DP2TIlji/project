@@ -67,7 +67,7 @@ export default function LikeButton({ destinationId, destinationName, onLikeChang
     <button
       type="button"
       onClick={toggleLike}
-       disabled={updating || !isAuthenticated}
+      disabled={updating}
       className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
       aria-label={isLiked ? "Noņemt no izlases" : "Pievienot izlasei"}
       title={isAuthenticated ? undefined : "Pieslēdzieties, lai saglabātu vietu"}

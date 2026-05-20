@@ -143,27 +143,27 @@ export default function DestinationPage() {
       setDestination(staticDest)
       setLoadingDestination(false)
       return
-    }
+}
 
-    const numericId = Number(id)
-    if (!Number.isFinite(numericId)) {
-      setLoadingDestination(false)
-      return
-    }
+const numericId = Number(id)
+if (!Number.isFinite(numericId)) {
+  setLoadingDestination(false)
+  return
+}
 
-    setLoadingDestination(true)
-    const fetchDestination = async () => {
-      try {
-        const res = await fetch(`/api/destinations/${id}`, { cache: "no-store" })
-        const data = await res.json()
-        if (res.ok && data.success && data.destination) {
-          const d = data.destination
-          setDestination({
-            id: String(d.id),
-            name: d.name,
-            description: d.description || "",
-            fullDescription: d.description || "",
-            image_url: d.image_url,
+setLoadingDestination(true)
+const fetchDestination = async () => {
+  try {
+    const res = await fetch(`/api/destinations/${id}`, { cache: "no-store" })
+    const data = await res.json()
+    if (res.ok && data.success && data.destination) {
+      const d = data.destination
+      setDestination({
+        id: String(d.id),
+        name: d.name,
+        description: d.description || "",
+        fullDescription: d.description || "",
+        image_url: d.image_url,
           })
         }
       } catch (e) {

@@ -8,6 +8,7 @@ interface UserData {
   email: string;
   role: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 // Iegūst visus lietotājus administratora panelim
@@ -20,6 +21,7 @@ export async function GET() {
         email: true,
         role: true,
         createdAt: true,
+        updatedAt: true,
       },
       orderBy: {
         createdAt: "desc",
@@ -31,6 +33,7 @@ export async function GET() {
       ...user,
       id: user.id.toString(),
       created_at: user.createdAt,
+      lastLogin: user.updatedAt,
     }));
 
     const totalRoutes = await prisma.route.count();
@@ -98,6 +101,7 @@ export async function POST(request: Request) {
         email: true,
         role: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
 

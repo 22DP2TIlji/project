@@ -48,6 +48,11 @@ export async function POST(request: Request) {
       )
     }
 
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { updatedAt: new Date() },
+    })
+    
     const likedRows = await prisma.userLikedDestination.findMany({
       where: { userId: user.id },
       select: { destinationId: true },
