@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { Search, Clock, Navigation, MapPin, Hotel, Calendar, X, Share2, CheckCircle2 } from "lucide-react"
+import { getCategoryLabel } from "@/lib/category-utils"
 
 function ItineraryMapLoadingPlaceholder() {
   return (
@@ -1058,7 +1059,7 @@ export default function ItineraryPage() {
                               )}
                               {place.category && (
                                 <span className="inline-block mt-2 text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
-                                  {place.category}
+                                  {getCategoryLabel(place.category)}
                                 </span>
                               )}
                               {place.type === 'accommodation' && place.priceRange && (

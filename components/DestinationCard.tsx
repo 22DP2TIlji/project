@@ -3,6 +3,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useLikeDestination } from '@/hooks/useLikeDestination';
 import { Heart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { getCategoryLabel } from '@/lib/category-utils';
 
 interface DestinationCardProps {
   id: number;
@@ -64,7 +65,7 @@ export default function DestinationCard({
         <div className="mt-4 flex flex-wrap gap-2">
           {category && (
             <span className="rounded-full bg-sky-50 px-3 py-1 text-sm font-semibold text-sky-700">
-              {category}
+              {getCategoryLabel(category)}
             </span>
           )}
           {region && (

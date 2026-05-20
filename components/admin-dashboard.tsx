@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
+import { getCategoryLabel } from '@/lib/category-utils'
 
 interface UserStats {
   totalUsers: number
@@ -52,6 +53,21 @@ interface DestinationsResponse {
 interface ReviewsResponse {
   success?: boolean
   reviews?: Review[]
+}
+
+interface PublicRoute {
+  id: number
+  name: string
+  isPublic: boolean
+  userName: string
+}
+
+interface RouteComment {
+  id: number
+  routeId: number
+  routeName: string
+  userName: string
+  text: string
 }
 
 const PASSWORD_REQUIREMENTS = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
@@ -140,18 +156,24 @@ export default function AdminDashboard() {
   const [editingReviewId, setEditingReviewId] = useState<number | null>(null)
   const [reviewMsg, setReviewMsg] = useState('')
   const [reviewError, setReviewError] = useState('')
+  const [publicRoutes, setPublicRoutes] = useState<PublicRoute[]>([])
+  const [routeComments, setRouteComments] = useState<RouteComment[]>([])
 
   const loadAdminData = async () => {
     try {
-      const [usersRes, destinationsRes, reviewsRes] = await Promise.all([
+      const [usersRes, destinationsRes, reviewsRes, publicRoutesRes, routeCommentsRes] = await Promise.all([
         fetch('/api/admin/users'),
         fetch('/api/destinations'),
         fetch('/api/admin/reviews'),
+        fetch('/api/admin/public-routes'),
+        fetch('/api/admin/route-comments'),
       ])
 
       const usersData = (await usersRes.json()) as AdminUsersResponse
       const destinationsData = (await destinationsRes.json()) as DestinationsResponse
       const reviewsData = (await reviewsRes.json()) as ReviewsResponse
+      const publicRoutesData = await publicRoutesRes.json()
+      const routeCommentsData = await routeCommentsRes.json()
 
       const loadedUsers = usersData.users ?? []
       const loadedDestinations = destinationsData.destinations ?? []
@@ -159,6 +181,8 @@ export default function AdminDashboard() {
       setUsers(loadedUsers)
       setDestinations(loadedDestinations)
       setReviews(reviewsData.success ? reviewsData.reviews ?? [] : [])
+      setPublicRoutes(publicRoutesData?.success ? publicRoutesData.routes ?? [] : [])
+      setRouteComments(routeCommentsData?.success ? routeCommentsData.comments ?? [] : [])
 
       const activeThreshold = Date.now() - 2 * 60 * 1000
       const activeUsers = loadedUsers.filter((u: User) => {
@@ -559,6 +583,55 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleSetRoutePublic = async (routeId: number, isPublic: boolean) => {
+    try {
+      const res = await fetch('/api/admin/public-routes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ routeId, isPublic }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        alert(data.message || 'Neizdevās atjaunināt maršruta statusu.')
+        return
+      }
+      setPublicRoutes((prev) => prev.map((route) => (route.id === routeId ? { ...route, isPublic } : route)))
+    } catch {
+      alert('Neizdevās atjaunināt maršruta statusu.')
+    }
+  }
+
+  const handleDeletePublicRoute = async (routeId: number) => {
+    if (!confirm('Vai tiešām vēlaties dzēst šo maršrutu?')) return
+    try {
+      const res = await fetch(`/api/admin/public-routes/${routeId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        alert(data.message || 'Neizdevās dzēst maršrutu.')
+        return
+      }
+      setPublicRoutes((prev) => prev.filter((route) => route.id !== routeId))
+      setRouteComments((prev) => prev.filter((comment) => comment.routeId !== routeId))
+    } catch {
+      alert('Neizdevās dzēst maršrutu.')
+    }
+  }
+
+  const handleDeleteRouteComment = async (commentId: number) => {
+    if (!confirm('Vai tiešām vēlaties dzēst šo komentāru?')) return
+    try {
+      const res = await fetch(`/api/admin/route-comments/${commentId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        alert(data.message || 'Neizdevās dzēst komentāru.')
+        return
+      }
+      setRouteComments((prev) => prev.filter((comment) => comment.id !== commentId))
+    } catch {
+      alert('Neizdevās dzēst komentāru.')
+    }
+  }
+
   if (!isAdmin()) return null
 
   return (
@@ -785,7 +858,7 @@ export default function AdminDashboard() {
                       {destination.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {destination.category || '-'}
+                      {destination.category ? getCategoryLabel(destination.category) : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {destination.region || '-'}
@@ -934,6 +1007,55 @@ export default function AdminDashboard() {
             {reviews.length === 0 && (
               <p className="py-4 text-sm text-gray-600 dark:text-gray-300">Komentāru vēl nav.</p>
             )}
+        </div>
+      </div>
+
+      <div className="admin-clean-section mt-8">
+        <div className="mb-5">
+          <h2 className="text-xl font-medium text-slate-950">Publisko maršrutu pārvaldība</h2>
+        </div>
+        <div className="space-y-3">
+          {publicRoutes.map((route) => (
+            <div key={route.id} className="rounded-lg border border-slate-200 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-medium text-slate-900">{route.name}</p>
+                  <p className="text-sm text-slate-500">Autors: {route.userName}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={route.isPublic}
+                      onChange={(e) => handleSetRoutePublic(route.id, e.target.checked)}
+                      className="mr-2"
+                    />
+                    Publisks
+                  </label>
+                  <button onClick={() => handleDeletePublicRoute(route.id)} className="text-sm text-red-600 hover:text-red-700">
+                    Dzēst maršrutu
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="admin-clean-section mt-8">
+        <div className="mb-5">
+          <h2 className="text-xl font-medium text-slate-950">Publisko maršrutu komentāri</h2>
+        </div>
+        <div className="space-y-3">
+          {routeComments.map((comment) => (
+            <div key={comment.id} className="rounded-lg border border-slate-200 bg-white p-4">
+              <p className="text-sm text-slate-500">{comment.routeName} · {comment.userName}</p>
+              <p className="mt-1 text-slate-900">{comment.text}</p>
+              <button onClick={() => handleDeleteRouteComment(comment.id)} className="mt-2 text-sm text-red-600 hover:text-red-700">
+                Dzēst komentāru
+              </button>
+            </div>
+          ))}
         </div>
       </div>
 

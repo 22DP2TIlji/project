@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { getCategoryLabel } from "@/lib/category-utils"
 import { Shuffle } from "lucide-react"
 
 
@@ -59,7 +60,7 @@ export default function RandomPlace() {
             </p>
           )}
           {place.category && (
-            <span className="mt-3 inline-block rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">              {place.category}
+            <span className="mt-3 inline-block rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">              {getCategoryLabel(place.category)}
             </span>
           )}
         </div>
