@@ -1,6 +1,7 @@
 'use client'
 
 import { useAuth } from '@/lib/auth-context'
+import { getCategoryLabel } from '@/lib/category-utils'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { CheckCircle2, MapPin, Route, Star, LogOut, TrendingUp, ChevronRight, DollarSign, Trash2, KeyRound } from 'lucide-react'
@@ -622,7 +623,7 @@ export default function ProfilePage() {
 
         <div className="rounded-2xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm backdrop-blur-sm">
           <p className="text-lg font-semibold text-slate-900">
-            {stats.favoriteCategory}
+            {getCategoryLabel(stats.favoriteCategory)}
           </p>
         </div>
       </div>

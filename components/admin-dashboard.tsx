@@ -158,6 +158,10 @@ export default function AdminDashboard() {
   const [reviewError, setReviewError] = useState('')
   const [publicRoutes, setPublicRoutes] = useState<PublicRoute[]>([])
   const [routeComments, setRouteComments] = useState<RouteComment[]>([])
+<<<<<<< ours
+=======
+  const [visibleDestinationsCount, setVisibleDestinationsCount] = useState(5)
+>>>>>>> theirs
 
   const loadAdminData = async () => {
     try {
@@ -846,7 +850,7 @@ export default function AdminDashboard() {
               </thead>
 
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {destinations.map((destination, index) => (
+                {destinations.slice(0, visibleDestinationsCount).map((destination, index) => (
                   <tr key={destination.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {index + 1}
@@ -883,6 +887,17 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          {destinations.length > visibleDestinationsCount && (
+            <div className="mt-4 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setVisibleDestinationsCount((prev) => prev + 5)}
+                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Skatīt vēl 5 vietas
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1013,8 +1028,19 @@ export default function AdminDashboard() {
       <div className="admin-clean-section mt-8">
         <div className="mb-5">
           <h2 className="text-xl font-medium text-slate-950">Publisko maršrutu pārvaldība</h2>
+<<<<<<< ours
         </div>
         <div className="space-y-3">
+=======
+          <p className="mt-1 text-sm text-slate-500">
+            Šeit varat ieslēgt/izslēgt publiskumu un dzēst maršrutus.
+          </p>
+        </div>
+        <div className="space-y-3">
+          {publicRoutes.length === 0 && (
+            <p className="text-sm text-slate-500">Maršruti netika atrasti.</p>
+          )}
+>>>>>>> theirs
           {publicRoutes.map((route) => (
             <div key={route.id} className="rounded-lg border border-slate-200 bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1045,8 +1071,17 @@ export default function AdminDashboard() {
       <div className="admin-clean-section mt-8">
         <div className="mb-5">
           <h2 className="text-xl font-medium text-slate-950">Publisko maršrutu komentāri</h2>
+<<<<<<< ours
         </div>
         <div className="space-y-3">
+=======
+          <p className="mt-1 text-sm text-slate-500">Šeit varat dzēst komentārus no publiskajiem maršrutiem.</p>
+        </div>
+        <div className="space-y-3">
+          {routeComments.length === 0 && (
+            <p className="text-sm text-slate-500">Komentāri netika atrasti.</p>
+          )}
+>>>>>>> theirs
           {routeComments.map((comment) => (
             <div key={comment.id} className="rounded-lg border border-slate-200 bg-white p-4">
               <p className="text-sm text-slate-500">{comment.routeName} · {comment.userName}</p>
