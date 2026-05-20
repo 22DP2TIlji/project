@@ -167,7 +167,10 @@ export default function AdminDashboard() {
         return Number.isFinite(lastSeen) && lastSeen >= activeThreshold
       }).length
 
+<<<<<<< ours
 
+=======
+>>>>>>> theirs
       setStats({
         totalUsers: loadedUsers.length,
         activeUsers,

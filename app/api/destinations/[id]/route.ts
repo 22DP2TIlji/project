@@ -22,6 +22,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
       latitude: true,
       longitude: true,
       imageUrl: true,
+      updatedAt: true,
     },
   })
 
@@ -36,19 +37,22 @@ return NextResponse.json(
         ...destination,
         latitude: destination.latitude ? Number(destination.latitude) : null,
         longitude: destination.longitude ? Number(destination.longitude) : null,
-        image_url: normalizeImageUrl(destination.imageUrl, destination.id),
+        image_url: normalizeImageUrl(destination.imageUrl, destination.id, destination.updatedAt),
       },
     },
   { headers: { 'Cache-Control': 'no-store' } }
   )
 }
 
-function normalizeImageUrl(value: string | null, destinationId: number): string | null {
+function normalizeImageUrl(value: string | null, destinationId: number, updatedAt?: Date): string | null {
   if (!value) return null
   const raw = value.trim()
   if (!raw) return null
 
-  if (raw.startsWith("data:image/")) return `/api/destinations/${destinationId}/image`
+  if (raw.startsWith("data:image/")) {
+    const version = updatedAt ? `?v=${encodeURIComponent(updatedAt.toISOString())}` : ""
+    return `/api/destinations/${destinationId}/image${version}`
+  }
   if (raw.startsWith("//")) return `https:${raw}`
   if (raw.startsWith("http://")) return raw.replace("http://", "https://")
   return raw

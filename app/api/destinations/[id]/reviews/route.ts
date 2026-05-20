@@ -11,9 +11,9 @@ function getDestinationFilter(destinationId: number) {
 
 export async function GET(
   _: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params
+  const { id } = params
   const destinationId = Number(id)
 
   if (!Number.isFinite(destinationId)) {
@@ -38,9 +38,9 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params
+  const { id } = params
   const destinationId = Number(id)
 
   if (!Number.isFinite(destinationId)) {

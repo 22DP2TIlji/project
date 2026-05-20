@@ -107,6 +107,36 @@ export default function ProfilePage() {
   }, [user?.id, loadStatsAndSavedPlaces])
 
   useEffect(() => {
+    if (!user?.id || user.id === 'admin') return
+
+    let cancelled = false
+    const ping = async () => {
+      if (cancelled) return
+      try {
+        await fetch('/api/users/presence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id }),
+          keepalive: true,
+        })
+      } catch {}
+    }
+
+    ping()
+    const intervalId = window.setInterval(ping, 60000)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') ping()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [user?.id])
+
+  useEffect(() => {
     if (!mounted) return
     const load = async () => {
       if (user && user.id && user.id !== 'admin') {
@@ -259,7 +289,7 @@ export default function ProfilePage() {
 
       <section className="travel-section">
         <div className="container mx-auto px-4">
-          <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
             <div className="lg:col-span-1">
               <div className="profile-panel">
                 <h2 className="mb-6 text-2xl font-black text-slate-950">Konta informācija</h2>                <div className="mb-4">
@@ -319,7 +349,7 @@ export default function ProfilePage() {
   {loading ? (
     <p className="text-gray-600">Ielādē statistiku...</p>
   ) : stats ? (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
   <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4 shadow-sm backdrop-blur-sm min-h-[118px]">
     <div className="flex items-center gap-2">
       <MapPin className="h-4 w-4 shrink-0 text-blue-600" />
