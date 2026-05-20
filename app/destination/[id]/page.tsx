@@ -130,7 +130,7 @@ export default function DestinationPage() {
   const [submitting, setSubmitting] = useState(false)
   const [moreDestinations, setMoreDestinations] = useState<any[]>([])
   const [loadingMore, setLoadingMore] = useState(true)
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, isLoading } = useAuth()
 
   useEffect(() => {
     if (!id) {
@@ -191,7 +191,7 @@ const fetchDestination = async () => {
         setLoadingReviews(true)
         setReviewError(null)
 
-        const res = await fetch(`/api/destinations/${id}/reviews`)
+        const res = await fetch(`/api/destinations/${id}/reviews?t=${Date.now()}`, { cache: "no-store" })
         const data = await res.json().catch(() => ({}))
 
         if (res.ok && data.success) {
@@ -242,7 +242,7 @@ const fetchDestination = async () => {
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!id || !isAuthenticated || !user) return
+    if (!id || !user) return
     if (!newComment.trim()) return
     if (!isNumericDestination) return
 
@@ -400,7 +400,7 @@ const fetchDestination = async () => {
                 ) : (
                   <>
                 <div className="mb-8 p-5 rounded-md border border-gray-200 bg-gray-50/80">
-                  {isAuthenticated && user ? (
+                  {!isLoading && user ? (
                     <>
                       <h3 className="text-lg font-medium text-gray-900 mb-4">
                         Dalies ar savu pieredzi

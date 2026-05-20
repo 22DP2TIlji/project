@@ -19,7 +19,7 @@ interface AuthContextType {
   isAdmin: () => boolean
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>
   signup: (name: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>
-  logout: () => void
+  logout: () => Promise<void>
   saveDestination: (destinationId: number) => Promise<void>
   removeSavedDestination: (destinationId: number) => Promise<void>
   removeSavedItinerary: (itineraryId: string) => Promise<void>
@@ -136,7 +136,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    if (user?.id && user.id !== 'admin') {
+      try {
+        await fetch('/api/users/presence', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id }),
+          keepalive: true,
+        })
+      } catch {}
+    }
     setUser(null)
     localStorage.removeItem('user')
   }

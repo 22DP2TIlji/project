@@ -445,7 +445,7 @@ export default function ProfilePage() {
         <Link
           key={d.id}
           href={`/destination/${d.id}`}
-          className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm backdrop-blur-sm transition hover:bg-gray-50"
+          className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm backdrop-blur-sm transition hover:bg-gray-50"
         >
           <div>
             <p className="text-base font-black text-slate-950">{d.name}</p>
@@ -472,7 +472,7 @@ export default function ProfilePage() {
         <Link
           key={r.id}
           href={`/itinerary?route=${r.id}&openMap=1`}
-          className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm backdrop-blur-sm transition hover:bg-gray-50"
+          className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm backdrop-blur-sm transition hover:bg-gray-50"
         >
           <p className="text-base font-black text-slate-950">{r.name}</p>
           <span className="text-sm font-bold text-blue-600">Skatīt</span>
@@ -493,7 +493,7 @@ export default function ProfilePage() {
                     {savedPlaces.map((d) => (
                       <div
                         key={d.id}
-                        className="flex items-center gap-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50"
+                        className="flex flex-col items-start gap-3 sm:flex-row sm:items-center p-3 border border-gray-200 rounded-md hover:bg-gray-50"
                       >
                         <div className="relative w-12 h-12 rounded bg-gray-200 overflow-hidden shrink-0">
                           {d.image_url && (
@@ -514,7 +514,7 @@ export default function ProfilePage() {
                             <p className="text-sm text-gray-600 truncate">{d.description}</p>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                           <button
                             type="button"
                             onClick={() => toggleVisitedDestination(d)}
@@ -561,7 +561,7 @@ export default function ProfilePage() {
                     {savedItineraries.slice(0, 5).map((it: any) => (
                       <div
                         key={it.id}
-                        className="flex items-center justify-between gap-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50"
+                        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 border border-gray-200 rounded-md hover:bg-gray-50"
                       >
                         <Link href={`/itinerary?route=${it.id}&openMap=1`} className="flex-1 min-w-0">
                           <p className="font-medium text-gray-900">
