@@ -130,11 +130,7 @@ export default function DestinationPage() {
   const [submitting, setSubmitting] = useState(false)
   const [moreDestinations, setMoreDestinations] = useState<any[]>([])
   const [loadingMore, setLoadingMore] = useState(true)
-<<<<<<< ours
   const { user, isAuthenticated, isLoading } = useAuth()
-=======
-  const { user, isLoading } = useAuth()
->>>>>>> theirs
   const router = useRouter()
 
   useEffect(() => {
