@@ -45,7 +45,7 @@ export default function TripPlannerPage() {
   }
 
   const generate = async () => {
-    if (!isAuthenticated || !user || user.id === "admin") {
+    if (!user || user.id === "admin") {
       router.push("/login?message=" + encodeURIComponent("Lai veiktu šo darbību, vispirms pieslēdzieties."))
       return
     }
