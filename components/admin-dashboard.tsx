@@ -58,6 +58,7 @@ interface ReviewsResponse {
 interface PublicRoute {
   id: number
   name: string
+  description?: string | null
   isPublic: boolean
   userName: string
 }
@@ -158,10 +159,11 @@ export default function AdminDashboard() {
   const [reviewError, setReviewError] = useState('')
   const [publicRoutes, setPublicRoutes] = useState<PublicRoute[]>([])
   const [routeComments, setRouteComments] = useState<RouteComment[]>([])
-<<<<<<< ours
-=======
-  const [visibleDestinationsCount, setVisibleDestinationsCount] = useState(5)
->>>>>>> theirs
+  const [visibleDestinationsCount, setVisibleDestinationsCount] = useState(3)
+  const [editingPublicRoute, setEditingPublicRoute] = useState<PublicRoute | null>(null)
+  const [editingPublicRouteName, setEditingPublicRouteName] = useState('')
+  const [editingRouteCommentId, setEditingRouteCommentId] = useState<number | null>(null)
+  const [editingRouteCommentText, setEditingRouteCommentText] = useState('')
 
   const loadAdminData = async () => {
     try {
@@ -621,6 +623,42 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleStartEditPublicRoute = (route: PublicRoute) => {
+    setEditingPublicRoute(route)
+    setEditingPublicRouteName(route.name)
+  }
+
+  const handleSavePublicRoute = async () => {
+    if (!editingPublicRoute) return
+    const name = editingPublicRouteName.trim()
+    if (!name) {
+      alert('Maršruta nosaukums nedrīkst būt tukšs.')
+      return
+    }
+    try {
+      const res = await fetch(`/api/admin/public-routes/${editingPublicRoute.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        alert(data.message || 'Neizdevās atjaunināt maršrutu.')
+        return
+      }
+      setPublicRoutes((prev) => prev.map((route) => (route.id === editingPublicRoute.id ? { ...route, name } : route)))
+      setRouteComments((prev) =>
+        prev.map((comment) =>
+          comment.routeId === editingPublicRoute.id ? { ...comment, routeName: name } : comment
+        )
+      )
+      setEditingPublicRoute(null)
+      setEditingPublicRouteName('')
+    } catch {
+      alert('Neizdevās atjaunināt maršrutu.')
+    }
+  }
+
   const handleDeleteRouteComment = async (commentId: number) => {
     if (!confirm('Vai tiešām vēlaties dzēst šo komentāru?')) return
     try {
@@ -633,6 +671,36 @@ export default function AdminDashboard() {
       setRouteComments((prev) => prev.filter((comment) => comment.id !== commentId))
     } catch {
       alert('Neizdevās dzēst komentāru.')
+    }
+  }
+
+  const handleStartEditRouteComment = (comment: RouteComment) => {
+    setEditingRouteCommentId(comment.id)
+    setEditingRouteCommentText(comment.text)
+  }
+
+  const handleSaveRouteComment = async (commentId: number) => {
+    const text = editingRouteCommentText.trim()
+    if (!text) {
+      alert('Komentārs nedrīkst būt tukšs.')
+      return
+    }
+    try {
+      const res = await fetch(`/api/admin/route-comments/${commentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        alert(data.message || 'Neizdevās atjaunināt komentāru.')
+        return
+      }
+      setRouteComments((prev) => prev.map((comment) => (comment.id === commentId ? { ...comment, text } : comment)))
+      setEditingRouteCommentId(null)
+      setEditingRouteCommentText('')
+    } catch {
+      alert('Neizdevās atjaunināt komentāru.')
     }
   }
 
@@ -891,10 +959,10 @@ export default function AdminDashboard() {
             <div className="mt-4 flex justify-center">
               <button
                 type="button"
-                onClick={() => setVisibleDestinationsCount((prev) => prev + 5)}
+                onClick={() => setVisibleDestinationsCount(destinations.length)}
                 className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
-                Skatīt vēl 5 vietas
+                Skatīt talāk
               </button>
             </div>
           )}
@@ -1028,19 +1096,14 @@ export default function AdminDashboard() {
       <div className="admin-clean-section mt-8">
         <div className="mb-5">
           <h2 className="text-xl font-medium text-slate-950">Publisko maršrutu pārvaldība</h2>
-<<<<<<< ours
-        </div>
-        <div className="space-y-3">
-=======
           <p className="mt-1 text-sm text-slate-500">
-            Šeit varat ieslēgt/izslēgt publiskumu un dzēst maršrutus.
+            Šeit varat ieslēgt/izslēgt publiskumu, rediģēt un dzēst maršrutus.
           </p>
         </div>
         <div className="space-y-3">
           {publicRoutes.length === 0 && (
             <p className="text-sm text-slate-500">Maršruti netika atrasti.</p>
           )}
->>>>>>> theirs
           {publicRoutes.map((route) => (
             <div key={route.id} className="rounded-lg border border-slate-200 bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1061,6 +1124,9 @@ export default function AdminDashboard() {
                   <button onClick={() => handleDeletePublicRoute(route.id)} className="text-sm text-red-600 hover:text-red-700">
                     Dzēst maršrutu
                   </button>
+                  <button onClick={() => handleStartEditPublicRoute(route)} className="text-sm text-blue-600 hover:text-blue-700">
+                    Labot maršrutu
+                  </button>
                 </div>
               </div>
             </div>
@@ -1071,21 +1137,34 @@ export default function AdminDashboard() {
       <div className="admin-clean-section mt-8">
         <div className="mb-5">
           <h2 className="text-xl font-medium text-slate-950">Publisko maršrutu komentāri</h2>
-<<<<<<< ours
-        </div>
-        <div className="space-y-3">
-=======
-          <p className="mt-1 text-sm text-slate-500">Šeit varat dzēst komentārus no publiskajiem maršrutiem.</p>
+          <p className="mt-1 text-sm text-slate-500">Šeit varat rediģēt un dzēst komentārus no publiskajiem maršrutiem.</p>
         </div>
         <div className="space-y-3">
           {routeComments.length === 0 && (
             <p className="text-sm text-slate-500">Komentāri netika atrasti.</p>
           )}
->>>>>>> theirs
           {routeComments.map((comment) => (
             <div key={comment.id} className="rounded-lg border border-slate-200 bg-white p-4">
               <p className="text-sm text-slate-500">{comment.routeName} · {comment.userName}</p>
-              <p className="mt-1 text-slate-900">{comment.text}</p>
+              {editingRouteCommentId === comment.id ? (
+                <textarea
+                  value={editingRouteCommentText}
+                  onChange={(e) => setEditingRouteCommentText(e.target.value)}
+                  className="mt-1 w-full rounded border border-slate-300 p-2 text-slate-900"
+                />
+              ) : (
+                <p className="mt-1 text-slate-900">{comment.text}</p>
+              )}
+              {editingRouteCommentId === comment.id ? (
+                <div className="mt-2 flex gap-3">
+                  <button onClick={() => handleSaveRouteComment(comment.id)} className="text-sm text-blue-600 hover:text-blue-700">Saglabāt</button>
+                  <button onClick={() => setEditingRouteCommentId(null)} className="text-sm text-slate-600 hover:text-slate-700">Atcelt</button>
+                </div>
+              ) : (
+                <button onClick={() => handleStartEditRouteComment(comment)} className="mt-2 mr-4 text-sm text-blue-600 hover:text-blue-700">
+                  Labot komentāru
+                </button>
+              )}
               <button onClick={() => handleDeleteRouteComment(comment.id)} className="mt-2 text-sm text-red-600 hover:text-red-700">
                 Dzēst komentāru
               </button>
@@ -1093,6 +1172,24 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
+
+      {editingPublicRoute && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-[9999]">
+          <div className="bg-[#ffffff] rounded-lg p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-medium text-gray-900 mb-4">Labot maršrutu</h3>
+            <input
+              type="text"
+              value={editingPublicRouteName}
+              onChange={(e) => setEditingPublicRouteName(e.target.value)}
+              className="w-full p-2 border rounded bg-white border-gray-300 text-gray-900"
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setEditingPublicRoute(null)} className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">Atcelt</button>
+              <button onClick={handleSavePublicRoute} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded">Saglabāt</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {editingDestination && (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-[9999]">

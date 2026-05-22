@@ -11,6 +11,11 @@ export const CATEGORY_OPTIONS: CategoryOption[] = [
   { value: 'palace', label: 'Pils/Muiža', aliases: ['palace', 'castle', 'pils', 'pilis', 'muiža', 'muiza', 'pils/muiža', 'pils/muiza'] },
   { value: 'park', label: 'Parks', aliases: ['park', 'parks', 'parki'] },
   { value: 'viewing_tower', label: 'Skatu tornis', aliases: ['viewing_tower', 'viewing tower', 'skatu tornis', 'skatu torņi', 'skatu torni'] },
+  { value: 'museum', label: 'Muzejs', aliases: ['museum', 'muzejs', 'muzeji'] },
+  { value: 'old_town', label: 'Vecpilsēta', aliases: ['old_town', 'old town', 'vecpilseta', 'vecpilsēta'] },
+  { value: 'lake', label: 'Ezers', aliases: ['lake', 'ezers', 'ezeri'] },
+  { value: 'forest', label: 'Mežs', aliases: ['forest', 'mežs', 'mezs'] },
+  { value: 'trail', label: 'Taka', aliases: ['trail', 'hiking trail', 'taka'] },
 ]
 
 function normalizeCategoryValue(value: string | null | undefined): string {
