@@ -955,8 +955,8 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
-          {destinations.length > visibleDestinationsCount && (
-            <div className="mt-4 flex justify-center">
+           <div className="mt-4 flex justify-center gap-3">
+            {destinations.length > visibleDestinationsCount && (
               <button
                 type="button"
                 onClick={() => setVisibleDestinationsCount(destinations.length)}
@@ -964,8 +964,18 @@ export default function AdminDashboard() {
               >
                 Skatīt talāk
               </button>
-            </div>
-          )}
+            )}
+
+            {visibleDestinationsCount > 3 && (
+              <button
+                type="button"
+                onClick={() => setVisibleDestinationsCount(3)}
+                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Aizvērt sarakstu
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1204,21 +1214,16 @@ export default function AdminDashboard() {
             Nosaukums
           </label>
 
-          <select
+          <input
+            type="text"
+            placeholder="Galamērķa nosaukums"
             value={editForm.name}
             onChange={(e) =>
               setEditForm({ ...editForm, name: e.target.value })
             }
             className="w-full p-2 border rounded bg-white border-gray-300 text-gray-900"
             required
-          >
-            <option value="">Nav izvēlēta</option>
-            {CATEGORY_OPTIONS.map((categoryOption) => (
-              <option key={categoryOption.value} value={categoryOption.value}>
-                {categoryOption.label}
-              </option>
-            ))}
-          </select>
+          />
         </div>
 
         <div>
@@ -1244,8 +1249,7 @@ export default function AdminDashboard() {
             Kategorija
           </label>
 
-          <input
-            type="text"
+          <select
             value={editForm.category}
             onChange={(e) =>
               setEditForm({
@@ -1254,7 +1258,14 @@ export default function AdminDashboard() {
               })
             }
             className="w-full p-2 border rounded bg-white border-gray-300 text-gray-900"
-          />
+          >
+            <option value="">Nav izvēlēta</option>
+            {CATEGORY_OPTIONS.map((categoryOption) => (
+              <option key={categoryOption.value} value={categoryOption.value}>
+                {categoryOption.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
