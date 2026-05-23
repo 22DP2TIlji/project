@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import { getCategoryLabel } from '@/lib/category-utils'
+import { CATEGORY_OPTIONS, getCategoryLabel } from '@/lib/category-utils'
 
 interface UserStats {
   totalUsers: number
@@ -1204,15 +1204,21 @@ export default function AdminDashboard() {
             Nosaukums
           </label>
 
-          <input
-            type="text"
+          <select
             value={editForm.name}
             onChange={(e) =>
               setEditForm({ ...editForm, name: e.target.value })
             }
             className="w-full p-2 border rounded bg-white border-gray-300 text-gray-900"
             required
-          />
+          >
+            <option value="">Nav izvēlēta</option>
+            {CATEGORY_OPTIONS.map((categoryOption) => (
+              <option key={categoryOption.value} value={categoryOption.value}>
+                {categoryOption.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
