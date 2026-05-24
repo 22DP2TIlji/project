@@ -171,8 +171,8 @@ export default function AdminDashboard() {
         fetch('/api/admin/users'),
         fetch('/api/destinations'),
         fetch('/api/admin/reviews'),
-        fetch('/api/admin/public-routes'),
-        fetch('/api/admin/route-comments'),
+        fetch('/api/admin/public-routes', { cache: 'no-store' }),
+        fetch('/api/admin/route-comments', { cache: 'no-store' }),
       ])
 
       const usersData = (await usersRes.json()) as AdminUsersResponse
