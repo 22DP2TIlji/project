@@ -21,6 +21,10 @@ export async function GET(request: NextRequest) {
       where: { userId: userIdNum },
     })
 
+    const visitedDestinationsCount = await prisma.userVisitedDestination.count({
+      where: { userId: userIdNum },
+    })
+
     // Количество созданных маршрутов
     const routesCount = await prisma.route.count({
       where: { userId: userIdNum },
@@ -118,6 +122,7 @@ export async function GET(request: NextRequest) {
         categoryBreakdown: categoryCounts,
         regionBreakdown: regionCounts,
         citiesVisited: cities.size,
+        visitedDestinations: visitedDestinationsCount,
         totalKm: Math.round(totalKm * 10) / 10,
         totalSpent: Math.round(totalSpent * 100) / 100,
       },

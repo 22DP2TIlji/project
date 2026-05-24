@@ -408,12 +408,12 @@ export default function ProfilePage() {
       <div className="flex items-center gap-2">
         <MapPin className="h-4 w-4 shrink-0 text-orange-600" />
         <span className="text-sm font-medium leading-snug text-slate-600">
-          Apmeklētās pilsētas
+          Apmeklētās vietas
         </span>
       </div>
 
       <p className="mt-6 text-2xl font-black text-orange-700">
-        {stats.citiesVisited}
+        {typeof stats.visitedDestinations === 'number' ? stats.visitedDestinations : visitedDestinations.length}
       </p>
     </div>
   )}
