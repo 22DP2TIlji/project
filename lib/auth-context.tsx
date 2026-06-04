@@ -40,7 +40,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const storedUser = localStorage.getItem('user')
         if (storedUser) {
           const userData = JSON.parse(storedUser) as Lietotajs
-          setUser(userData)
+          const clearStoredUser = () => {
+            localStorage.removeItem('user')
+            localStorage.removeItem('likedDestinations')
+            localStorage.removeItem('savedItineraries')
+            setUser(null)
+          }
+
+          if (!userData?.id) {
+            clearStoredUser()
+            return
+          }
           try {
             const response = await fetch('/api/auth/me', {
               method: 'POST',
@@ -55,18 +65,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.setItem('user', JSON.stringify(result.user))
                 return
               }
-              localStorage.removeItem('user')
-              localStorage.removeItem('likedDestinations')
-              localStorage.removeItem('savedItineraries')
-              setUser(null)
+              clearStoredUser()
               return
             }
+
+            if (response.status >= 500) {
+              setUser(userData)
+              return
+            }
+            clearStoredUser()
+            return
           } catch {
             // Tīkla kļūda: izmantojam saglabāto lietotāju, lai administratora panelis varētu ielādēties
             setUser(userData)
             return
           }
-          setUser(userData)
         }
       } catch (error) {
         console.error('Kļūda ielādējot lietotāju:', error)

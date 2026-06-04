@@ -46,10 +46,12 @@ export default function TripPlannerPage() {
   }
 
   const generate = async () => {
-    if (!user || user.id === "admin") {
+    if (!isAuthenticated || !user?.id || user?.id === "admin") {
       router.push("/login?message=" + encodeURIComponent("Lai veiktu šo darbību, vispirms pieslēdzieties."))
       return
     }
+
+    const userId = user.id
 
     setLoading(true)
     setTrip(null)
@@ -59,7 +61,7 @@ export default function TripPlannerPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user.id,
+          userId,
           days,
           interests: interests.length ? interests : undefined,
           budget: budget ? parseFloat(budget) : undefined,
@@ -204,7 +206,7 @@ export default function TripPlannerPage() {
               </div>
               <button
                 onClick={generate}
-                disabled={loading || isLoading || !user || user.id === "admin"}
+                disabled={loading || isLoading || !isAuthenticated || !user || user.id === "admin"}
                 className="px-6 py-3 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
               >
                 {loading ? (
