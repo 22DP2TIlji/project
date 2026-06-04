@@ -27,7 +27,7 @@ const CATEGORIES = [
 ]
 
 export default function TripPlannerPage() {
-  const { user, isLoading } = useAuth()
+  const { user, isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
   const [days, setDays] = useState(2)
   const [interests, setInterests] = useState<string[]>([])
@@ -37,6 +37,7 @@ export default function TripPlannerPage() {
   const [trip, setTrip] = useState<any>(null)
   const [tripNotice, setTripNotice] = useState('')
   const [saving, setSaving] = useState(false)
+  const tripDays = Array.isArray(trip?.tripDays) ? trip.tripDays : []
 
   const toggleInterest = (id: string) => {
     setInterests((prev) =>
@@ -240,13 +241,13 @@ export default function TripPlannerPage() {
                 )}
               </div>
               <div className="space-y-6">
-                {trip.tripDays.map((day: any) => (
+                {tripDays.map((day: any) => (
                   <div key={day.dayNumber} className="border-l-2 border-blue-200 pl-4">
                     <h3 className="font-medium text-gray-800 mb-2">
                       Diena {day.dayNumber}
                     </h3>
                     <ul className="space-y-1">
-                      {day.places.map((p: any, i: number) => (
+                      {(Array.isArray(day.places) ? day.places : []).map((p: any, i: number) => (
                         <li key={p.id || i} className="flex items-start gap-2">
                           <Heart className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                           <div>
