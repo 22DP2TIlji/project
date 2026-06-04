@@ -4,6 +4,27 @@ export type CategoryOption = {
   aliases: string[]
 }
 
+export const MAIN_CATEGORY_OPTIONS: CategoryOption[] = [
+  {
+    value: 'nature',
+    label: 'Daba',
+    aliases: ['nature', 'daba', 'lake', 'ezers', 'ezeri', 'forest', 'mežs', 'mezs', 'trail', 'hiking trail', 'taka'],
+  },
+  {
+    value: 'castle',
+    label: 'Pilis',
+    aliases: ['castle', 'palace', 'pils', 'pilis', 'muiža', 'muiza', 'pils/muiža', 'pils/muiza'],
+  },
+  { value: 'park', label: 'Parki', aliases: ['park', 'parks', 'parki'] },
+  { value: 'beach', label: 'Pludmales', aliases: ['beach', 'pludmale', 'pludmales'] },
+  {
+    value: 'city',
+    label: 'Pilsēta',
+    aliases: ['city', 'pilsēta', 'pilseta', 'pilsētas', 'pilsetas', 'museum', 'muzejs', 'muzeji', 'old_town', 'old town', 'vecpilseta', 'vecpilsēta'],
+  },
+  { value: 'viewing_tower', label: 'Skatu torņi', aliases: ['viewing_tower', 'viewing tower', 'skatu tornis', 'skatu torņi', 'skatu torni'] },
+]
+
 export const CATEGORY_OPTIONS: CategoryOption[] = [
   { value: 'city', label: 'Pilsēta', aliases: ['city', 'pilsēta', 'pilseta', 'pilsētas', 'pilsetas'] },
   { value: 'nature', label: 'Daba', aliases: ['nature', 'daba'] },
@@ -26,14 +47,23 @@ function normalizeCategoryValue(value: string | null | undefined): string {
     .replace(/\s+/g, ' ')
 }
 
+function optionMatchesValue(option: CategoryOption, value: string): boolean {
+  return normalizeCategoryValue(option.value) === value ||
+    option.aliases.some((alias) => normalizeCategoryValue(alias) === value)
+}
+
 export function getCategoryLabel(value: string | null | undefined): string {
   const normalized = normalizeCategoryValue(value)
-  const option = CATEGORY_OPTIONS.find((category) =>
-    category.aliases.some((alias) => normalizeCategoryValue(alias) === normalized) ||
-    normalizeCategoryValue(category.value) === normalized
-  )
+   const option = CATEGORY_OPTIONS.find((category) => optionMatchesValue(category, normalized))
 
   return option?.label ?? value ?? ''
+}
+
+export function getMainCategoryLabel(value: string | null | undefined): string {
+  const normalized = normalizeCategoryValue(value)
+  const option = MAIN_CATEGORY_OPTIONS.find((category) => optionMatchesValue(category, normalized))
+
+  return option?.label ?? getCategoryLabel(value)
 }
 
 export function categoryMatches(storedCategory: string | null | undefined, selectedCategory: string | null | undefined): boolean {
@@ -44,10 +74,7 @@ export function categoryMatches(storedCategory: string | null | undefined, selec
   if (!stored) return false
   if (stored === selected) return true
 
-  const option = CATEGORY_OPTIONS.find((category) =>
-    normalizeCategoryValue(category.value) === selected ||
-    category.aliases.some((alias) => normalizeCategoryValue(alias) === selected)
-  )
+  const option = [...MAIN_CATEGORY_OPTIONS, ...CATEGORY_OPTIONS].find((category) => optionMatchesValue(category, selected))
 
   if (!option) return false
 
