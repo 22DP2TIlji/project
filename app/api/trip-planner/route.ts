@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
-import { getUserFromId } from '@/lib/auth-utils'
 import { categoryMatches } from '@/lib/category-utils'
 
 // Центры городов Латвии (lat, lng)
@@ -96,16 +94,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const user = await getUserFromId(userId)
-    if (!user?.id || user.id === 'admin') {
-      return NextResponse.json(
-        { success: false, message: 'Lūdzu, piesakieties vai reģistrējieties, lai veidotu ceļojumu.' },
-        { status: 401 }
-      )
-    }
-
     const center = CITY_CENTERS[startCity.toLowerCase()] ?? CITY_CENTERS.riga
     const [startLat, startLng] = center
+
+    const { default: prisma } = await import('@/lib/prisma')
 
     const targetCount = Math.min(
       days * PLACES_PER_DAY,
