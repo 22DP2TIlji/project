@@ -35,4 +35,4 @@ yarn-error.log*
 scripts/image-missing.json
 # local uploaded destination images
 /public/uploads/destinations/*
-!/public/uploads/destinations/.gitkeep
+!/public/uploads/destinations/.gitkeep.env
